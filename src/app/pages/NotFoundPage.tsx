@@ -21,7 +21,7 @@ export default function NotFoundPage() {
               Go Home
             </Button>
           </Link>
-          <Link to="/courses">
+          <Link to="/marketplace">
             <Button variant="outline" className="border-[#308279] text-[#308279] hover:bg-[#308279]/10">
               <Search className="w-4 h-4 mr-2" />
               Browse Courses

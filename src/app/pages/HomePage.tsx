@@ -1,12 +1,12 @@
 import { Link } from "react-router";
-import { Users, BookCheck, Eye, Star, ArrowRight, FileText, Video, TrendingUp, Zap, Award, Target, Clock } from "lucide-react";
+import { Eye, Star, ArrowRight, TrendingUp, Clock, Target, CheckCircle2, Video } from "lucide-react";
 import { Button } from "../components/ui/button";
-import { Card } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import promoImage from "figma:asset/ee6e081d69dcaafcb5871385542c2cbef29a8c23.png";
+import { motion, useScroll, useTransform, Variants } from "motion/react";
+import { useState } from "react";
 
 export default function HomePage() {
   const courses = [
@@ -20,21 +20,19 @@ export default function HomePage() {
       reviews: 234,
       students: 450,
       tutor: "Raka Pratama",
-      liveSessions: 12,
-      materials: 15,
+      image: "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
     },
     {
       id: 2,
-      title: "Business Strategy & Management",
-      major: "Business Administration",
+      title: "Business Strategy",
+      major: "Business Admin",
       price: "Rp 140.000",
       priceLabel: "/month",
       rating: 4.8,
       reviews: 189,
       students: 320,
       tutor: "Siti Nurhaliza",
-      liveSessions: 10,
-      materials: 12,
+      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
     },
     {
       id: 3,
@@ -46,12 +44,11 @@ export default function HomePage() {
       reviews: 156,
       students: 280,
       tutor: "Budi Santoso",
-      liveSessions: 8,
-      materials: 10,
+      image: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
     },
     {
       id: 4,
-      title: "Digital Marketing Mastery",
+      title: "Digital Marketing",
       major: "Marketing",
       price: "Rp 145.000",
       priceLabel: "/month",
@@ -59,10 +56,16 @@ export default function HomePage() {
       reviews: 201,
       students: 380,
       tutor: "Lisa Amanda",
-      liveSessions: 10,
-      materials: 14,
+      image: "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
     },
   ];
+
+  const categories = ["All", "Computer Science", "Business Admin", "Accounting", "Marketing"];
+  const [activeCategory, setActiveCategory] = useState("All");
+
+  const filteredCourses = activeCategory === "All"
+    ? courses
+    : courses.filter(course => course.major === activeCategory);
 
   const topTutors = [
     {
@@ -73,15 +76,19 @@ export default function HomePage() {
       courses: 12,
       students: 450,
       rating: 4.9,
+      description: "Specializing in advanced data structures and competitive programming, Raka breaks down complex algorithms into easily digestible logic flows.",
+      image: "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
     },
     {
       id: 2,
       name: "Siti Nurhaliza",
-      major: "Business Administration",
+      major: "Business Admin",
       gpa: "3.87",
       courses: 8,
       students: 320,
       rating: 4.8,
+      description: "With a focus on real-world case studies, Siti brings corporate strategy to life. Her classes often involve interactive business simulations.",
+      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
     },
     {
       id: 3,
@@ -91,464 +98,482 @@ export default function HomePage() {
       courses: 10,
       students: 380,
       rating: 4.9,
+      description: "Budi has a talent for demystifying balance sheets and cash flow statements, ensuring his students are perfectly prepared for finals.",
+      image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
     },
   ];
 
+  const { scrollYProgress } = useScroll();
+  const y1 = useTransform(scrollYProgress, [0, 1], [0, 300]);
+
+  const fadeUpVariants: Variants = {
+    hidden: { opacity: 0, y: 40 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", bounce: 0.4, duration: 1 } },
+  };
+
+  const staggerContainer: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.15 },
+    },
+  };
+
+  const heroStats = [
+    { value: "2,500+", label: "Mahasiswa Aktif" },
+    { value: "150+", label: "Tutor Terverifikasi" },
+    { value: "500+", label: "Materi Premium" },
+  ];
+
+  const heroImage =
+    "https://www.figma.com/api/mcp/asset/d62191c8-7d46-41e8-8d68-545086956c3e";
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#F3F8FA] overflow-hidden selection:bg-[#308279] selection:text-white font-sans">
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#F3F8FA] via-white to-[#F3F8FA] pt-20 pb-32">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <div className="space-y-8">
-              <Badge className="bg-[#308279]/10 text-[#308279] hover:bg-[#308279]/20 border-0">
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#F3F8FA] via-white to-[#F3F8FA]">
+        <div
+          className="absolute inset-0 opacity-[0.05] pointer-events-none"
+          style={{
+            backgroundImage:
+              "linear-gradient(90deg, rgba(146, 183, 176, 0.1) 0%, rgba(0, 0, 0, 0) 0%), linear-gradient(180deg, rgba(146, 183, 176, 0.1) 0.12422%, rgba(0, 0, 0, 0) 0.12422%)",
+          }}
+        />
+        <div className="absolute inset-y-0 right-0 w-[55%] pointer-events-none">
+          <div className="absolute left-1/2 top-1/2 h-[26rem] w-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#308279]/20 to-[#92B7B0]/20 blur-[72px]" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+          <div className="grid items-center gap-14 pb-20 pt-14 lg:grid-cols-[minmax(0,584px)_minmax(0,584px)] lg:justify-between lg:min-h-[calc(100vh-80px)] lg:pt-20">
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+              className="flex flex-col items-start text-left"
+            >
+              <motion.span
+                variants={fadeUpVariants}
+                className="inline-flex items-center justify-center rounded-full bg-[#308279]/10 px-3 py-1 text-xs font-medium text-[#308279]"
+              >
                 Platform Belajar Peer-to-Peer BINUS
-              </Badge>
-              <h1 className="text-5xl lg:text-6xl font-bold text-[#0A1B45] leading-tight">
-                Belajar Bareng, <br />
-                <span className="text-[#308279]">Sukses Bareng</span> <br />
+              </motion.span>
+
+              <motion.h1
+                variants={fadeUpVariants}
+                className="mt-7 max-w-[10ch] text-5xl font-bold leading-[1.08] tracking-[-0.04em] text-[#0A1B45] sm:text-6xl lg:text-[4.75rem]"
+              >
+                Belajar Bareng,
+                <br />
+                <span className="text-[#0A8F89]">Sukses Bareng</span>
+                <br />
                 di BINUS.
-              </h1>
-              <p className="text-lg text-[#476074] max-w-xl">
-                Platform belajar inklusif dimana kamu bisa jadi murid atau tutor. Akses ribuan materi, video pembelajaran, dan cheat notes dari sesama mahasiswa BINUS.
-              </p>
-              
-              {/* CTAs */}
-              <div className="flex flex-wrap gap-4">
-                <Link to="/marketplace">
-                  <Button size="lg" className="bg-[#308279] hover:bg-[#308279]/90 text-white h-12 px-8">
+              </motion.h1>
+
+              <motion.p
+                variants={fadeUpVariants}
+                className="mt-8 max-w-[34rem] text-lg leading-[1.56] text-[#476074]"
+              >
+                Platform belajar inklusif dimana kamu bisa jadi murid atau tutor.
+                Akses ribuan materi, video pembelajaran, dan cheat notes dari
+                sesama mahasiswa BINUS.
+              </motion.p>
+
+              <motion.div
+                variants={fadeUpVariants}
+                className="mt-9 flex w-full flex-col items-stretch gap-3 sm:w-auto sm:flex-row sm:items-center"
+              >
+                <Link to="/marketplace" className="w-full sm:w-auto">
+                  <Button className="h-12 w-full rounded-[10px] bg-[#308279] px-6 text-sm font-medium text-white shadow-none transition-colors duration-300 hover:bg-[#267068] sm:w-auto">
                     Cari Materi
-                    <ArrowRight className="ml-2 w-5 h-5" />
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
-                <Link to="/tutor-dashboard">
-                  <Button 
-                    size="lg" 
-                    variant="outline" 
-                    className="border-2 border-[#308279] text-[#308279] hover:bg-[#308279]/10 h-12 px-8"
+                <Link to="/tutor-dashboard" className="w-full sm:w-auto">
+                  <Button
+                    variant="outline"
+                    className="h-12 w-full rounded-[10px] border-2 border-[#308279] bg-[#F3F8FA] px-6 text-sm font-medium text-[#308279] shadow-none transition-colors duration-300 hover:bg-[#E8F3F1] hover:text-[#267068] sm:w-auto"
                   >
                     Daftar Jadi Tutor
                   </Button>
                 </Link>
-              </div>
+              </motion.div>
 
-              {/* Stats */}
-              <div className="flex flex-wrap gap-8 pt-8">
-                <div>
-                  <div className="text-3xl font-bold text-[#0A1B45]">2,500+</div>
-                  <div className="text-sm text-[#476074]">Mahasiswa Aktif</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-[#0A1B45]">150+</div>
-                  <div className="text-sm text-[#476074]">Tutor Terverifikasi</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-[#0A1B45]">500+</div>
-                  <div className="text-sm text-[#476074]">Materi Premium</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Image */}
-            <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-r from-[#308279]/20 to-[#92B7B0]/20 rounded-3xl blur-3xl"></div>
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border-8 border-white">
-                <ImageWithFallback
-                  src="https://images.unsplash.com/photo-1758270705641-acf09b68a91f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkaXZlcnNlJTIwdW5pdmVyc2l0eSUyMHN0dWRlbnRzJTIwc3R1ZHlpbmclMjB0b2dldGhlciUyMGNhbXB1c3xlbnwxfHx8fDE3NzExNzczNjd8MA&ixlib=rb-4.1.0&q=80&w=1080"
-                  alt="Students studying together"
-                  className="w-full h-[500px] object-cover"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Apple-like Grid Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <Badge className="bg-[#308279]/10 text-[#308279] hover:bg-[#308279]/20 border-0 mb-4">
-              Why Choose Us
-            </Badge>
-            <h2 className="text-4xl font-bold text-[#0A1B45] mb-4">
-              All-Powered Learning Path
-            </h2>
-            <p className="text-lg text-[#476074] max-w-2xl mx-auto">
-              Everything you need to succeed in your academic journey
-            </p>
-          </div>
-
-          {/* Bento Grid Layout */}
-          <div className="grid grid-cols-12 gap-4 auto-rows-[200px]">
-            {/* Large Card - AI Powered Learning */}
-            <Card className="col-span-12 md:col-span-5 row-span-2 overflow-hidden group hover:shadow-2xl transition-all border-2 hover:border-[#308279] relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#F3F8FA] to-white p-6 flex flex-col justify-between">
-                <div>
-                  <Badge className="bg-[#308279]/10 text-[#308279] border-0 mb-3">
-                    Powered by AI
-                  </Badge>
-                  <h3 className="text-2xl font-bold text-[#0A1B45] mb-2">
-                    AI-Powered Learning Path
-                  </h3>
-                  <p className="text-[#476074] text-sm">
-                    Adaptive learning algorithms that personalize your study experience based on your progress and learning style.
-                  </p>
-                </div>
-                <div className="mt-auto">
-                  <img 
-                    src={promoImage} 
-                    alt="Learning environment" 
-                    className="w-full h-32 object-cover rounded-lg"
-                  />
-                </div>
-              </div>
-            </Card>
-
-            {/* Medium Card - 70% Discount */}
-            <Card className="col-span-12 md:col-span-4 row-span-1 overflow-hidden bg-gradient-to-br from-[#0A1B45] to-[#308279] text-white group hover:shadow-2xl transition-all relative">
-              <div className="p-6 h-full flex flex-col justify-between">
-                <div>
-                  <Badge className="bg-white/20 text-white border-0 mb-2 backdrop-blur-sm">
-                    Limited Time
-                  </Badge>
-                  <div className="text-6xl font-bold mb-2">70%</div>
-                  <p className="text-white/90 text-sm">Off on annual subscriptions</p>
-                </div>
-                <Link to="/marketplace" className="self-start">
-                  <Button variant="outline" className="bg-white text-[#0A1B45] hover:bg-white/90 border-0">
-                    Claim Deal
-                  </Button>
-                </Link>
-              </div>
-            </Card>
-
-            {/* Medium Card - Collaborative Learning */}
-            <Card className="col-span-12 md:col-span-3 row-span-1 overflow-hidden group hover:shadow-2xl transition-all border-2 hover:border-[#308279]">
-              <div className="p-6 h-full flex flex-col justify-between bg-gradient-to-br from-[#F3F8FA] to-white">
-                <div>
-                  <Zap className="w-8 h-8 text-[#308279] mb-2" />
-                  <h3 className="font-bold text-[#0A1B45] mb-1">
-                    Collaborative Learning Environment
-                  </h3>
-                  <p className="text-xs text-[#476074]">
-                    Study groups and peer discussions
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Small Card - 40% Off */}
-            <Card className="col-span-6 md:col-span-3 row-span-1 overflow-hidden bg-gradient-to-br from-[#92B7B0] to-[#308279] text-white group hover:shadow-2xl transition-all">
-              <div className="p-6 h-full flex flex-col justify-center items-center text-center">
-                <div className="text-5xl font-bold mb-1">40%</div>
-                <p className="text-white/90 text-xs">Off first month</p>
-              </div>
-            </Card>
-
-            {/* Small Card - 80% Success Rate */}
-            <Card className="col-span-6 md:col-span-3 row-span-1 overflow-hidden bg-gradient-to-br from-[#0A1B45] to-[#476074] text-white group hover:shadow-2xl transition-all">
-              <div className="p-6 h-full flex flex-col justify-center items-center text-center">
-                <div className="text-5xl font-bold mb-1">80%</div>
-                <p className="text-white/90 text-xs">Success rate improvement</p>
-              </div>
-            </Card>
-
-            {/* Medium Card - Analytics */}
-            <Card className="col-span-12 md:col-span-3 row-span-1 overflow-hidden group hover:shadow-2xl transition-all border-2 hover:border-[#308279]">
-              <div className="p-6 h-full flex flex-col justify-between bg-gradient-to-br from-[#F3F8FA] to-white">
-                <div>
-                  <Target className="w-8 h-8 text-[#308279] mb-2" />
-                  <h3 className="font-bold text-[#0A1B45] mb-1">
-                    Actionable Analytics & Insights
-                  </h3>
-                  <p className="text-xs text-[#476074]">
-                    Track your progress in real-time
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Large Card - Image */}
-            <Card className="col-span-12 md:col-span-3 row-span-2 overflow-hidden group hover:shadow-2xl transition-all border-0">
-              <div className="relative h-full">
-                <ImageWithFallback
-                  src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=600"
-                  alt="Students collaborating"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
-                  <div className="p-6 text-white">
-                    <h3 className="font-bold mb-1">Real-time Collaboration</h3>
-                    <p className="text-sm text-white/90">Connect with peers instantly</p>
+              <motion.div
+                variants={fadeUpVariants}
+                className="mt-14 grid w-full max-w-[25rem] grid-cols-3 gap-6 border-t border-transparent pt-1"
+              >
+                {heroStats.map((stat) => (
+                  <div key={stat.label}>
+                    <div className="text-[2.05rem] font-bold leading-none tracking-[-0.04em] text-[#0A1B45]">
+                      {stat.value}
+                    </div>
+                    <div className="mt-1 text-sm leading-5 text-[#476074]">
+                      {stat.label}
+                    </div>
                   </div>
+                ))}
+              </motion.div>
+            </motion.div>
+
+            <motion.div
+              className="relative mx-auto w-full max-w-[36.5rem]"
+              initial={{ opacity: 0, scale: 0.97, x: 28 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              transition={{ duration: 0.9, type: "spring", bounce: 0.18 }}
+            >
+              <div className="rounded-2xl border-8 border-white bg-transparent p-2 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
+                <img
+                  src={heroImage}
+                  alt="Mahasiswa BINUS belajar bersama"
+                  className="h-[20rem] w-full rounded-xl object-cover sm:h-[26rem] lg:h-[31.25rem]"
+                />
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature Bento Grid */}
+      <section className="py-24 bg-white relative z-20 rounded-t-[3rem] shadow-[0_-20px_40px_rgba(0,0,0,0.02)] border-t border-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+            className="text-center max-w-3xl mx-auto mb-20"
+          >
+            <motion.h2 variants={fadeUpVariants} className="text-4xl md:text-5xl font-bold text-[#0A1B45] tracking-tight mb-6">
+              A smarter way to study
+            </motion.h2>
+            <motion.p variants={fadeUpVariants} className="text-lg text-[#476074]">
+              Everything you need to excel in your classes, meticulously designed into an intuitive, seamless learning ecosystem.
+            </motion.p>
+          </motion.div>
+
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[280px]"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+          >
+            {/* Big Feature: Interactive Live Classes */}
+            <motion.div variants={fadeUpVariants} className="col-span-1 md:col-span-8 row-span-2 rounded-[2rem] bg-gradient-to-br from-[#0A1B45] via-[#1a3a6b] to-[#308279] text-white p-10 flex flex-col justify-between overflow-hidden relative group hover:shadow-2xl hover:shadow-[#0A1B45]/20 transition-all duration-700">
+              <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1510519138101-570d1dca3d66?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080')] bg-cover bg-center mix-blend-overlay opacity-20 group-hover:opacity-30 transition-opacity duration-700"></div>
+
+              <div className="relative z-10 max-w-xl self-end text-right">
+                <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-white/20 ml-auto group-hover:scale-110 transition-transform duration-500">
+                  <Video className="w-8 h-8 text-white" />
                 </div>
+                <h3 className="text-4xl font-bold tracking-tight mb-4 group-hover:text-[#92B7B0] transition-colors duration-500">Immersive Live Sessions</h3>
+                <p className="text-white/80 leading-relaxed text-lg font-light">
+                  Join HD video rooms engineered for pure academic focus. Share screens, collaborate on digital whiteboards, and engage with peers directly inside the browser. No external apps needed, just pure collaboration.
+                </p>
               </div>
-            </Card>
 
-            {/* Medium Card - 75% Productivity */}
-            <Card className="col-span-12 md:col-span-4 row-span-1 overflow-hidden group hover:shadow-2xl transition-all border-2 hover:border-[#308279]">
-              <div className="p-6 h-full flex items-center justify-between bg-gradient-to-br from-[#F3F8FA] to-white">
-                <div>
-                  <h3 className="text-4xl font-bold text-[#0A1B45] mb-1">75%</h3>
-                  <p className="text-sm text-[#476074]">Increased productivity</p>
+              <div className="relative z-10 mt-10 p-6 bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 max-w-sm">
+                <div className="flex items-center gap-4">
+                  <div className="bg-red-500 w-3 h-3 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-semibold tracking-wider text-white uppercase mt-1">Live Right Now</span>
                 </div>
-                <Award className="w-16 h-16 text-[#308279]/20" />
+                <div className="text-xl font-bold mt-2">Data Structures Midterm Prep</div>
+                <div className="text-sm text-white/70 mt-1">45 students joined</div>
               </div>
-            </Card>
-          </div>
+            </motion.div>
+
+            {/* Small Feature: AI Tracking */}
+            <motion.div variants={fadeUpVariants} className="col-span-1 md:col-span-4 row-span-1 rounded-[2rem] bg-white border border-[#F3F8FA] shadow-lg shadow-[#0A1B45]/5 p-8 flex flex-col justify-between group overflow-hidden relative transition-transform hover:-translate-y-2">
+              <div className="relative z-10">
+                <div className="w-12 h-12 rounded-xl bg-[#EBF3F1] flex text-[#308279] items-center justify-center mb-6">
+                  <Eye className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-[#0A1B45] mb-2">Focus Mode AI</h3>
+                <p className="text-[#476074] text-sm leading-relaxed">Advanced visual tracking ensures complete attention during live sessions, maximizing your study efficiency.</p>
+              </div>
+            </motion.div>
+
+            {/* Small Feature: Analytics */}
+            <motion.div variants={fadeUpVariants} className="col-span-1 md:col-span-4 row-span-1 rounded-[2rem] bg-white border border-[#F3F8FA] shadow-lg shadow-[#0A1B45]/5 p-8 flex flex-col justify-between group transition-transform hover:-translate-y-2">
+              <div>
+                <div className="w-12 h-12 rounded-xl bg-[#EBF3F1] flex text-[#308279] items-center justify-center mb-6">
+                  <Target className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-[#0A1B45] mb-2">Deep Analytics</h3>
+                <p className="text-[#476074] text-sm leading-relaxed">Track your comprehension rates, module progress, and estimated grade outcomes in real-time.</p>
+              </div>
+            </motion.div>
+
+            {/* Wide Feature: Peer Communities */}
+            <motion.div variants={fadeUpVariants} className="col-span-1 md:col-span-6 row-span-1 rounded-[2rem] bg-[#F3F8FA] text-[#0A1B45] p-8 md:p-10 border border-white shadow-lg shadow-[#0A1B45]/5 flex items-center justify-between overflow-hidden relative group">
+              <div className="relative z-10 max-w-sm">
+                <div className="flex -space-x-3 mb-4">
+                  {[4, 5, 2, 7].map((i) => (
+                    <img key={i} src={`https://i.pravatar.cc/100?img=${i}`} alt="user" className="w-10 h-10 rounded-full border-2 border-[#F3F8FA] z-10" />
+                  ))}
+                  <div className="w-10 h-10 rounded-full bg-[#0A1B45] text-white flex items-center justify-center text-xs font-bold z-0 border-2 border-[#F3F8FA]">+99</div>
+                </div>
+                <h3 className="text-2xl font-bold mb-2">Live Peer Sync</h3>
+                <p className="text-[#476074] leading-relaxed text-sm">Instantly connect with classmates for impromptu study groups and collaborative note-taking sessions.</p>
+              </div>
+            </motion.div>
+
+            {/* Small Feature: Always Available */}
+            <motion.div variants={fadeUpVariants} className="col-span-1 md:col-span-6 row-span-1 rounded-[2rem] bg-[#308279] text-white shadow-xl shadow-[#308279]/20 p-8 md:p-10 flex items-center gap-6 group overflow-hidden relative">
+              <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+              <div className="relative z-10">
+                <Clock className="w-8 h-8 mb-4 group-hover:-rotate-90 transition-transform duration-500" />
+                <h3 className="text-xl font-bold mb-2 text-white">On-Demand Library</h3>
+                <p className="text-white/80 text-sm leading-relaxed">Access hundreds of premium cheat notes and recorded sessions 24/7 before your midterms.</p>
+              </div>
+            </motion.div>
+
+          </motion.div>
         </div>
       </section>
 
-      {/* Limited Time Promo Banner */}
-      <section className="py-12 bg-gradient-to-r from-[#0A1B45] via-[#308279] to-[#0A1B45]">
+      {/* Popular Courses Section */}
+      <section className="py-32 bg-[#F3F8FA] relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <Badge className="bg-red-500 text-white border-0 mb-4 animate-pulse">
-              🔥 LIMITED TIME OFFER
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              New Year Special: Up to 70% OFF
-            </h2>
-            <p className="text-xl text-white/90 mb-6 max-w-2xl mx-auto">
-              Subscribe to any course before February 28th and get massive discounts on annual plans!
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center items-center mb-6">
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
-                <div className="text-3xl font-bold text-white">03</div>
-                <div className="text-sm text-white/80">Days</div>
-              </div>
-              <div className="text-white text-2xl">:</div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
-                <div className="text-3xl font-bold text-white">14</div>
-                <div className="text-sm text-white/80">Hours</div>
-              </div>
-              <div className="text-white text-2xl">:</div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
-                <div className="text-3xl font-bold text-white">27</div>
-                <div className="text-sm text-white/80">Minutes</div>
-              </div>
-            </div>
-            <Link to="/marketplace">
-              <Button size="lg" className="bg-white text-[#0A1B45] hover:bg-white/90 h-12 px-8">
-                Explore Courses
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Why Us Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <Badge className="bg-[#308279]/10 text-[#308279] hover:bg-[#308279]/20 border-0 mb-4">
-              Kenapa Pilih Kami
-            </Badge>
-            <h2 className="text-4xl font-bold text-[#0A1B45] mb-4">
-              Belajar Lebih Efektif dengan Tutoring Academy
-            </h2>
-            <p className="text-lg text-[#476074] max-w-2xl mx-auto">
-              Platform yang dirancang khusus untuk mahasiswa BINUS, oleh mahasiswa BINUS.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <Card className="p-8 border-2 hover:border-[#308279] transition-all hover:shadow-xl">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-tr from-[#308279] to-[#92B7B0] flex items-center justify-center mb-6">
-                <Users className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-[#0A1B45] mb-3">Peer Learning</h3>
-              <p className="text-[#476074] leading-relaxed">
-                Belajar dari dan dengan sesama mahasiswa BINUS. Metode pembelajaran yang lebih relatable dan efektif.
-              </p>
-            </Card>
-
-            {/* Feature 2 */}
-            <Card className="p-8 border-2 hover:border-[#308279] transition-all hover:shadow-xl">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-tr from-[#308279] to-[#92B7B0] flex items-center justify-center mb-6">
-                <BookCheck className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-[#0A1B45] mb-3">Verified Tutors</h3>
-              <p className="text-[#476074] leading-relaxed">
-                Semua tutor telah diverifikasi dengan GPA minimal 3.5 dan track record mengajar yang baik.
-              </p>
-            </Card>
-
-            {/* Feature 3 */}
-            <Card className="p-8 border-2 hover:border-[#308279] transition-all hover:shadow-xl">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-tr from-[#308279] to-[#92B7B0] flex items-center justify-center mb-6">
-                <Eye className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-[#0A1B45] mb-3">Eye-Tracking Focus Mode</h3>
-              <p className="text-[#476074] leading-relaxed">
-                Teknologi AI yang membantu kamu tetap fokus saat belajar dengan monitoring perhatian real-time.
-              </p>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Premium Cheat Notes Section */}
-      <section className="py-20 bg-[#F3F8FA]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-end mb-12">
-            <div>
-              <Badge className="bg-[#308279]/10 text-[#308279] hover:bg-[#308279]/20 border-0 mb-4">
-                Featured Courses
-              </Badge>
-              <h2 className="text-4xl font-bold text-[#0A1B45] mb-2">
-                Popular Courses
+          <motion.div
+            className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+          >
+            <motion.div variants={fadeUpVariants} className="max-w-2xl">
+              <h2 className="text-4xl md:text-5xl font-bold text-[#0A1B45] tracking-tight mb-4">
+                Popular Modules
               </h2>
               <p className="text-lg text-[#476074]">
-                Join thousands of students learning from top BINUS tutors
+                The most sought-after courses taught by BINUS top-performers.
               </p>
-            </div>
-            <Link to="/marketplace">
-              <Button variant="outline" className="border-[#308279] text-[#308279] hover:bg-[#308279]/10">
-                Lihat Semua
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-            </Link>
-          </div>
+            </motion.div>
+            <motion.div variants={fadeUpVariants}>
+              <Link to="/marketplace">
+                <Button variant="ghost" className="text-[#0A1B45] hover:text-[#308279] hover:bg-white rounded-full font-medium pr-2">
+                  View All Courses
+                  <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center ml-3">
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </Button>
+              </Link>
+            </motion.div>
+          </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {courses.map((course) => (
-              <Card key={course.id} className="overflow-hidden hover:shadow-xl transition-all group cursor-pointer border-2 hover:border-[#308279]">
-                <div className="bg-gradient-to-br from-[#308279] to-[#0A1B45] h-40 flex items-center justify-center relative overflow-hidden">
-                  <FileText className="w-16 h-16 text-white/20 absolute" />
-                  <div className="relative z-10 text-center">
-                    <Video className="w-12 h-12 text-white mx-auto mb-2" />
-                    <Badge className="bg-white/20 text-white border-0">Live Sessions</Badge>
+          {/* Categories Tab Bar */}
+          <motion.div
+            className="flex items-center gap-3 overflow-x-auto pb-6 mb-8 no-scrollbar"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeUpVariants}
+          >
+            {categories.map((category) => (
+              <button
+                key={category}
+                onClick={() => setActiveCategory(category)}
+                className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${activeCategory === category
+                    ? "bg-[#0A1B45] text-white shadow-md"
+                    : "bg-white text-[#476074] hover:bg-[#F3F8FA] hover:text-[#0A1B45] border border-gray-100"
+                  }`}
+              >
+                {category}
+              </button>
+            ))}
+          </motion.div>
+
+          <motion.div
+            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+            key={activeCategory} // Force re-render for animation on category change
+          >
+            {filteredCourses.map((course) => (
+              <motion.div
+                key={course.id}
+                variants={fadeUpVariants}
+                className="bg-white border-2 border-[#0A1B45] rounded-xl p-4 shadow-[4px_4px_0px_#0A1B45] hover:shadow-[8px_8px_0px_#308279] transition-all duration-300 group flex flex-col hover:-translate-y-1 hover:-translate-x-1 cursor-pointer"
+              >
+                <div className="relative w-full h-48 rounded-lg overflow-hidden mb-5 border-2 border-transparent group-hover:border-[#0A1B45] transition-colors">
+                  <ImageWithFallback
+                    src={course.image}
+                    alt={course.title}
+                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                  />
+                  <div className="absolute top-3 left-3">
+                    <Badge className="bg-[#0A1B45] text-white border-none shadow-sm font-bold uppercase tracking-wider px-3 py-1 text-[10px] rounded-sm">
+                      {course.major}
+                    </Badge>
                   </div>
                 </div>
-                <div className="p-6">
-                  <Badge variant="outline" className="mb-3 text-xs border-[#92B7B0] text-[#476074]">
-                    {course.major}
-                  </Badge>
-                  <h3 className="font-bold text-[#0A1B45] mb-3 line-clamp-2 group-hover:text-[#308279] transition-colors">
+
+                <div className="px-1 flex flex-col flex-1">
+                  <div className="flex items-center gap-1 mb-3">
+                    <Star className="w-4 h-4 fill-[#0A1B45] text-[#0A1B45]" />
+                    <span className="font-bold text-sm text-[#0A1B45]">{course.rating}</span>
+                    <span className="text-xs text-[#476074] font-medium ml-1">({course.reviews} reviews)</span>
+                  </div>
+
+                  <h3 className="text-lg font-black text-[#0A1B45] leading-snug mb-2 group-hover:text-[#308279] transition-colors">
                     {course.title}
                   </h3>
-                  <div className="flex items-center gap-2 mb-4 text-sm text-[#476074]">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-[#308279] text-[#308279]" />
-                      <span className="font-medium">{course.rating}</span>
-                    </div>
-                    <span>•</span>
-                    <span>{course.reviews} reviews</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-4 border-t">
+
+                  <p className="text-sm font-medium text-[#476074] mb-6">
+                    By <span className="font-bold text-[#0A1B45] border-b-2 border-transparent group-hover:border-[#0A1B45]">{course.tutor}</span>
+                  </p>
+
+                  <div className="mt-auto pt-4 border-t-2 border-gray-100 flex items-center justify-between">
                     <div>
-                      <div className="text-xl font-bold text-[#308279]">{course.price}</div>
-                      <div className="text-xs text-[#476074]">{course.priceLabel}</div>
+                      <div className="font-bold text-[#0A1B45] text-lg">{course.price}</div>
+                      <div className="text-[10px] font-bold text-[#92B7B0] uppercase tracking-wider">{course.priceLabel}</div>
                     </div>
                     <Link to={`/course/${course.id}`}>
-                      <Button size="sm" className="bg-[#308279] hover:bg-[#308279]/90 text-white">
-                        View Course
-                      </Button>
+                      <div className="w-10 h-10 rounded-md bg-[#0A1B45] flex items-center justify-center text-white group-hover:bg-[#308279] transition-colors duration-300 border-2 border-transparent group-hover:border-[#0A1B45]">
+                        <ArrowRight className="w-4 h-4" />
+                      </div>
                     </Link>
                   </div>
                 </div>
-              </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* Top Tutors Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <Badge className="bg-[#308279]/10 text-[#308279] hover:bg-[#308279]/20 border-0 mb-4">
-              Tutor Terbaik Kami
-            </Badge>
-            <h2 className="text-4xl font-bold text-[#0A1B45] mb-4">
-              Belajar dari Mahasiswa Berprestasi
-            </h2>
-            <p className="text-lg text-[#476074] max-w-2xl mx-auto">
-              Tutor kami adalah mahasiswa BINUS dengan GPA tinggi dan pengalaman mengajar yang terbukti.
-            </p>
-          </div>
+      {/* Featured Tutors Section */}
+      <section className="py-32 bg-white relative overflow-hidden">
+        {/* Abstract Background Element */}
+        <motion.div
+          style={{ y: y1 }}
+          className="absolute -left-[20%] top-0 w-[60%] h-[120%] bg-gradient-to-r from-[#F3F8FA] to-transparent rounded-r-[100%] opacity-50 pointer-events-none"
+        />
 
-          <div className="grid md:grid-cols-3 gap-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <motion.div
+            className="text-center max-w-2xl mx-auto mb-20"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+          >
+            <motion.h2 variants={fadeUpVariants} className="text-4xl md:text-5xl font-bold text-[#0A1B45] tracking-tight mb-4">
+              Featured Tutors
+            </motion.h2>
+            <motion.p variants={fadeUpVariants} className="text-lg text-[#476074]">
+              Meet the exceptional students leading our top-rated modules. They don't just teach—they mentor, guide, and ensure you truly understand the material.
+            </motion.p>
+          </motion.div>
+
+          <motion.div
+            className="grid lg:grid-cols-3 gap-8 px-4 md:px-0"
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+          >
             {topTutors.map((tutor) => (
-              <Card key={tutor.id} className="overflow-hidden hover:shadow-xl transition-all group border-2 hover:border-[#308279]">
-                <div className="h-48 bg-gradient-to-br from-[#308279] to-[#0A1B45] relative">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-32 h-32 rounded-full bg-white/10 backdrop-blur-sm border-4 border-white/50 flex items-center justify-center">
-                      <ImageWithFallback
-                        src="https://images.unsplash.com/photo-1511629091441-ee46146481b6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBzdHVkZW50JTIwdHV0b3IlMjB0ZWFjaGluZ3xlbnwxfHx8fDE3NzExNzg4MDN8MA&ixlib=rb-4.1.0&q=80&w=1080"
-                        alt={tutor.name}
-                        className="w-full h-full rounded-full object-cover"
-                      />
+              <motion.div
+                key={tutor.id}
+                variants={fadeUpVariants}
+                className="bg-white rounded-[2rem] shadow-xl shadow-[#0A1B45]/5 border border-[#F3F8FA] group overflow-hidden flex flex-col hover:shadow-2xl hover:shadow-[#308279]/10 transition-all duration-500 hover:-translate-y-2"
+              >
+                {/* Image Section */}
+                <div className="relative h-64 w-full overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A1B45] to-transparent z-10 opacity-60 group-hover:opacity-40 transition-opacity"></div>
+                  <ImageWithFallback
+                    src={tutor.image}
+                    alt={tutor.name}
+                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute top-4 right-4 z-20">
+                    <Badge className="bg-white/90 text-[#0A1B45] hover:bg-white border-none px-3 py-1 font-semibold backdrop-blur-md">
+                      <Star className="w-3 h-3 fill-[#f59e0b] text-[#f59e0b] mr-1" />
+                      {tutor.rating}
+                    </Badge>
+                  </div>
+                  <div className="absolute bottom-4 left-6 z-20">
+                    <h3 className="text-2xl font-bold text-white mb-1 drop-shadow-md">{tutor.name}</h3>
+                    <p className="text-[#92B7B0] text-sm font-medium">{tutor.major}</p>
+                  </div>
+                </div>
+
+                {/* Content Section */}
+                <div className="p-8 flex flex-col flex-1">
+                  <p className="text-[#476074] leading-relaxed mb-8 flex-1">
+                    "{tutor.description}"
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-4 w-full border-t border-gray-100 pt-6">
+                    <div className="flex flex-col items-center justify-center p-3 bg-[#F3F8FA] rounded-xl group-hover:bg-[#308279] group-hover:text-white transition-colors duration-300">
+                      <div className="text-xl font-bold mb-1">{tutor.gpa}</div>
+                      <div className="text-[10px] text-inherit uppercase tracking-wider font-semibold opacity-70">Verified GPA</div>
+                    </div>
+                    <div className="flex flex-col items-center justify-center p-3 bg-[#F3F8FA] rounded-xl group-hover:bg-[#0A1B45] group-hover:text-white transition-colors duration-300">
+                      <div className="text-xl font-bold mb-1">{tutor.students}+</div>
+                      <div className="text-[10px] text-inherit uppercase tracking-wider font-semibold opacity-70">Students</div>
                     </div>
                   </div>
-                  <Badge className="absolute top-4 right-4 bg-white/20 text-white border-0">
-                    <Star className="w-3 h-3 fill-white mr-1" />
-                    {tutor.rating}
-                  </Badge>
                 </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-[#0A1B45] mb-1">{tutor.name}</h3>
-                  <p className="text-[#476074] mb-4">{tutor.major}</p>
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-[#476074]">GPA:</span>
-                      <span className="font-bold text-[#308279]">{tutor.gpa}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-[#476074]">Courses:</span>
-                      <span className="font-medium text-[#0A1B45]">{tutor.courses}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-[#476074]">Students:</span>
-                      <span className="font-medium text-[#0A1B45]">{tutor.students}+</span>
-                    </div>
-                  </div>
-                  <Button className="w-full bg-[#308279] hover:bg-[#308279]/90 text-white">
-                    Lihat Profile
-                  </Button>
-                </div>
-              </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-[#0A1B45] to-[#308279]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <TrendingUp className="w-16 h-16 text-white/80 mx-auto mb-6" />
-          <h2 className="text-4xl font-bold text-white mb-6">
-            Siap Meningkatkan Prestasi Akademik Kamu?
-          </h2>
-          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Bergabung dengan ribuan mahasiswa BINUS yang sudah merasakan manfaat belajar dengan Tutoring Academy.
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Link to="/student-dashboard">
-              <Button size="lg" className="bg-white text-[#0A1B45] hover:bg-white/90 h-12 px-8">
-                Mulai Belajar Sekarang
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-            <Link to="/tutor-dashboard">
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-2 border-white text-white hover:bg-white/10 h-12 px-8"
-              >
-                Daftar Jadi Tutor
-              </Button>
-            </Link>
-          </div>
+      {/* Elegant CTA Section */}
+      <section className="py-24 relative overflow-hidden bg-[#0A1B45] rounded-t-[3rem] mt-10">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <motion.div
+            className="absolute top-[-50%] left-[-10%] w-[70%] h-[150%] bg-[#308279]/20 rounded-full blur-[100px]"
+            animate={{
+              rotate: [0, 90, 0],
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          />
         </div>
+
+        <motion.div
+          className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true }}
+          variants={staggerContainer}
+        >
+          <motion.div variants={fadeUpVariants} className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-8 border border-white/20">
+            <TrendingUp className="w-8 h-8 text-[#92B7B0]" />
+          </motion.div>
+          <motion.h2 variants={fadeUpVariants} className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight leading-tight">
+            Ready to upgrade your GPA?
+          </motion.h2>
+          <motion.p variants={fadeUpVariants} className="text-xl text-white/70 font-light mb-12 max-w-2xl mx-auto">
+            Join thousands of BINUS students who have proven that collaborative peer learning is the key to academic success.
+          </motion.p>
+
+          <motion.div variants={fadeUpVariants} className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Link to="/student-dashboard" className="w-full sm:w-auto">
+              <Button className="w-full sm:w-auto h-14 bg-white text-[#0A1B45] hover:bg-[#F3F8FA] rounded-full px-10 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
+                Start Learning Now
+              </Button>
+            </Link>
+            <div className="text-white/40 text-sm hidden sm:block px-2">or</div>
+            <Link to="/tutor-dashboard" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full sm:w-auto h-14 bg-transparent border-white/30 text-white hover:bg-white/10 hover:border-white rounded-full px-10 text-lg font-medium transition-all duration-300">
+                Apply as a Tutor
+              </Button>
+            </Link>
+          </motion.div>
+
+          <motion.div variants={fadeUpVariants} className="mt-12 flex items-center justify-center gap-2 text-[#92B7B0] text-sm">
+            <CheckCircle2 className="w-4 h-4" />
+            <span>No credit card required for basic access</span>
+          </motion.div>
+        </motion.div>
       </section>
 
       <Footer />
