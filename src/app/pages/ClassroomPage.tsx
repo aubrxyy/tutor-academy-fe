@@ -23,7 +23,7 @@ export default function ClassroomPage() {
   const [showFocusAlert, setShowFocusAlert] = useState(false);
   const [currentVideo, setCurrentVideo] = useState(1);
 
-  // Mock course data
+  // Mock class data
   const courseData = {
     id: courseId,
     title: "Data Structures & Algorithms Complete Guide",
@@ -40,7 +40,7 @@ export default function ClassroomPage() {
     {
       section: "Introduction & Fundamentals",
       videos: [
-        { id: 1, title: "Course Overview & Learning Path", duration: "15:30", completed: true },
+        { id: 1, title: "Class Overview & Learning Path", duration: "15:30", completed: true },
         { id: 2, title: "Time & Space Complexity", duration: "22:45", completed: true },
         { id: 3, title: "Big O Notation Explained", duration: "18:20", completed: true },
       ],
@@ -149,7 +149,7 @@ export default function ClassroomPage() {
       rating: 5,
       date: "2 hari lalu",
       helpful: 24,
-      comment: "Course terbaik yang pernah saya ikuti! Penjelasan tutor sangat jelas dan materinya sangat aplikatif.",
+      comment: "Class terbaik yang pernah saya ikuti! Penjelasan tutor sangat jelas dan materinya sangat aplikatif.",
     },
     {
       id: 2,
@@ -489,7 +489,7 @@ export default function ClassroomPage() {
                               )}
                             </div>
                           </div>
-                          <Link to={`/course/${courseId}/quiz/${quiz.id}`}>
+                          <Link to={`/class/${courseId}/quiz/${quiz.id}`}>
                             <Button className="bg-[#308279] hover:bg-[#308279]/90 text-white">
                               {quiz.bestScore ? "Retake" : "Start Quiz"}
                             </Button>
@@ -517,7 +517,7 @@ export default function ClassroomPage() {
                         <span className="text-[#476074]">({courseData.totalReviews} reviews)</span>
                       </div>
                     </div>
-                    <Link to={`/course/${courseId}/review`}>
+                    <Link to={`/class/${courseId}/review`}>
                       <Button className="bg-[#308279] hover:bg-[#308279]/90 text-white">
                         <MessageSquare className="w-4 h-4 mr-2" />
                         Write Review
@@ -567,7 +567,7 @@ export default function ClassroomPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Course Stats Card */}
+            {/* Class Stats Card */}
             <Card className="p-6 bg-gradient-to-br from-[#308279] to-[#0A1B45] text-white">
               <h3 className="font-bold text-lg mb-4">Your Progress</h3>
               <div className="grid grid-cols-2 gap-4">

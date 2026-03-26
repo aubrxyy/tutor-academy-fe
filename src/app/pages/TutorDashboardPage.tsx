@@ -1,8 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import {
-  Users, Video, BookOpen, Calendar, TrendingUp, Plus,
-  Edit, Eye, Download, Star, Clock, MoreVertical, Copy, HelpCircle, Trash2
+  Users,
+  Video,
+  BookOpen,
+  Calendar,
+  Plus,
+  Edit,
+  Clock,
+  HelpCircle,
+  Trash2,
+  ArrowRight,
+  Sparkles,
+  FileText,
+  Upload,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
@@ -10,11 +22,27 @@ import { Badge } from "../components/ui/badge";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "../components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import DashboardSidebar from "../components/DashboardSidebar";
+import { useAuth } from "../auth/AuthContext";
 import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, PieChart, Pie, Cell
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../components/ui/dialog";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import {
   DropdownMenu,
@@ -22,23 +50,52 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 export default function TutorDashboardPage() {
+  const { user } = useAuth();
+  const [activeView, setActiveView] = useState<"overview" | "sessions" | "materials" | "analytics">("overview");
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
-  const [isCourseDialogOpen, setIsCourseDialogOpen] = useState(false);
+  const [isMaterialDialogOpen, setIsMaterialDialogOpen] = useState(false);
+  const firstName = user?.name.split(" ")[0] ?? "Raka";
 
   const stats = [
-    { icon: Users, label: "Total Students", value: "450", change: "+12%", color: "from-[#308279] to-[#92B7B0]" },
-    { icon: Video, label: "Live Sessions", value: "24", change: "+8", color: "from-[#0A1B45] to-[#308279]" },
-    { icon: BookOpen, label: "Active Courses", value: "12", change: "+2", color: "from-[#92B7B0] to-[#476074]" },
-    { icon: Calendar, label: "Upcoming Sessions", value: "6", change: "This Week", color: "from-[#308279] to-[#0A1B45]" },
+    {
+      icon: Users,
+      label: "Students Supported",
+      value: "450",
+      change: "+12%",
+      color: "from-[#308279] to-[#92B7B0]",
+    },
+    {
+      icon: Video,
+      label: "Live Sessions",
+      value: "24",
+      change: "+8",
+      color: "from-[#0A1B45] to-[#308279]",
+    },
+    {
+      icon: FileText,
+      label: "PDF Materials",
+      value: "18",
+      change: "+4",
+      color: "from-[#92B7B0] to-[#476074]",
+    },
+    {
+      icon: BookOpen,
+      label: "Assigned Classes",
+      value: "3",
+      change: "Admin managed",
+      color: "from-[#308279] to-[#0A1B45]",
+    },
   ];
 
   const upcomingSessions = [
     {
       id: 1,
+      classId: 1,
       title: "Data Structures Q&A Session",
-      course: "Data Structures & Algorithms",
+      className: "Data Structures & Algorithms",
       date: "Senin, 17 Feb 2026",
       time: "14:00 - 15:30",
       students: 45,
@@ -46,8 +103,9 @@ export default function TutorDashboardPage() {
     },
     {
       id: 2,
+      classId: 1,
       title: "Algorithm Workshop - Live Coding",
-      course: "Data Structures & Algorithms",
+      className: "Data Structures & Algorithms",
       date: "Rabu, 19 Feb 2026",
       time: "16:00 - 18:00",
       students: 52,
@@ -55,8 +113,9 @@ export default function TutorDashboardPage() {
     },
     {
       id: 3,
+      classId: 2,
       title: "Database Design Fundamentals",
-      course: "Database Management & SQL",
+      className: "Database Management & SQL",
       date: "Jumat, 21 Feb 2026",
       time: "13:00 - 14:30",
       students: 38,
@@ -64,36 +123,39 @@ export default function TutorDashboardPage() {
     },
   ];
 
-  const courses = [
+  const classMaterials = [
     {
       id: 1,
-      title: "Data Structures & Algorithms",
-      status: "Active",
-      students: 234,
-      rating: 4.9,
-      liveSessions: 12,
-      materials: 15,
-      quizzes: 8,
+      classId: 1,
+      title: "Array & Linked List Cheat Notes",
+      className: "Data Structures & Algorithms",
+      format: "PDF",
+      size: "2.5 MB",
+      downloads: 324,
+      lastUpdated: "2 jam lalu",
+      status: "Published",
     },
     {
       id: 2,
-      title: "Database Management & SQL",
-      status: "Active",
-      students: 178,
-      rating: 4.8,
-      liveSessions: 10,
-      materials: 12,
-      quizzes: 6,
+      classId: 1,
+      title: "Mock Interview Worksheet",
+      className: "Data Structures & Algorithms",
+      format: "DOCX",
+      size: "1.1 MB",
+      downloads: 196,
+      lastUpdated: "Kemarin",
+      status: "Published",
     },
     {
       id: 3,
-      title: "HCI Design Principles",
-      status: "Active",
-      students: 145,
-      rating: 4.9,
-      liveSessions: 8,
-      materials: 10,
-      quizzes: 5,
+      classId: 2,
+      title: "SQL Query Patterns",
+      className: "Database Management & SQL",
+      format: "PDF",
+      size: "3.2 MB",
+      downloads: 241,
+      lastUpdated: "3 hari lalu",
+      status: "Needs review",
     },
   ];
 
@@ -109,60 +171,240 @@ export default function TutorDashboardPage() {
     { name: "Tidak Hadir", value: 15, color: "#92B7B0" },
   ];
 
+  const assignedClasses = [
+    {
+      id: 1,
+      title: "Data Structures & Algorithms",
+      students: 234,
+      nextLive: "Senin, 17 Feb • 14:00",
+      tutorDocs: 7,
+      adminVideos: 18,
+    },
+    {
+      id: 2,
+      title: "Database Management & SQL",
+      students: 178,
+      nextLive: "Jumat, 21 Feb • 13:00",
+      tutorDocs: 6,
+      adminVideos: 14,
+    },
+    {
+      id: 3,
+      title: "HCI Design Principles",
+      students: 145,
+      nextLive: "Belum ada jadwal baru",
+      tutorDocs: 5,
+      adminVideos: 11,
+    },
+  ];
+
+  const tutorNavItems = [
+    { label: "Overview", icon: BookOpen, active: activeView === "overview", onClick: () => setActiveView("overview") },
+    { label: "Live Sessions", icon: Video, active: activeView === "sessions", onClick: () => setActiveView("sessions") },
+    { label: "Materials", icon: FileText, active: activeView === "materials", onClick: () => setActiveView("materials") },
+    { label: "Analytics", icon: BarChart3, active: activeView === "analytics", onClick: () => setActiveView("analytics") },
+    { label: "Help Center", to: "/help-faq?role=tutor", icon: HelpCircle, exact: true },
+  ];
+
+  const handleCopyLink = async (zoomLink: string) => {
+    try {
+      await navigator.clipboard.writeText(zoomLink);
+      toast.success("Zoom link copied", {
+        description: "Meeting link berhasil disalin ke clipboard.",
+      });
+    } catch {
+      toast.error("Copy failed", {
+        description: "Clipboard belum tersedia di browser ini.",
+      });
+    }
+  };
+
+  const handleScheduleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsScheduleDialogOpen(false);
+    toast.success("Session scheduled", {
+      description: "Jadwal Zoom baru sudah ditambahkan ke class yang dipilih.",
+    });
+  };
+
+  const handleMaterialSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsMaterialDialogOpen(false);
+    toast.success("Material uploaded", {
+      description: "Dokumen tutor berhasil ditambahkan dan menunggu sinkronisasi storage.",
+    });
+  };
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activeView]);
+
+  const sectionCopy = {
+    overview: {
+      badge: `Tutor overview for ${firstName}`,
+      title: "Tutor Dashboard",
+      description:
+        "Lihat ringkasan class yang kamu pegang sebelum masuk ke alur live session, dokumen materi, dan analytics.",
+    },
+    sessions: {
+      badge: `Live sessions by ${firstName}`,
+      title: "Live Sessions",
+      description:
+        "Kelola jadwal Zoom untuk semua class yang sudah diassign admin tanpa distraksi dari overview dashboard.",
+    },
+    materials: {
+      badge: `Materials by ${firstName}`,
+      title: "Class Materials",
+      description:
+        "Fokus pada dokumen tutor, revisi PDF, dan file pendukung yang dibutuhkan students di tiap class.",
+    },
+    analytics: {
+      badge: `Analytics for ${firstName}`,
+      title: "Teaching Analytics",
+      description:
+        "Pantau engagement, attendance, dan performa pengajaran dalam satu halaman yang lebih fokus.",
+    },
+  } as const;
+
   return (
-    <div className="min-h-screen bg-[#F3F8FA]">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-[#0A1B45] to-[#308279] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between mb-6">
+    <div className="min-h-screen bg-[#F3F8FA] lg:flex">
+      <DashboardSidebar roleLabel="Tutor" navItems={tutorNavItems} />
+
+      <main className="min-w-0 flex-1">
+      <header className="relative overflow-hidden bg-gradient-to-br from-[#071735] via-[#0A1B45] to-[#308279] text-white">
+        <div className="absolute inset-0 bg-grid-pattern opacity-20" />
+        <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-[#92B7B0]/15 blur-3xl" />
+        <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-col gap-8 mb-6">
             <div>
-              <h1 className="text-3xl font-bold">Tutor Dashboard</h1>
-              <p className="text-white/80 mt-2">Kelola courses dan live sessions kamu</p>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/85 backdrop-blur-sm">
+                <Sparkles className="h-4 w-4 text-[#92B7B0]" />
+                {sectionCopy[activeView].badge}
+              </div>
+              <div className="mt-5 max-w-3xl">
+                <div>
+                  <h1 className="text-4xl font-bold tracking-[-0.03em]">{sectionCopy[activeView].title}</h1>
+                  <p className="text-white/80 mt-3 max-w-2xl leading-7">
+                    {sectionCopy[activeView].description}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                {activeView !== "analytics" ? (
+                  <Button
+                    className="bg-white text-[#0A1B45] hover:bg-[#F3F8FA]"
+                    onClick={() => setIsScheduleDialogOpen(true)}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    Schedule Session
+                  </Button>
+                ) : null}
+                {activeView !== "sessions" ? (
+                  <Button
+                    variant="outline"
+                    className="border-white/30 bg-white/10 text-white hover:bg-white/15 hover:text-white"
+                    onClick={() => setIsMaterialDialogOpen(true)}
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Material
+                  </Button>
+                ) : null}
+              </div>
             </div>
-            <Link to="/help-faq?role=tutor">
-              <Button variant="ghost" className="text-white hover:bg-white/10">
-                <HelpCircle className="w-5 h-5 mr-2" />
-                Bantuan
-              </Button>
-            </Link>
           </div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.map((stat, index) => (
-              <Card key={index} className="bg-white/10 backdrop-blur-sm border-white/20 p-4">
-                <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3`}>
-                  <stat.icon className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-2xl font-bold mb-1">{stat.value}</div>
-                <div className="text-sm text-white/80">{stat.label}</div>
-                <div className="text-xs text-white/60 mt-1">{stat.change}</div>
-              </Card>
-            ))}
+          <div className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-white/75 inline-flex">
+            Last sync: 2 minutes ago
           </div>
+
+          {activeView === "overview" ? (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4 mt-6">
+              {stats.map((stat) => (
+                <Card
+                  key={stat.label}
+                  className="border-white/15 bg-white/10 p-5 shadow-lg backdrop-blur-md transition-all hover:-translate-y-1"
+                >
+                  <div
+                    className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} shadow-lg`}
+                  >
+                    <stat.icon className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="mb-1 text-3xl font-bold tracking-[-0.03em] text-white">{stat.value}</div>
+                  <div className="text-sm text-white/80">{stat.label}</div>
+                  <div className="mt-1 text-xs text-white/60">{stat.change}</div>
+                </Card>
+              ))}
+            </div>
+          ) : null}
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs defaultValue="sessions" className="w-full">
-          <TabsList className="grid w-full max-w-2xl grid-cols-3 mb-8">
-            <TabsTrigger value="sessions">Live Sessions</TabsTrigger>
-            <TabsTrigger value="courses">Courses</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          </TabsList>
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {activeView === "overview" ? (
+          <section className="mb-8">
+            <div className="mb-5 flex items-end justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-[#0A1B45]">Assigned Class Portfolio</h2>
+                <p className="text-[#476074]">Semua class yang sedang kamu handle tampil di satu overview.</p>
+              </div>
+              <Badge className="border-0 bg-[#308279]/10 px-3 py-1.5 text-[#308279]">
+                {assignedClasses.length} active classes
+              </Badge>
+            </div>
 
-          {/* Live Sessions Tab */}
-          <TabsContent value="sessions" className="space-y-6">
+            <div className="grid gap-4 lg:grid-cols-3">
+              {assignedClasses.map((item) => (
+                <Card
+                  key={item.id}
+                  className="border-[#D9E6EA] bg-white p-6 shadow-[0_18px_40px_rgba(10,27,69,0.08)] transition-all hover:-translate-y-1 hover:shadow-[0_24px_48px_rgba(10,27,69,0.12)]"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="text-sm font-medium text-[#308279]">Class #{item.id}</div>
+                      <h3 className="mt-2 text-xl font-bold text-[#0A1B45]">{item.title}</h3>
+                    </div>
+                    <Link to={`/class/${item.id}`}>
+                      <Button variant="ghost" size="sm" className="text-[#308279] hover:bg-[#308279]/10">
+                        Open
+                      </Button>
+                    </Link>
+                  </div>
+
+                  <div className="mt-5 grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl bg-[#F3F8FA] p-4">
+                      <div className="text-xs uppercase tracking-[0.16em] text-[#476074]">Students</div>
+                      <div className="mt-2 text-2xl font-bold text-[#0A1B45]">{item.students}</div>
+                    </div>
+                    <div className="rounded-2xl bg-[#F3F8FA] p-4">
+                      <div className="text-xs uppercase tracking-[0.16em] text-[#476074]">Tutor Docs</div>
+                      <div className="mt-2 text-2xl font-bold text-[#0A1B45]">{item.tutorDocs}</div>
+                    </div>
+                    <div className="rounded-2xl bg-[#F3F8FA] p-4">
+                      <div className="text-xs uppercase tracking-[0.16em] text-[#476074]">Admin Videos</div>
+                      <div className="mt-2 text-2xl font-bold text-[#0A1B45]">{item.adminVideos}</div>
+                    </div>
+                    <div className="rounded-2xl bg-[#F3F8FA] p-4">
+                      <div className="text-xs uppercase tracking-[0.16em] text-[#476074]">Next Live</div>
+                      <div className="mt-2 text-sm font-semibold text-[#0A1B45]">{item.nextLive}</div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {activeView === "sessions" ? (
+          <section className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-[#0A1B45]">Upcoming Live Sessions</h2>
-                <p className="text-[#476074]">Zoom meetings yang sudah dijadwalkan</p>
+                <p className="text-[#476074]">Jadwal Zoom class yang kamu pegang minggu ini</p>
               </div>
               <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-[#308279] hover:bg-[#308279]/90">
-                    <Plus className="w-4 h-4 mr-2" />
+                    <Plus className="mr-2 h-4 w-4" />
                     Schedule Session
                   </Button>
                 </DialogTrigger>
@@ -170,17 +412,17 @@ export default function TutorDashboardPage() {
                   <DialogHeader>
                     <DialogTitle>Schedule New Live Session</DialogTitle>
                     <DialogDescription>
-                      Buat sesi live baru dengan mudah dan cepat
+                      Tambahkan jadwal Zoom baru untuk class yang sudah aktif.
                     </DialogDescription>
                   </DialogHeader>
-                  <form className="space-y-4">
+                  <form className="space-y-4" onSubmit={handleScheduleSubmit}>
                     <div className="space-y-2">
                       <Label htmlFor="session-title">Session Title</Label>
                       <Input id="session-title" placeholder="e.g., Data Structures Q&A Session" />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="course-select">Course</Label>
-                      <select id="course-select" className="w-full p-2 border rounded-md">
+                      <Label htmlFor="class-select">Class</Label>
+                      <select id="class-select" className="w-full rounded-md border p-2">
                         <option>Data Structures & Algorithms</option>
                         <option>Database Management & SQL</option>
                         <option>HCI Design Principles</option>
@@ -205,10 +447,10 @@ export default function TutorDashboardPage() {
                       <Input id="zoom-link" placeholder="https://zoom.us/j/..." />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="session-description">Deskripsi (Opsional)</Label>
+                      <Label htmlFor="session-description">Agenda Singkat</Label>
                       <Textarea
                         id="session-description"
-                        placeholder="Tambahkan deskripsi atau topik yang akan dibahas..."
+                        placeholder="Jelaskan topik utama yang akan dibahas di sesi ini..."
                         rows={3}
                       />
                     </div>
@@ -216,11 +458,7 @@ export default function TutorDashboardPage() {
                       <Button type="submit" className="bg-[#308279] hover:bg-[#308279]/90">
                         Schedule Session
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsScheduleDialogOpen(false)}
-                      >
+                      <Button type="button" variant="outline" onClick={() => setIsScheduleDialogOpen(false)}>
                         Batal
                       </Button>
                     </div>
@@ -231,27 +469,30 @@ export default function TutorDashboardPage() {
 
             <div className="grid gap-4">
               {upcomingSessions.map((session) => (
-                <Card key={session.id} className="overflow-hidden hover:shadow-lg transition-all border-2 hover:border-[#308279]">
+                <Card
+                  key={session.id}
+                  className="overflow-hidden border-2 transition-all hover:border-[#308279] hover:shadow-lg"
+                >
                   <div className="p-6">
-                    <div className="flex items-start justify-between mb-4">
+                    <div className="mb-4 flex items-start justify-between">
                       <div className="flex items-start gap-4">
-                        <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-[#308279] to-[#0A1B45] flex items-center justify-center flex-shrink-0">
-                          <Video className="w-7 h-7 text-white" />
+                        <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#308279] to-[#0A1B45]">
+                          <Video className="h-7 w-7 text-white" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-bold text-[#0A1B45] mb-1">{session.title}</h3>
-                          <p className="text-sm text-[#476074] mb-2">{session.course}</p>
+                          <h3 className="mb-1 text-xl font-bold text-[#0A1B45]">{session.title}</h3>
+                          <p className="mb-2 text-sm text-[#476074]">{session.className}</p>
                           <div className="flex items-center gap-4 text-sm">
                             <div className="flex items-center gap-1 text-[#476074]">
-                              <Calendar className="w-4 h-4" />
+                              <Calendar className="h-4 w-4" />
                               <span>{session.date}</span>
                             </div>
                             <div className="flex items-center gap-1 text-[#476074]">
-                              <Clock className="w-4 h-4" />
+                              <Clock className="h-4 w-4" />
                               <span>{session.time}</span>
                             </div>
                             <div className="flex items-center gap-1 text-[#476074]">
-                              <Users className="w-4 h-4" />
+                              <Users className="h-4 w-4" />
                               <span>{session.students} students</span>
                             </div>
                           </div>
@@ -260,29 +501,47 @@ export default function TutorDashboardPage() {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm">
-                            <Edit className="w-4 h-4" />
+                            <Edit className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem>
-                            <Edit className="w-4 h-4 mr-2" />
+                          <DropdownMenuItem
+                            onSelect={() => {
+                              toast.success("Session editor opened", {
+                                description: `Kamu bisa lanjutkan edit untuk ${session.title}.`,
+                              });
+                            }}
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
                             Edit Session
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
-                            <Trash2 className="w-4 h-4 mr-2" />
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onSelect={() => {
+                              toast.error("Session cancelled", {
+                                description: `${session.title} ditandai sebagai dibatalkan.`,
+                              });
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
                             Cancel Session
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
 
-                    <div className="p-4 bg-[#F3F8FA] rounded-lg border border-[#308279]/20">
-                      <div className="flex items-center justify-between">
+                    <div className="rounded-lg border border-[#308279]/20 bg-[#F3F8FA] p-4">
+                      <div className="flex items-center justify-between gap-4">
                         <div>
-                          <p className="text-xs text-[#476074] mb-1">Zoom Meeting Link:</p>
-                          <code className="text-sm text-[#0A1B45] font-mono">{session.zoomLink}</code>
+                          <p className="mb-1 text-xs text-[#476074]">Zoom Meeting Link:</p>
+                          <code className="text-sm font-mono text-[#0A1B45]">{session.zoomLink}</code>
                         </div>
-                        <Button size="sm" variant="outline" className="border-[#308279] text-[#308279]">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-[#308279] text-[#308279]"
+                          onClick={() => handleCopyLink(session.zoomLink)}
+                        >
                           Copy Link
                         </Button>
                       </div>
@@ -291,116 +550,70 @@ export default function TutorDashboardPage() {
                 </Card>
               ))}
             </div>
-          </TabsContent>
+          </section>
+        ) : null}
 
-          {/* Courses Tab */}
-          <TabsContent value="courses" className="space-y-6">
+        {activeView === "materials" ? (
+          <section className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-[#0A1B45]">My Courses</h2>
-                <p className="text-[#476074]">Kelola courses dan materials</p>
+                <h2 className="text-2xl font-bold text-[#0A1B45]">Class Materials</h2>
+                <p className="text-[#476074]">Upload PDF, DOCX, cheat notes, dan dokumen pendukung lainnya</p>
               </div>
-              <Dialog open={isCourseDialogOpen} onOpenChange={setIsCourseDialogOpen}>
+              <Dialog open={isMaterialDialogOpen} onOpenChange={setIsMaterialDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-[#308279] hover:bg-[#308279]/90">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Course
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Material
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-2xl">
                   <DialogHeader>
-                    <DialogTitle>Create New Course</DialogTitle>
+                    <DialogTitle>Upload Tutor Material</DialogTitle>
                     <DialogDescription>
-                      Buat course baru dengan mudah dan cepat
+                      Tambahkan dokumen pembelajaran ke class yang sudah dikelola admin.
                     </DialogDescription>
                   </DialogHeader>
-                  <form className="space-y-6">
-                    <div className="space-y-4">
-                      <h3 className="font-bold text-[#0A1B45]">Basic Information</h3>
+                  <form className="space-y-4" onSubmit={handleMaterialSubmit}>
+                    <div className="space-y-2">
+                      <Label htmlFor="material-title">Document Title</Label>
+                      <Input id="material-title" placeholder="e.g., SQL Query Patterns" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="course-title">Course Title</Label>
-                        <Input id="course-title" placeholder="e.g., Data Structures & Algorithms" />
+                        <Label htmlFor="material-class">Class</Label>
+                        <select id="material-class" className="w-full rounded-md border p-2">
+                          <option>Data Structures & Algorithms</option>
+                          <option>Database Management & SQL</option>
+                          <option>HCI Design Principles</option>
+                        </select>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="course-description">Description</Label>
-                        <Textarea
-                          id="course-description"
-                          placeholder="Deskripsikan course kamu..."
-                          rows={4}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="course-category">Category</Label>
-                          <select id="course-category" className="w-full p-2 border rounded-md">
-                            <option>Computer Science</option>
-                            <option>Business</option>
-                            <option>Marketing</option>
-                            <option>Accounting</option>
-                          </select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="course-level">Level</Label>
-                          <select id="course-level" className="w-full p-2 border rounded-md">
-                            <option>Beginner</option>
-                            <option>Intermediate</option>
-                            <option>Advanced</option>
-                          </select>
-                        </div>
+                        <Label htmlFor="material-type">Format</Label>
+                        <select id="material-type" className="w-full rounded-md border p-2">
+                          <option>PDF</option>
+                          <option>DOCX</option>
+                          <option>PPTX</option>
+                        </select>
                       </div>
                     </div>
-
-                    <div className="space-y-4 pt-4 border-t">
-                      <h3 className="font-bold text-[#0A1B45]">Course Content</h3>
-                      <div className="p-4 bg-[#F3F8FA] rounded-lg space-y-3">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium text-[#0A1B45]">Live Sessions Schedule</p>
-                          <Button size="sm" variant="outline">
-                            <Plus className="w-3 h-3 mr-1" />
-                            Add Session
-                          </Button>
-                        </div>
-                        <p className="text-xs text-[#476074]">
-                          Schedule Zoom sessions for live interactive classes
-                        </p>
-                      </div>
-
-                      <div className="p-4 bg-[#F3F8FA] rounded-lg space-y-3">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium text-[#0A1B45]">Course Materials</p>
-                          <Button size="sm" variant="outline">
-                            <Plus className="w-3 h-3 mr-1" />
-                            Upload Materials
-                          </Button>
-                        </div>
-                        <p className="text-xs text-[#476074]">
-                          Upload PDF, cheat sheets, atau materi pendukung lainnya
-                        </p>
-                      </div>
-
-                      <div className="p-4 bg-[#F3F8FA] rounded-lg space-y-3">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium text-[#0A1B45]">Quizzes</p>
-                          <Button size="sm" variant="outline">
-                            <Plus className="w-3 h-3 mr-1" />
-                            Create Quiz
-                          </Button>
-                        </div>
-                        <p className="text-xs text-[#476074]">
-                          Buat quiz untuk mengetes pemahaman students
-                        </p>
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="material-file">File</Label>
+                      <Input id="material-file" type="file" />
                     </div>
-
-                    <div className="flex gap-3 pt-4 border-t">
+                    <div className="space-y-2">
+                      <Label htmlFor="material-notes">Description</Label>
+                      <Textarea
+                        id="material-notes"
+                        placeholder="Jelaskan isi dokumen atau cara menggunakannya untuk students..."
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex gap-3 pt-4">
                       <Button type="submit" className="bg-[#308279] hover:bg-[#308279]/90">
-                        Create Course
+                        Upload Material
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setIsCourseDialogOpen(false)}
-                      >
+                      <Button type="button" variant="outline" onClick={() => setIsMaterialDialogOpen(false)}>
                         Batal
                       </Button>
                     </div>
@@ -409,77 +622,73 @@ export default function TutorDashboardPage() {
               </Dialog>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {courses.map((course) => (
-                <Card key={course.id} className="overflow-hidden hover:shadow-lg transition-all border-2 hover:border-[#308279]">
-                  <div className="bg-gradient-to-br from-[#0A1B45] to-[#308279] p-6 text-white">
-                    <div className="flex items-center justify-between mb-4">
-                      <Badge className="bg-white/20 text-white border-0">
-                        {course.status}
-                      </Badge>
-                      <div className="flex items-center gap-1">
-                        <span className="text-xl font-bold">{course.rating}</span>
-                        <span className="text-white/80">⭐</span>
-                      </div>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {classMaterials.map((material) => (
+                <Card
+                  key={material.id}
+                  className="border-2 p-6 transition-all hover:border-[#308279] hover:shadow-lg"
+                >
+                  <div className="mb-4 flex items-start justify-between gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#308279]/10 text-[#308279]">
+                      <FileText className="h-6 w-6" />
                     </div>
-                    <h3 className="font-bold text-lg mb-2 line-clamp-2">{course.title}</h3>
-                    <div className="flex items-center gap-2 text-white/80 text-sm">
-                      <Users className="w-4 h-4" />
-                      <span>{course.students} students</span>
-                    </div>
+                    <Badge
+                      className={
+                        material.status === "Published"
+                          ? "border-0 bg-[#308279]/10 text-[#308279]"
+                          : "border-0 bg-[#0A1B45]/10 text-[#0A1B45]"
+                      }
+                    >
+                      {material.status}
+                    </Badge>
                   </div>
-
-                  <div className="p-6 space-y-4">
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="p-2 bg-[#F3F8FA] rounded">
-                        <div className="text-lg font-bold text-[#308279]">{course.liveSessions}</div>
-                        <div className="text-xs text-[#476074]">Sessions</div>
-                      </div>
-                      <div className="p-2 bg-[#F3F8FA] rounded">
-                        <div className="text-lg font-bold text-[#0A1B45]">{course.materials}</div>
-                        <div className="text-xs text-[#476074]">Materials</div>
-                      </div>
-                      <div className="p-2 bg-[#F3F8FA] rounded">
-                        <div className="text-lg font-bold text-[#0A1B45]">{course.quizzes}</div>
-                        <div className="text-xs text-[#476074]">Quizzes</div>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Link to={`/course/${course.id}/edit`} className="flex-1">
-                        <Button variant="outline" className="w-full border-[#308279] text-[#308279]">
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit
-                        </Button>
-                      </Link>
-                      <Link to={`/course/${course.id}`} className="flex-1">
-                        <Button variant="outline" className="w-full">
-                          <Eye className="w-4 h-4 mr-2" />
-                          View
-                        </Button>
-                      </Link>
-                    </div>
+                  <div>
+                    <div className="text-sm font-medium text-[#308279]">{material.className}</div>
+                    <h3 className="mt-2 text-lg font-bold text-[#0A1B45]">{material.title}</h3>
+                    <p className="mt-2 text-sm text-[#476074]">
+                      {material.format} • {material.size} • {material.downloads} downloads
+                    </p>
+                    <p className="mt-1 text-sm text-[#476074]">Updated {material.lastUpdated}</p>
+                  </div>
+                  <div className="mt-6 flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 border-[#308279] text-[#308279]"
+                      onClick={() =>
+                        toast.message("Revision flow", {
+                          description: `Revisi untuk ${material.title} akan diarahkan ke uploader dokumen.`,
+                        })
+                      }
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Revise
+                    </Button>
+                    <Link to={`/class/${material.classId}`} className="flex-1">
+                      <Button variant="outline" className="w-full">
+                        Open Class
+                      </Button>
+                    </Link>
                   </div>
                 </Card>
               ))}
             </div>
-          </TabsContent>
+          </section>
+        ) : null}
 
-          {/* Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-6">
+        {activeView === "analytics" ? (
+          <section className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-[#0A1B45] mb-2">Teaching Analytics</h2>
-              <p className="text-[#476074]">Insights tentang performa mengajar kamu</p>
+              <h2 className="mb-2 text-2xl font-bold text-[#0A1B45]">Teaching Analytics</h2>
+              <p className="text-[#476074]">Ringkasan performa live teaching dan engagement students</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Student Growth Chart */}
+            <div className="grid gap-6 md:grid-cols-2">
               <Card className="p-6">
-                <h3 className="text-lg font-bold text-[#0A1B45] mb-4">Student Growth</h3>
+                <h3 className="mb-4 text-lg font-bold text-[#0A1B45]">Student Growth</h3>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={studentEngagementData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#92B7B0" opacity={0.3} />
+                      <CartesianGrid stroke="#92B7B0" strokeDasharray="3 3" opacity={0.3} />
                       <XAxis dataKey="week" stroke="#476074" />
                       <YAxis stroke="#476074" />
                       <Tooltip
@@ -501,10 +710,9 @@ export default function TutorDashboardPage() {
                 </div>
               </Card>
 
-              {/* Session Attendance */}
               <Card className="p-6">
-                <h3 className="text-lg font-bold text-[#0A1B45] mb-4">Session Attendance Rate</h3>
-                <div className="h-64 flex items-center justify-center">
+                <h3 className="mb-4 text-lg font-bold text-[#0A1B45]">Session Attendance Rate</h3>
+                <div className="flex h-64 items-center justify-center">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -524,39 +732,51 @@ export default function TutorDashboardPage() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="mt-4 p-4 bg-[#308279]/5 rounded-lg">
+                <div className="mt-4 rounded-lg bg-[#308279]/5 p-4">
                   <p className="text-sm text-[#476074]">
-                    <span className="font-bold text-[#308279]">85%</span> students rata-rata menghadiri live sessions kamu
+                    <span className="font-bold text-[#308279]">85%</span> students rata-rata hadir di
+                    live session kamu minggu ini.
                   </p>
                 </div>
               </Card>
             </div>
 
-            {/* Performance Summary */}
             <Card className="p-6">
-              <h3 className="text-lg font-bold text-[#0A1B45] mb-4">Performance Summary</h3>
-              <div className="grid md:grid-cols-4 gap-4">
-                <div className="p-4 bg-[#F3F8FA] rounded-lg">
-                  <div className="text-2xl font-bold text-[#308279] mb-1">4.9</div>
+              <h3 className="mb-4 text-lg font-bold text-[#0A1B45]">Performance Summary</h3>
+              <div className="grid gap-4 md:grid-cols-4">
+                <div className="rounded-lg bg-[#F3F8FA] p-4">
+                  <div className="mb-1 text-2xl font-bold text-[#308279]">4.9</div>
                   <div className="text-sm text-[#476074]">Rata-rata Rating</div>
                 </div>
-                <div className="p-4 bg-[#F3F8FA] rounded-lg">
-                  <div className="text-2xl font-bold text-[#0A1B45] mb-1">92%</div>
-                  <div className="text-sm text-[#476074]">Completion Rate</div>
+                <div className="rounded-lg bg-[#F3F8FA] p-4">
+                  <div className="mb-1 text-2xl font-bold text-[#0A1B45]">18</div>
+                  <div className="text-sm text-[#476074]">Dokumen Aktif</div>
                 </div>
-                <div className="p-4 bg-[#F3F8FA] rounded-lg">
-                  <div className="text-2xl font-bold text-[#0A1B45] mb-1">85%</div>
+                <div className="rounded-lg bg-[#F3F8FA] p-4">
+                  <div className="mb-1 text-2xl font-bold text-[#0A1B45]">85%</div>
                   <div className="text-sm text-[#476074]">Attendance Rate</div>
                 </div>
-                <div className="p-4 bg-[#F3F8FA] rounded-lg">
-                  <div className="text-2xl font-bold text-[#308279] mb-1">234</div>
+                <div className="rounded-lg bg-[#F3F8FA] p-4">
+                  <div className="mb-1 text-2xl font-bold text-[#308279]">234</div>
                   <div className="text-sm text-[#476074]">Total Reviews</div>
                 </div>
               </div>
+              <div className="mt-6 flex justify-end">
+                <Link to="/help-faq?role=tutor">
+                  <Button
+                    variant="outline"
+                    className="border-[#308279] text-[#308279]"
+                  >
+                    Open tutor help center
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </Card>
-          </TabsContent>
-        </Tabs>
+          </section>
+        ) : null}
       </div>
+      </main>
     </div>
   );
 }

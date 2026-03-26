@@ -1,26 +1,60 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router";
-import { ArrowLeft, Save, Plus, Trash2, Upload, Video, FileText, ClipboardList } from "lucide-react";
+import {
+  ArrowLeft,
+  Save,
+  Plus,
+  Trash2,
+  Upload,
+  Video,
+  Calendar,
+  FileText,
+  BookOpen,
+} from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "../components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../components/ui/dialog";
+import { Badge } from "../components/ui/badge";
 import { toast } from "sonner";
 
 export default function CourseEditPage() {
   const { courseId } = useParams();
-  const [courseData, setCourseData] = useState({
+  const [classData, setClassData] = useState({
     title: "Data Structures & Algorithms",
     subtitle: "Master the fundamentals of DSA",
-    description: "Comprehensive course on data structures and algorithms...",
+    description: "Kelas intensif untuk mahasiswa BINUS yang ingin memahami DSA lewat video lesson, live Zoom session, dan materi PDF pendukung.",
     level: "Intermediate",
     category: "Computer Science",
     language: "Bahasa Indonesia",
     duration: "12 weeks",
+    tutor: "Raka Pratama",
   });
+
+  const [videos, setVideos] = useState([
+    {
+      id: 1,
+      title: "Class Overview & Learning Path",
+      duration: "15:30",
+      status: "Published",
+    },
+    {
+      id: 2,
+      title: "Array Fundamentals",
+      duration: "27:10",
+      status: "Published",
+    },
+  ]);
 
   const [sessions, setSessions] = useState([
     {
@@ -28,9 +62,7 @@ export default function CourseEditPage() {
       title: "Two Pointer Technique",
       date: "2026-02-17",
       time: "14:00",
-      duration: 90,
-      zoomLink: "https://zoom.us/j/123456789",
-      description: "Learn advanced two pointer techniques",
+      tutor: "Raka Pratama",
     },
   ]);
 
@@ -39,183 +71,100 @@ export default function CourseEditPage() {
       id: 1,
       title: "Array & Linked List Fundamentals",
       type: "PDF",
-      description: "Complete guide to arrays and linked lists",
+      owner: "Tutor upload",
     },
   ]);
 
-  const [quizzes, setQuizzes] = useState([
-    {
-      id: 1,
-      title: "Array & Linked List Quiz",
-      questions: 15,
-      duration: 30,
-      difficulty: "Medium",
-    },
-  ]);
-
-  // New session dialog state
-  const [isAddSessionOpen, setIsAddSessionOpen] = useState(false);
-  const [newSession, setNewSession] = useState({
+  const [isAddVideoOpen, setIsAddVideoOpen] = useState(false);
+  const [newVideo, setNewVideo] = useState({
     title: "",
-    date: "",
-    time: "",
-    duration: 90,
-    zoomLink: "",
-    description: "",
+    duration: "",
+    status: "Draft",
   });
 
-  // New material dialog state
-  const [isAddMaterialOpen, setIsAddMaterialOpen] = useState(false);
-  const [newMaterial, setNewMaterial] = useState({
-    title: "",
-    type: "PDF",
-    description: "",
-  });
-
-  // New quiz dialog state
-  const [isAddQuizOpen, setIsAddQuizOpen] = useState(false);
-  const [newQuiz, setNewQuiz] = useState({
-    title: "",
-    questions: 10,
-    duration: 30,
-    difficulty: "Medium",
-  });
-
-  // Handlers for sessions
-  const handleAddSession = () => {
-    if (!newSession.title || !newSession.date || !newSession.time) {
-      toast.error("Please fill in all required fields");
+  const handleAddVideo = () => {
+    if (!newVideo.title || !newVideo.duration) {
+      toast.error("Please fill in the video title and duration");
       return;
     }
-    const session = {
-      id: sessions.length + 1,
-      ...newSession,
-    };
-    setSessions([...sessions, session]);
-    setNewSession({ title: "", date: "", time: "", duration: 90, zoomLink: "", description: "" });
-    setIsAddSessionOpen(false);
-    toast.success("Session added successfully!");
+
+    setVideos((current) => [
+      ...current,
+      {
+        id: current.length + 1,
+        title: newVideo.title,
+        duration: newVideo.duration,
+        status: newVideo.status,
+      },
+    ]);
+    setNewVideo({ title: "", duration: "", status: "Draft" });
+    setIsAddVideoOpen(false);
+    toast.success("Video added successfully!");
   };
 
-  const handleDeleteSession = (id: number) => {
-    setSessions(sessions.filter((s) => s.id !== id));
-    toast.success("Session deleted");
+  const handleDeleteVideo = (id: number) => {
+    setVideos((current) => current.filter((video) => video.id !== id));
+    toast.success("Video removed");
   };
 
-  const handleUpdateSession = (id: number, field: string, value: string | number) => {
-    setSessions(sessions.map((s) => (s.id === id ? { ...s, [field]: value } : s)));
-  };
-
-  // Handlers for materials
-  const handleAddMaterial = () => {
-    if (!newMaterial.title) {
-      toast.error("Please enter a material title");
-      return;
-    }
-    const material = {
-      id: materials.length + 1,
-      ...newMaterial,
-    };
-    setMaterials([...materials, material]);
-    setNewMaterial({ title: "", type: "PDF", description: "" });
-    setIsAddMaterialOpen(false);
-    toast.success("Material added successfully!");
-  };
-
-  const handleDeleteMaterial = (id: number) => {
-    setMaterials(materials.filter((m) => m.id !== id));
-    toast.success("Material deleted");
-  };
-
-  const handleUpdateMaterial = (id: number, field: string, value: string) => {
-    setMaterials(materials.map((m) => (m.id === id ? { ...m, [field]: value } : m)));
-  };
-
-  // Handlers for quizzes
-  const handleAddQuiz = () => {
-    if (!newQuiz.title) {
-      toast.error("Please enter a quiz title");
-      return;
-    }
-    const quiz = {
-      id: quizzes.length + 1,
-      ...newQuiz,
-    };
-    setQuizzes([...quizzes, quiz]);
-    setNewQuiz({ title: "", questions: 10, duration: 30, difficulty: "Medium" });
-    setIsAddQuizOpen(false);
-    toast.success("Quiz added successfully!");
-  };
-
-  const handleDeleteQuiz = (id: number) => {
-    setQuizzes(quizzes.filter((q) => q.id !== id));
-    toast.success("Quiz deleted");
-  };
-
-  const handleUpdateQuiz = (id: number, field: string, value: string | number) => {
-    setQuizzes(quizzes.map((q) => (q.id === id ? { ...q, [field]: value } : q)));
-  };
-
-  // Save all changes
   const handleSaveChanges = () => {
-    toast.success("All changes saved successfully!");
+    toast.success("Class changes saved", {
+      description: `Konfigurasi class #${courseId ?? "1"} berhasil diperbarui.`,
+    });
   };
 
   return (
     <div className="min-h-screen bg-[#F3F8FA]">
       <header className="bg-gradient-to-r from-[#0A1B45] to-[#308279] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Link to="/tutor-dashboard">
-            <Button variant="ghost" className="text-white hover:bg-white/10 mb-6">
-              <ArrowLeft className="w-5 h-5 mr-2" />
-              Back to Dashboard
+        <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+          <Link to="/admin-dashboard">
+            <Button variant="ghost" className="mb-6 text-white hover:bg-white/10">
+              <ArrowLeft className="mr-2 h-5 w-5" />
+              Back to Admin Dashboard
             </Button>
           </Link>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold">Edit Course</h1>
-              <p className="text-white/80 mt-2">Update course information and content</p>
+              <h1 className="text-3xl font-bold">Edit Class</h1>
+              <p className="mt-2 text-white/80">
+                Kelola struktur class, tutor assignment, dan video lesson yang dipublikasikan admin.
+              </p>
             </div>
-            <Button 
-              className="bg-white text-[#308279] hover:bg-white/90"
-              onClick={handleSaveChanges}
-            >
-              <Save className="w-4 h-4 mr-2" />
+            <Button className="bg-white text-[#308279] hover:bg-white/90" onClick={handleSaveChanges}>
+              <Save className="mr-2 h-4 w-4" />
               Save Changes
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full max-w-2xl grid-cols-4 mb-8">
+          <TabsList className="mb-8 grid w-full max-w-2xl grid-cols-3">
             <TabsTrigger value="basic">Basic Info</TabsTrigger>
-            <TabsTrigger value="sessions">Sessions</TabsTrigger>
-            <TabsTrigger value="materials">Materials</TabsTrigger>
-            <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
+            <TabsTrigger value="videos">Videos</TabsTrigger>
+            <TabsTrigger value="operations">Operations</TabsTrigger>
           </TabsList>
 
-          {/* Basic Info Tab */}
           <TabsContent value="basic">
             <Card className="p-8">
-              <h2 className="text-2xl font-bold text-[#0A1B45] mb-6">Course Information</h2>
+              <h2 className="mb-6 text-2xl font-bold text-[#0A1B45]">Class Information</h2>
               <form className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="title">Course Title</Label>
+                    <Label htmlFor="title">Class Title</Label>
                     <Input
                       id="title"
-                      value={courseData.title}
-                      onChange={(e) => setCourseData({ ...courseData, title: e.target.value })}
+                      value={classData.title}
+                      onChange={(event) => setClassData({ ...classData, title: event.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="subtitle">Subtitle</Label>
                     <Input
                       id="subtitle"
-                      value={courseData.subtitle}
-                      onChange={(e) => setCourseData({ ...courseData, subtitle: e.target.value })}
+                      value={classData.subtitle}
+                      onChange={(event) => setClassData({ ...classData, subtitle: event.target.value })}
                     />
                   </div>
                 </div>
@@ -224,20 +173,20 @@ export default function CourseEditPage() {
                   <Label htmlFor="description">Description</Label>
                   <Textarea
                     id="description"
-                    value={courseData.description}
-                    onChange={(e) => setCourseData({ ...courseData, description: e.target.value })}
+                    value={classData.description}
+                    onChange={(event) => setClassData({ ...classData, description: event.target.value })}
                     rows={6}
                   />
                 </div>
 
-                <div className="grid md:grid-cols-4 gap-4">
+                <div className="grid gap-4 md:grid-cols-4">
                   <div className="space-y-2">
                     <Label htmlFor="level">Level</Label>
                     <select
                       id="level"
-                      value={courseData.level}
-                      onChange={(e) => setCourseData({ ...courseData, level: e.target.value })}
-                      className="w-full p-2 border rounded-md"
+                      value={classData.level}
+                      onChange={(event) => setClassData({ ...classData, level: event.target.value })}
+                      className="w-full rounded-md border p-2"
                     >
                       <option>Beginner</option>
                       <option>Intermediate</option>
@@ -248,9 +197,9 @@ export default function CourseEditPage() {
                     <Label htmlFor="category">Category</Label>
                     <select
                       id="category"
-                      value={courseData.category}
-                      onChange={(e) => setCourseData({ ...courseData, category: e.target.value })}
-                      className="w-full p-2 border rounded-md"
+                      value={classData.category}
+                      onChange={(event) => setClassData({ ...classData, category: event.target.value })}
+                      className="w-full rounded-md border p-2"
                     >
                       <option>Computer Science</option>
                       <option>Business</option>
@@ -260,434 +209,224 @@ export default function CourseEditPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="language">Language</Label>
-                    <select
+                    <Input
                       id="language"
-                      value={courseData.language}
-                      onChange={(e) => setCourseData({ ...courseData, language: e.target.value })}
-                      className="w-full p-2 border rounded-md"
-                    >
-                      <option>Bahasa Indonesia</option>
-                      <option>English</option>
-                    </select>
+                      value={classData.language}
+                      onChange={(event) => setClassData({ ...classData, language: event.target.value })}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="duration">Duration</Label>
                     <Input
                       id="duration"
-                      value={courseData.duration}
-                      onChange={(e) => setCourseData({ ...courseData, duration: e.target.value })}
+                      value={classData.duration}
+                      onChange={(event) => setClassData({ ...classData, duration: event.target.value })}
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="tutor">Assigned Tutor</Label>
+                  <Input
+                    id="tutor"
+                    value={classData.tutor}
+                    onChange={(event) => setClassData({ ...classData, tutor: event.target.value })}
+                  />
                 </div>
               </form>
             </Card>
           </TabsContent>
 
-          {/* Sessions Tab */}
-          <TabsContent value="sessions">
+          <TabsContent value="videos">
             <Card className="p-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-[#0A1B45]">Live Sessions</h2>
-                <Dialog open={isAddSessionOpen} onOpenChange={setIsAddSessionOpen}>
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-[#0A1B45]">Video Library</h2>
+                  <p className="mt-2 text-[#476074]">Admin uploads and sequences the on-demand videos for this class</p>
+                </div>
+                <Dialog open={isAddVideoOpen} onOpenChange={setIsAddVideoOpen}>
                   <DialogTrigger asChild>
                     <Button className="bg-[#308279] hover:bg-[#308279]/90">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Session
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Video
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="max-w-xl">
                     <DialogHeader>
-                      <DialogTitle>Add New Session</DialogTitle>
-                      <DialogDescription>Create a new live session for this course</DialogDescription>
+                      <DialogTitle>Add Lesson Video</DialogTitle>
+                      <DialogDescription>
+                        Tambahkan video baru ke library class ini.
+                      </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="new-session-title">Session Title</Label>
+                        <Label htmlFor="video-title">Video Title</Label>
                         <Input
-                          id="new-session-title"
-                          value={newSession.title}
-                          onChange={(e) => setNewSession({ ...newSession, title: e.target.value })}
-                          placeholder="e.g., Two Pointer Technique"
+                          id="video-title"
+                          value={newVideo.title}
+                          onChange={(event) => setNewVideo({ ...newVideo, title: event.target.value })}
+                          placeholder="e.g., Binary Search Deep Dive"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="new-session-date">Date</Label>
+                          <Label htmlFor="video-duration">Duration</Label>
                           <Input
-                            id="new-session-date"
-                            type="date"
-                            value={newSession.date}
-                            onChange={(e) => setNewSession({ ...newSession, date: e.target.value })}
+                            id="video-duration"
+                            value={newVideo.duration}
+                            onChange={(event) => setNewVideo({ ...newVideo, duration: event.target.value })}
+                            placeholder="e.g., 18:20"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="new-session-time">Time</Label>
-                          <Input
-                            id="new-session-time"
-                            type="time"
-                            value={newSession.time}
-                            onChange={(e) => setNewSession({ ...newSession, time: e.target.value })}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="new-session-duration">Duration (minutes)</Label>
-                        <Input
-                          id="new-session-duration"
-                          type="number"
-                          value={newSession.duration}
-                          onChange={(e) => setNewSession({ ...newSession, duration: parseInt(e.target.value) })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="new-session-zoom">Zoom Link</Label>
-                        <Input
-                          id="new-session-zoom"
-                          value={newSession.zoomLink}
-                          onChange={(e) => setNewSession({ ...newSession, zoomLink: e.target.value })}
-                          placeholder="https://zoom.us/j/..."
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="new-session-description">Description</Label>
-                        <Textarea
-                          id="new-session-description"
-                          value={newSession.description}
-                          onChange={(e) => setNewSession({ ...newSession, description: e.target.value })}
-                          rows={3}
-                        />
-                      </div>
-                      <div className="flex gap-3">
-                        <Button onClick={handleAddSession} className="bg-[#308279] hover:bg-[#308279]/90">
-                          Add Session
-                        </Button>
-                        <Button variant="outline" onClick={() => setIsAddSessionOpen(false)}>
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-
-              <div className="space-y-4">
-                {sessions.map((session) => (
-                  <Card key={session.id} className="p-6 border-2">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-start gap-4 flex-1">
-                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#308279] to-[#0A1B45] flex items-center justify-center">
-                          <Video className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex-1 space-y-4">
-                          <Input 
-                            value={session.title} 
-                            onChange={(e) => handleUpdateSession(session.id, "title", e.target.value)}
-                            placeholder="Session Title" 
-                          />
-                          <div className="grid grid-cols-3 gap-4">
-                            <Input 
-                              type="date" 
-                              value={session.date}
-                              onChange={(e) => handleUpdateSession(session.id, "date", e.target.value)}
-                            />
-                            <Input 
-                              type="time" 
-                              value={session.time}
-                              onChange={(e) => handleUpdateSession(session.id, "time", e.target.value)}
-                            />
-                            <Input 
-                              type="number" 
-                              value={session.duration} 
-                              onChange={(e) => handleUpdateSession(session.id, "duration", parseInt(e.target.value))}
-                              placeholder="Duration (min)" 
-                            />
-                          </div>
-                          <Input 
-                            value={session.zoomLink}
-                            onChange={(e) => handleUpdateSession(session.id, "zoomLink", e.target.value)}
-                            placeholder="Zoom Link" 
-                          />
-                          <Textarea 
-                            value={session.description}
-                            onChange={(e) => handleUpdateSession(session.id, "description", e.target.value)}
-                            placeholder="Description" 
-                            rows={2} 
-                          />
-                        </div>
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-red-500"
-                        onClick={() => handleDeleteSession(session.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </Card>
-                ))}
-                {sessions.length === 0 && (
-                  <div className="text-center py-12 text-[#476074]">
-                    <Video className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No sessions yet. Click "Add Session" to create your first one.</p>
-                  </div>
-                )}
-              </div>
-            </Card>
-          </TabsContent>
-
-          {/* Materials Tab */}
-          <TabsContent value="materials">
-            <Card className="p-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-[#0A1B45]">Course Materials</h2>
-                <Dialog open={isAddMaterialOpen} onOpenChange={setIsAddMaterialOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-[#308279] hover:bg-[#308279]/90">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Upload Material
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add New Material</DialogTitle>
-                      <DialogDescription>Upload a new learning material for this course</DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="new-material-title">Material Title</Label>
-                        <Input
-                          id="new-material-title"
-                          value={newMaterial.title}
-                          onChange={(e) => setNewMaterial({ ...newMaterial, title: e.target.value })}
-                          placeholder="e.g., Array & Linked List Fundamentals"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="new-material-type">Type</Label>
-                        <select
-                          id="new-material-type"
-                          value={newMaterial.type}
-                          onChange={(e) => setNewMaterial({ ...newMaterial, type: e.target.value })}
-                          className="w-full p-2 border rounded-md"
-                        >
-                          <option>PDF</option>
-                          <option>Video</option>
-                          <option>Image</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="new-material-description">Description</Label>
-                        <Textarea
-                          id="new-material-description"
-                          value={newMaterial.description}
-                          onChange={(e) => setNewMaterial({ ...newMaterial, description: e.target.value })}
-                          rows={3}
-                        />
-                      </div>
-                      <div className="flex gap-3">
-                        <Button onClick={handleAddMaterial} className="bg-[#308279] hover:bg-[#308279]/90">
-                          Add Material
-                        </Button>
-                        <Button variant="outline" onClick={() => setIsAddMaterialOpen(false)}>
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-
-              <div className="space-y-4">
-                {materials.map((material) => (
-                  <Card key={material.id} className="p-6 border-2">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-4 flex-1">
-                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#92B7B0] to-[#308279] flex items-center justify-center">
-                          <FileText className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex-1 space-y-4">
-                          <Input 
-                            value={material.title}
-                            onChange={(e) => handleUpdateMaterial(material.id, "title", e.target.value)}
-                            placeholder="Material Title" 
-                          />
-                          <select 
-                            className="w-full p-2 border rounded-md"
-                            value={material.type}
-                            onChange={(e) => handleUpdateMaterial(material.id, "type", e.target.value)}
+                          <Label htmlFor="video-status">Status</Label>
+                          <select
+                            id="video-status"
+                            value={newVideo.status}
+                            onChange={(event) => setNewVideo({ ...newVideo, status: event.target.value })}
+                            className="w-full rounded-md border p-2"
                           >
-                            <option>PDF</option>
-                            <option>Video</option>
-                            <option>Image</option>
+                            <option>Draft</option>
+                            <option>Published</option>
                           </select>
-                          <Textarea 
-                            value={material.description}
-                            onChange={(e) => handleUpdateMaterial(material.id, "description", e.target.value)}
-                            placeholder="Description" 
-                            rows={2} 
-                          />
-                          <Button variant="outline" size="sm">
-                            <Upload className="w-4 h-4 mr-2" />
-                            Upload File
-                          </Button>
                         </div>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-red-500"
-                        onClick={() => handleDeleteMaterial(material.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
+                      <div className="space-y-2">
+                        <Label htmlFor="video-file">Upload Video File</Label>
+                        <Input id="video-file" type="file" />
+                      </div>
+                      <Button className="w-full bg-[#308279] hover:bg-[#308279]/90" onClick={handleAddVideo}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Add to Library
                       </Button>
-                    </div>
-                  </Card>
-                ))}
-                {materials.length === 0 && (
-                  <div className="text-center py-12 text-[#476074]">
-                    <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No materials yet. Click "Upload Material" to add your first one.</p>
-                  </div>
-                )}
-              </div>
-            </Card>
-          </TabsContent>
-
-          {/* Quizzes Tab */}
-          <TabsContent value="quizzes">
-            <Card className="p-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-[#0A1B45]">Quizzes</h2>
-                <Dialog open={isAddQuizOpen} onOpenChange={setIsAddQuizOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-[#308279] hover:bg-[#308279]/90">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Create Quiz
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Create New Quiz</DialogTitle>
-                      <DialogDescription>Add a new quiz to test student knowledge</DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="new-quiz-title">Quiz Title</Label>
-                        <Input
-                          id="new-quiz-title"
-                          value={newQuiz.title}
-                          onChange={(e) => setNewQuiz({ ...newQuiz, title: e.target.value })}
-                          placeholder="e.g., Array & Linked List Quiz"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="new-quiz-questions">Number of Questions</Label>
-                          <Input
-                            id="new-quiz-questions"
-                            type="number"
-                            value={newQuiz.questions}
-                            onChange={(e) => setNewQuiz({ ...newQuiz, questions: parseInt(e.target.value) })}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="new-quiz-duration">Duration (minutes)</Label>
-                          <Input
-                            id="new-quiz-duration"
-                            type="number"
-                            value={newQuiz.duration}
-                            onChange={(e) => setNewQuiz({ ...newQuiz, duration: parseInt(e.target.value) })}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="new-quiz-difficulty">Difficulty</Label>
-                        <select
-                          id="new-quiz-difficulty"
-                          value={newQuiz.difficulty}
-                          onChange={(e) => setNewQuiz({ ...newQuiz, difficulty: e.target.value })}
-                          className="w-full p-2 border rounded-md"
-                        >
-                          <option>Easy</option>
-                          <option>Medium</option>
-                          <option>Hard</option>
-                        </select>
-                      </div>
-                      <div className="flex gap-3">
-                        <Button onClick={handleAddQuiz} className="bg-[#308279] hover:bg-[#308279]/90">
-                          Create Quiz
-                        </Button>
-                        <Button variant="outline" onClick={() => setIsAddQuizOpen(false)}>
-                          Cancel
-                        </Button>
-                      </div>
                     </div>
                   </DialogContent>
                 </Dialog>
               </div>
 
               <div className="space-y-4">
-                {quizzes.map((quiz) => (
-                  <Card key={quiz.id} className="p-6 border-2">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-4 flex-1">
-                        <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#476074] to-[#0A1B45] flex items-center justify-center">
-                          <ClipboardList className="w-6 h-6 text-white" />
+                {videos.map((video) => (
+                  <div key={video.id} className="rounded-2xl border bg-white p-5">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                      <div className="flex items-start gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0A1B45]/10 text-[#0A1B45]">
+                          <Video className="h-6 w-6" />
                         </div>
-                        <div className="flex-1 space-y-4">
-                          <Input 
-                            value={quiz.title}
-                            onChange={(e) => handleUpdateQuiz(quiz.id, "title", e.target.value)}
-                            placeholder="Quiz Title" 
-                          />
-                          <div className="grid grid-cols-3 gap-4">
-                            <Input 
-                              type="number" 
-                              value={quiz.questions}
-                              onChange={(e) => handleUpdateQuiz(quiz.id, "questions", parseInt(e.target.value))}
-                              placeholder="Questions" 
-                            />
-                            <Input 
-                              type="number" 
-                              value={quiz.duration}
-                              onChange={(e) => handleUpdateQuiz(quiz.id, "duration", parseInt(e.target.value))}
-                              placeholder="Duration (min)" 
-                            />
-                            <select 
-                              className="p-2 border rounded-md"
-                              value={quiz.difficulty}
-                              onChange={(e) => handleUpdateQuiz(quiz.id, "difficulty", e.target.value)}
-                            >
-                              <option>Easy</option>
-                              <option>Medium</option>
-                              <option>Hard</option>
-                            </select>
-                          </div>
-                          <Button variant="outline" size="sm">
-                            Edit Questions
-                          </Button>
+                        <div>
+                          <div className="text-lg font-bold text-[#0A1B45]">{video.title}</div>
+                          <div className="mt-1 text-sm text-[#476074]">Duration {video.duration}</div>
                         </div>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-red-500"
-                        onClick={() => handleDeleteQuiz(quiz.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <div className="flex items-center gap-3">
+                        <Badge className="border-0 bg-[#308279]/10 text-[#308279]">{video.status}</Badge>
+                        <Button
+                          variant="outline"
+                          className="border-[#308279] text-[#308279]"
+                          onClick={() =>
+                            toast.message("Video file updated", {
+                              description: `${video.title} siap menerima revisi file video.`,
+                            })
+                          }
+                        >
+                          <Upload className="mr-2 h-4 w-4" />
+                          Replace File
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteVideo(video.id)}>
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </Button>
+                      </div>
                     </div>
-                  </Card>
-                ))}
-                {quizzes.length === 0 && (
-                  <div className="text-center py-12 text-[#476074]">
-                    <ClipboardList className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No quizzes yet. Click "Create Quiz" to add your first one.</p>
                   </div>
-                )}
+                ))}
               </div>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="operations">
+            <div className="grid gap-6 lg:grid-cols-2">
+              <Card className="p-8">
+                <div className="mb-6 flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#308279]/10 text-[#308279]">
+                    <Calendar className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-[#0A1B45]">Tutor Live Sessions</h2>
+                    <p className="text-[#476074]">Tutor-managed Zoom schedule for this class</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {sessions.map((session) => (
+                    <div key={session.id} className="rounded-2xl bg-[#F3F8FA] p-4">
+                      <div className="font-bold text-[#0A1B45]">{session.title}</div>
+                      <div className="mt-1 text-sm text-[#476074]">
+                        {session.date} • {session.time}
+                      </div>
+                      <div className="mt-1 text-sm text-[#476074]">Tutor: {session.tutor}</div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              <Card className="p-8">
+                <div className="mb-6 flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0A1B45]/10 text-[#0A1B45]">
+                    <FileText className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-[#0A1B45]">Tutor Documents</h2>
+                    <p className="text-[#476074]">PDF and document materials attached by the tutor</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {materials.map((material) => (
+                    <div key={material.id} className="rounded-2xl bg-[#F3F8FA] p-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <div className="font-bold text-[#0A1B45]">{material.title}</div>
+                          <div className="mt-1 text-sm text-[#476074]">
+                            {material.type} • {material.owner}
+                          </div>
+                        </div>
+                        <Badge className="border-0 bg-[#0A1B45]/10 text-[#0A1B45]">Tutor owned</Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 rounded-2xl border border-dashed border-[#308279]/30 bg-[#308279]/5 p-4 text-sm text-[#476074]">
+                  Admin dapat meninjau kelengkapan tutor materials dari sini, tetapi upload dokumen tetap dilakukan lewat tutor dashboard.
+                </div>
+              </Card>
+
+              <Card className="p-8 lg:col-span-2">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#92B7B0]/20 text-[#0A1B45]">
+                    <BookOpen className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-[#0A1B45]">Operational Notes</h2>
+                    <p className="text-[#476074]">Ownership split for this class after the revamp</p>
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="rounded-2xl bg-[#0A1B45] p-5 text-white">
+                    <div className="text-xs uppercase tracking-[0.18em] text-white/60">Admin responsibility</div>
+                    <ul className="mt-3 space-y-2 text-sm text-white/85">
+                      <li>Create and structure the class</li>
+                      <li>Assign tutor and pricing</li>
+                      <li>Upload and organize lesson videos</li>
+                    </ul>
+                  </div>
+                  <div className="rounded-2xl bg-[#308279] p-5 text-white">
+                    <div className="text-xs uppercase tracking-[0.18em] text-white/60">Tutor responsibility</div>
+                    <ul className="mt-3 space-y-2 text-sm text-white/85">
+                      <li>Schedule live Zoom sessions</li>
+                      <li>Upload PDF and document materials</li>
+                      <li>Deliver synchronous teaching support</li>
+                    </ul>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

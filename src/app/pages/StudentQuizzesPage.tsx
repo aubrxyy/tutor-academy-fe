@@ -1,5 +1,4 @@
-import { Link } from "react-router";
-import { ClipboardList, Clock, CheckCircle, XCircle, ArrowLeft, Play, Trophy, TrendingUp } from "lucide-react";
+import { ClipboardList, Clock, CheckCircle, XCircle, Play, Trophy, TrendingUp } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
@@ -106,14 +105,6 @@ export default function StudentQuizzesPage() {
       {/* Header */}
       <header className="bg-gradient-to-r from-[#0A1B45] to-[#308279] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center gap-4 mb-6">
-            <Link to="/student-dashboard">
-              <Button variant="ghost" className="text-white hover:bg-white/10">
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Kembali
-              </Button>
-            </Link>
-          </div>
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
               <ClipboardList className="w-8 h-8 text-white" />
@@ -132,7 +123,7 @@ export default function StudentQuizzesPage() {
               <div className="flex items-center gap-3">
                 <CheckCircle className="w-8 h-8 text-white" />
                 <div>
-                  <div className="text-2xl font-bold">{quizStats.totalCompleted}</div>
+                  <div className="text-2xl font-bold text-white">{quizStats.totalCompleted}</div>
                   <div className="text-xs text-white/80">Selesai</div>
                 </div>
               </div>
@@ -141,7 +132,7 @@ export default function StudentQuizzesPage() {
               <div className="flex items-center gap-3">
                 <Trophy className="w-8 h-8 text-white" />
                 <div>
-                  <div className="text-2xl font-bold">{quizStats.averageScore}%</div>
+                  <div className="text-2xl font-bold text-white">{quizStats.averageScore}%</div>
                   <div className="text-xs text-white/80">Rata-rata</div>
                 </div>
               </div>
@@ -150,7 +141,7 @@ export default function StudentQuizzesPage() {
               <div className="flex items-center gap-3">
                 <ClipboardList className="w-8 h-8 text-white" />
                 <div>
-                  <div className="text-2xl font-bold">{quizStats.totalAvailable}</div>
+                  <div className="text-2xl font-bold text-white">{quizStats.totalAvailable}</div>
                   <div className="text-xs text-white/80">Tersedia</div>
                 </div>
               </div>
@@ -159,7 +150,7 @@ export default function StudentQuizzesPage() {
               <div className="flex items-center gap-3">
                 <TrendingUp className="w-8 h-8 text-white" />
                 <div>
-                  <div className="text-2xl font-bold">{quizStats.passRate}%</div>
+                  <div className="text-2xl font-bold text-white">{quizStats.passRate}%</div>
                   <div className="text-xs text-white/80">Pass Rate</div>
                 </div>
               </div>

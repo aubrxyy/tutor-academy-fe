@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { getDefaultDashboardPath, useAuth } from "../auth/AuthContext";
 import { Button } from "./ui/button";
 import { motion, AnimatePresence } from "motion/react";
+import { cn } from "./ui/utils";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,6 +28,28 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname, location.search]);
+
+  const isNavActive = (to: string) => {
+    const path = to.split("?")[0];
+
+    if (path === "/") {
+      return location.pathname === "/";
+    }
+
+    if (path === "/marketplace") {
+      return (
+        location.pathname === "/marketplace" ||
+        location.pathname.startsWith("/class/") ||
+        location.pathname.startsWith("/course/")
+      );
+    }
+
+    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  };
 
   if (isDashboard) return null;
 
@@ -57,10 +80,22 @@ export default function Navbar() {
               <Link
                 key={item.label}
                 to={item.to}
-                className="text-sm font-medium text-[#476074] hover:text-[#0A1B45] transition-colors relative group"
+                className={cn(
+                  "group relative px-1 py-2 text-sm font-medium transition-colors",
+                  isNavActive(item.to)
+                    ? "text-[#0A1B45]"
+                    : "text-[#476074] hover:text-[#0A1B45]",
+                )}
               >
                 {item.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-[#308279] transition-all duration-300 group-hover:w-full rounded-full opacity-0 group-hover:opacity-100"></span>
+                <span
+                  className={cn(
+                    "absolute -bottom-1 left-0 h-[2px] rounded-full bg-[#308279] transition-all duration-300",
+                    isNavActive(item.to)
+                      ? "w-full opacity-100"
+                      : "w-0 opacity-0 group-hover:w-full group-hover:opacity-100",
+                  )}
+                />
               </Link>
             ))}
           </div>
@@ -89,10 +124,10 @@ export default function Navbar() {
                     Log in
                   </Button>
                 </Link>
-                <Link to="/login?role=tutor">
+                <Link to="/login">
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Button className="bg-[#0A1B45] hover:bg-[#308279] text-white rounded-full font-medium px-6 shadow-lg hover:shadow-xl hover:shadow-[#308279]/20 transition-all duration-300">
-                      Daftar Jadi Tutor
+                      Daftar
                     </Button>
                   </motion.div>
                 </Link>
@@ -137,7 +172,12 @@ export default function Navbar() {
                 <Link
                   key={item.label}
                   to={item.to}
-                  className="block px-3 py-4 text-base font-medium text-[#476074] hover:text-[#0A1B45] hover:bg-[#F3F8FA] rounded-xl transition-colors"
+                  className={cn(
+                    "block rounded-xl px-3 py-4 text-base font-medium transition-colors",
+                    isNavActive(item.to)
+                      ? "bg-[#EBF3F1] text-[#0A1B45]"
+                      : "text-[#476074] hover:bg-[#F3F8FA] hover:text-[#0A1B45]",
+                  )}
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {item.label}
@@ -168,9 +208,9 @@ export default function Navbar() {
                         Log in
                       </Button>
                     </Link>
-                    <Link to="/login?role=tutor" onClick={() => setMobileMenuOpen(false)}>
+                    <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
                       <Button className="w-full justify-center rounded-xl bg-[#0A1B45] text-white">
-                        Daftar Jadi Tutor
+                        Daftar
                       </Button>
                     </Link>
                   </>

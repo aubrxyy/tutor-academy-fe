@@ -1,6 +1,5 @@
 import type { RouteObject } from "react-router";
 import ProtectedRoute from "../components/ProtectedRoute";
-import CourseEditPage from "../pages/CourseEditPage";
 import TutorDashboardPage from "../pages/TutorDashboardPage";
 
 export const tutorRoutes: RouteObject[] = [
@@ -10,10 +9,6 @@ export const tutorRoutes: RouteObject[] = [
       {
         path: "/tutor-dashboard",
         Component: TutorDashboardPage,
-      },
-      {
-        path: "/course/:courseId/edit",
-        Component: CourseEditPage,
       },
     ],
   },

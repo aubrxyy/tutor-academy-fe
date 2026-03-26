@@ -6,12 +6,7 @@ import {
   type ReactNode,
 } from "react";
 
-export type AppRole =
-  | "student"
-  | "tutor"
-  | "admin"
-  | "founder"
-  | "co-founder";
+export type AppRole = "student" | "tutor" | "admin";
 
 export interface AuthUser {
   id: string;
@@ -49,18 +44,6 @@ const ROLE_PROFILES: Record<AppRole, AuthUser> = {
     email: "admin@tutoracademy.test",
     role: "admin",
   },
-  founder: {
-    id: "founder-demo",
-    name: "Founder Access",
-    email: "founder@tutoracademy.test",
-    role: "founder",
-  },
-  "co-founder": {
-    id: "cofounder-demo",
-    name: "Co-Founder Access",
-    email: "cofounder@tutoracademy.test",
-    role: "co-founder",
-  },
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -77,8 +60,12 @@ function readPersistedUser(): AuthUser | null {
 
   try {
     const parsedValue = JSON.parse(rawValue) as AuthUser;
+    if (parsedValue?.role === "founder" || parsedValue?.role === "co-founder") {
+      return ROLE_PROFILES.admin;
+    }
+
     if (parsedValue?.role && parsedValue.role in ROLE_PROFILES) {
-      return parsedValue;
+      return parsedValue as AuthUser;
     }
   } catch {
     window.localStorage.removeItem(AUTH_STORAGE_KEY);
@@ -94,19 +81,11 @@ export function getDefaultDashboardPath(role: AppRole) {
     case "tutor":
       return "/tutor-dashboard";
     case "admin":
-    case "founder":
-    case "co-founder":
       return "/admin-dashboard";
   }
 }
 
-export const availableRoles: AppRole[] = [
-  "student",
-  "tutor",
-  "admin",
-  "founder",
-  "co-founder",
-];
+export const availableRoles: AppRole[] = ["student", "tutor", "admin"];
 
 export function getRoleLabel(role: AppRole) {
   switch (role) {
@@ -116,10 +95,6 @@ export function getRoleLabel(role: AppRole) {
       return "Tutor";
     case "admin":
       return "Admin";
-    case "founder":
-      return "Founder";
-    case "co-founder":
-      return "Co-Founder";
   }
 }
 

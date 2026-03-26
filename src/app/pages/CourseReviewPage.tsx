@@ -24,8 +24,7 @@ export default function CourseReviewPage() {
     e.preventDefault();
     // Handle review submission
     console.log({ rating, review });
-    // Navigate back to course page
-    navigate(`/course/${courseId}`);
+    navigate(`/class/${courseId}`);
   };
 
   return (
@@ -33,10 +32,10 @@ export default function CourseReviewPage() {
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Link to={`/course/${courseId}`}>
+        <Link to={`/class/${courseId}`}>
           <Button variant="ghost" className="text-[#476074] hover:bg-[#308279]/10 mb-6">
             <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Course
+            Back to Class
           </Button>
         </Link>
 
@@ -57,7 +56,7 @@ export default function CourseReviewPage() {
             {/* Rating Section */}
             <div className="space-y-4">
               <Label className="text-lg font-semibold text-[#0A1B45]">
-                How would you rate this course?
+                How would you rate this class?
               </Label>
               <div className="flex flex-col items-center gap-4 p-8 bg-[#F3F8FA] rounded-lg">
                 <div className="flex items-center gap-2">
@@ -90,7 +89,7 @@ export default function CourseReviewPage() {
                       {rating === 1 && "Poor 😞"}
                     </p>
                     <p className="text-sm text-[#476074] mt-1">
-                      You rated this course {rating} out of 5 stars
+                      You rated this class {rating} out of 5 stars
                     </p>
                   </div>
                 )}
@@ -100,11 +99,11 @@ export default function CourseReviewPage() {
             {/* Review Text Section */}
             <div className="space-y-4">
               <Label htmlFor="review" className="text-lg font-semibold text-[#0A1B45]">
-                Share your thoughts about the course
+                Share your thoughts about the class
               </Label>
               <Textarea
                 id="review"
-                placeholder="Tell us what you liked or didn't like about this course. How was the content? Was the tutor helpful? Would you recommend it to others?"
+                placeholder="Tell us what you liked or didn't like about this class. How was the content? Was the tutor helpful? Would you recommend it to others?"
                 value={review}
                 onChange={(e) => setReview(e.target.value)}
                 className="min-h-[200px] border-[#92B7B0]/30 focus:border-[#308279] text-base"
@@ -125,7 +124,7 @@ export default function CourseReviewPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-500">•</span>
-                  <span>Focus on the course content, teaching quality, and overall experience</span>
+                  <span>Focus on the class content, teaching quality, and overall experience</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-500">•</span>
@@ -150,7 +149,7 @@ export default function CourseReviewPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate(`/course/${courseId}`)}
+                onClick={() => navigate(`/class/${courseId}`)}
                 className="flex-1 border-[#476074] text-[#476074] hover:bg-[#476074]/10 h-12 text-lg"
               >
                 Cancel
@@ -164,7 +163,7 @@ export default function CourseReviewPage() {
           <h3 className="font-semibold text-[#0A1B45] mb-3">💡 Tips for writing a great review:</h3>
           <ul className="space-y-2 text-sm text-[#476074]">
             <li>✓ Mention specific topics or sessions that you found helpful</li>
-            <li>✓ Describe how the course helped you achieve your goals</li>
+            <li>✓ Describe how the class helped you achieve your goals</li>
             <li>✓ Comment on the tutor's teaching style and responsiveness</li>
             <li>✓ Share any suggestions for improvement</li>
           </ul>

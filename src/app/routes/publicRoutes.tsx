@@ -18,6 +18,10 @@ export const publicRoutes: RouteObject[] = [
     Component: MarketplacePage,
   },
   {
+    path: "/class/:courseId",
+    Component: CourseDetailPage,
+  },
+  {
     path: "/course/:courseId",
     Component: CourseDetailPage,
   },

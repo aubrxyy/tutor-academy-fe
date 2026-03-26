@@ -108,7 +108,7 @@ export default function MarketplacePage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F3F8FA] font-sans selection:bg-[#308279] selection:text-white pb-20">
+    <div className="min-h-screen bg-[#F3F8FA] font-sans selection:bg-[#308279] selection:text-white">
       <Navbar />
 
       {/* Header Section */}
@@ -124,7 +124,7 @@ export default function MarketplacePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#0A1B45] tracking-tight mb-6">
-              Explore Top <span className="text-[#308279]">Modules</span>
+              Explore Top <span className="text-[#308279]">Classes</span>
             </h1>
             <p className="text-lg text-[#476074]">
               Find the perfect class taught by high-achieving peers to boost your GPA.
@@ -137,7 +137,7 @@ export default function MarketplacePage() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search for subjects, tutors, or topics..."
+                placeholder="Search for classes, tutors, or topics..."
                 className="w-full h-14 pl-12 pr-4 rounded-xl bg-[#F3F8FA] border-none focus:ring-2 focus:ring-[#308279] focus:bg-white transition-all text-[#0A1B45] font-medium"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -170,7 +170,7 @@ export default function MarketplacePage() {
           ))}
         </div>
 
-        {/* Results Grid - Neo-Brutalist Layout */}
+        {/* Results Grid */}
         {filteredCourses.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredCourses.map((course) => (
@@ -178,10 +178,10 @@ export default function MarketplacePage() {
                 key={course.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white border-2 border-[#0A1B45] rounded-xl overflow-hidden shadow-[6px_6px_0px_#0A1B45] hover:shadow-[10px_10px_0px_#308279] transition-all duration-300 group flex flex-col hover:-translate-y-1 hover:-translate-x-1"
+                className="group flex flex-col overflow-hidden rounded-[1.5rem] border border-[#D7E5E9] bg-white shadow-[0_18px_40px_rgba(10,27,69,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_54px_rgba(10,27,69,0.14)]"
               >
                 {/* Image Section */}
-                <div className="relative w-full h-52 border-b-2 border-[#0A1B45] overflow-hidden">
+                <div className="relative h-52 w-full overflow-hidden border-b border-[#E5EEF1]">
                   <ImageWithFallback
                     src={course.image}
                     alt={course.title}
@@ -189,18 +189,18 @@ export default function MarketplacePage() {
                   />
                   <div className="absolute top-4 left-4 flex gap-2">
                     {course.featured && (
-                      <Badge className="bg-[#308279] text-white border-none shadow-sm font-bold uppercase tracking-widest px-3 py-1 text-[10px] rounded-sm">
+                      <Badge className="rounded-full border-0 bg-[#308279] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white shadow-sm">
                         Best Seller
                       </Badge>
                     )}
-                    <Badge className="bg-white text-[#0A1B45] border-2 border-[#0A1B45] shadow-sm font-bold uppercase tracking-wider px-3 py-1 text-[10px] rounded-sm">
+                    <Badge className="rounded-full border border-white/80 bg-white/95 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#0A1B45] shadow-sm">
                       {course.major}
                     </Badge>
                   </div>
                 </div>
 
                 {/* Meta Tags */}
-                <div className="px-5 pt-5 pb-3 flex items-center gap-4 text-[#476074] text-xs font-semibold border-b border-gray-100">
+                <div className="flex items-center gap-4 border-b border-gray-100 px-5 pb-3 pt-5 text-xs font-semibold text-[#476074]">
                   <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> {course.duration}</span>
                   <span className="flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" /> {course.level}</span>
                 </div>
@@ -213,7 +213,7 @@ export default function MarketplacePage() {
                     <span className="text-xs text-[#476074] font-medium">({course.reviews} reviews)</span>
                   </div>
 
-                  <h3 className="text-xl font-black text-[#0A1B45] leading-snug mb-2 group-hover:text-[#308279] transition-colors">
+                  <h3 className="mb-2 text-xl font-bold leading-snug text-[#0A1B45] transition-colors group-hover:text-[#308279]">
                     {course.title}
                   </h3>
 
@@ -227,8 +227,8 @@ export default function MarketplacePage() {
                       <div className="text-[10px] font-bold text-[#92B7B0] uppercase tracking-wider mb-0.5">Subscription</div>
                       <div className="font-black text-[#0A1B45] text-xl">{course.price}<span className="text-sm font-bold text-[#476074]">/mo</span></div>
                     </div>
-                    <Link to={`/course/${course.id}`}>
-                      <button className="bg-[#0A1B45] hover:bg-[#308279] text-white rounded-lg p-3 shadow-md transition-colors border-2 border-transparent group-hover:border-[#0A1B45]">
+                    <Link to={`/class/${course.id}`}>
+                      <button className="rounded-full bg-[#0A1B45] p-3 text-white shadow-sm transition-colors hover:bg-[#308279]">
                         <ArrowRight className="w-5 h-5" />
                       </button>
                     </Link>
@@ -242,8 +242,8 @@ export default function MarketplacePage() {
             <div className="w-20 h-20 bg-[#F3F8FA] rounded-full flex items-center justify-center mx-auto mb-6">
               <Search className="w-10 h-10 text-[#92B7B0]" />
             </div>
-            <h3 className="text-2xl font-bold text-[#0A1B45] mb-2">No modules found</h3>
-            <p className="text-[#476074]">We couldn't find any courses matching your search "{searchQuery}" in the {activeCategory} category.</p>
+            <h3 className="text-2xl font-bold text-[#0A1B45] mb-2">No classes found</h3>
+            <p className="text-[#476074]">We couldn't find any classes matching your search "{searchQuery}" in the {activeCategory} category.</p>
             <button
               onClick={() => { setSearchQuery(""); setActiveCategory("All"); }}
               className="mt-6 px-6 py-2 bg-[#F3F8FA] text-[#0A1B45] font-semibold rounded-full hover:bg-[#EBF3F1] transition-colors"
@@ -254,7 +254,7 @@ export default function MarketplacePage() {
         )}
       </section>
 
-      <div className="mt-20">
+      <div className="mt-16">
         <Footer />
       </div>
     </div>

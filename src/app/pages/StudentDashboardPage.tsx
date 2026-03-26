@@ -1,22 +1,26 @@
 import { Link } from "react-router";
 import { 
   BookOpen, TrendingUp, Clock, Target, PlayCircle, 
-  Award, Calendar, Eye, ChevronRight, Star, Download, 
-  User, ClipboardList, HelpCircle
+  Award, Calendar, Eye, ChevronRight, Download, 
+  Sparkles, ArrowRight
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Progress } from "../components/ui/progress";
-import { Avatar, AvatarFallback } from "../components/ui/avatar";
+import { useAuth } from "../auth/AuthContext";
+import { toast } from "sonner";
 import {
-  LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer
 } from "recharts";
 
 export default function StudentDashboardPage() {
+  const { user } = useAuth();
+  const firstName = user?.name.split(" ")[0] ?? "Ahmad";
+
   const stats = [
-    { icon: BookOpen, label: "Courses Enrolled", value: "8", color: "from-[#308279] to-[#92B7B0]" },
+    { icon: BookOpen, label: "Classes Enrolled", value: "8", color: "from-[#308279] to-[#92B7B0]" },
     { icon: Target, label: "Completed", value: "3", color: "from-[#0A1B45] to-[#308279]" },
     { icon: Clock, label: "Learning Hours", value: "42h", color: "from-[#92B7B0] to-[#476074]" },
     { icon: Award, label: "Certificates", value: "3", color: "from-[#308279] to-[#0A1B45]" },
@@ -87,31 +91,59 @@ export default function StudentDashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F3F8FA]">
+    <div className="bg-[#F3F8FA]">
       {/* Header */}
-      <header className="bg-gradient-to-r from-[#0A1B45] to-[#308279] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between">
+      <header className="relative overflow-hidden bg-gradient-to-br from-[#071735] via-[#0A1B45] to-[#308279] text-white">
+        <div className="absolute inset-0 bg-grid-pattern opacity-20" />
+        <div className="absolute -right-12 top-0 h-64 w-64 rounded-full bg-[#92B7B0]/20 blur-3xl" />
+        <div className="absolute left-0 top-24 h-40 w-40 rounded-full bg-[#308279]/20 blur-3xl" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+          <div className="flex flex-col gap-8">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Selamat Datang Kembali! 👋</h1>
-              <p className="text-white/80">Ayo lanjutkan pembelajaran kamu hari ini</p>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/85 backdrop-blur-sm">
+                <Sparkles className="h-4 w-4 text-[#92B7B0]" />
+                Student workspace for {firstName}
+              </div>
+              <div className="mt-5 max-w-3xl">
+                <div>
+                  <h1 className="text-3xl font-bold tracking-[-0.03em] mb-2 sm:text-4xl">
+                    Welcome back, {firstName}
+                  </h1>
+                  <p className="max-w-2xl text-white/80 text-base leading-7">
+                    Fokus kamu lagi bagus minggu ini. Tinggal lanjutkan class aktif,
+                    review progress, dan kejar sertifikat berikutnya.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Link to="/classroom/1">
+                  <Button className="rounded-xl bg-white text-[#0A1B45] hover:bg-[#F3F8FA]">
+                    Continue Learning
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+                <Link to="/marketplace">
+                  <Button
+                    variant="outline"
+                    className="rounded-xl border-white/30 bg-white/10 text-white hover:bg-white/15 hover:text-white"
+                  >
+                    Explore New Classes
+                  </Button>
+                </Link>
+              </div>
             </div>
-            <Link to="/student-profile">
-              <Avatar className="w-16 h-16 border-4 border-white/20 cursor-pointer hover:border-white/40 transition-all">
-                <AvatarFallback className="bg-[#92B7B0] text-white text-xl">AW</AvatarFallback>
-              </Avatar>
-            </Link>
           </div>
 
-          {/* Quick Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
             {stats.map((stat, index) => (
-              <Card key={index} className="bg-white/10 backdrop-blur-sm border-white/20 p-4">
-                <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3`}>
+              <Card key={index} className="bg-white/10 backdrop-blur-md border-white/15 p-5 shadow-lg hover:-translate-y-1 transition-all">
+                <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-4 shadow-lg`}>
                   <stat.icon className="w-5 h-5 text-white" />
                 </div>
-                <div className="text-2xl font-bold mb-1">{stat.value}</div>
-                <div className="text-sm text-white/80">{stat.label}</div>
+                <div className="text-3xl font-bold mb-1 tracking-[-0.03em] text-white">{stat.value}</div>
+                <div className="text-sm text-white/75">{stat.label}</div>
               </Card>
             ))}
           </div>
@@ -123,16 +155,16 @@ export default function StudentDashboardPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Ongoing Courses */}
+            {/* Ongoing Classes */}
             <section>
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-[#0A1B45]">Courses Saya</h2>
+                  <h2 className="text-2xl font-bold text-[#0A1B45]">My Classes</h2>
                   <p className="text-[#476074]">Lanjutkan pembelajaran dari terakhir kali</p>
                 </div>
                 <Link to="/marketplace">
                   <Button variant="outline" className="border-[#308279] text-[#308279]">
-                    Browse Courses
+                    Browse Classes
                   </Button>
                 </Link>
               </div>
@@ -297,7 +329,7 @@ export default function StudentDashboardPage() {
                 </div>
                 <div>
                   <h3 className="font-bold text-[#0A1B45]">Learning Streak</h3>
-                  <p className="text-2xl font-bold text-[#308279]">7 Days 🔥</p>
+                  <p className="text-2xl font-bold text-[#308279]">7 Days </p>
                 </div>
               </div>
               <p className="text-sm text-[#476074] mb-4">
@@ -318,7 +350,7 @@ export default function StudentDashboardPage() {
               </h3>
               <div className="space-y-3">
                 {recentPurchases.map((item) => (
-                  <div key={item.id} className="p-3 bg-[#F3F8FA] rounded-lg hover:bg-[#308279]/5 transition-colors cursor-pointer">
+                  <div key={item.id} className="p-3 bg-[#F3F8FA] rounded-lg hover:bg-[#308279]/5 transition-colors">
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#308279] to-[#0A1B45] flex items-center justify-center flex-shrink-0">
                         <Download className="w-5 h-5 text-white" />
@@ -331,6 +363,18 @@ export default function StudentDashboardPage() {
                           <span>{item.date}</span>
                         </div>
                       </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-[#308279] hover:bg-[#308279]/10"
+                        onClick={() =>
+                          toast.success(`Membuka ${item.title}`, {
+                            description: "Nanti bisa dihubungkan ke file download atau preview materi.",
+                          })
+                        }
+                      >
+                        Open
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -342,32 +386,17 @@ export default function StudentDashboardPage() {
               </Link>
             </Card>
 
-            {/* Quick Actions */}
-            <Card className="p-6">
-              <h3 className="font-bold text-[#0A1B45] mb-4">Quick Actions</h3>
-              <div className="space-y-2">
-                <Link to="/student-profile">
-                  <Button variant="outline" className="w-full justify-start border-[#92B7B0]/30 hover:border-[#308279] hover:bg-[#308279]/5">
-                    <User className="w-4 h-4 mr-2" />
-                    Edit Profil
-                  </Button>
-                </Link>
-                <Link to="/student-certificates">
-                  <Button variant="outline" className="w-full justify-start border-[#92B7B0]/30 hover:border-[#308279] hover:bg-[#308279]/5">
-                    <Award className="w-4 h-4 mr-2" />
-                    Sertifikat Saya
-                  </Button>
-                </Link>
-                <Link to="/student-quizzes">
-                  <Button variant="outline" className="w-full justify-start border-[#92B7B0]/30 hover:border-[#308279] hover:bg-[#308279]/5">
-                    <ClipboardList className="w-4 h-4 mr-2" />
-                    Quiz & Assessment
-                  </Button>
-                </Link>
-                <Link to="/help-faq?role=student">
-                  <Button variant="outline" className="w-full justify-start border-[#92B7B0]/30 hover:border-[#308279] hover:bg-[#308279]/5">
-                    <HelpCircle className="w-4 h-4 mr-2" />
-                    Bantuan & FAQ
+            <Card className="overflow-hidden border-[#D9E6EA]">
+              <div className="bg-gradient-to-r from-[#0A1B45] to-[#308279] p-5 text-white">
+                <h3 className="text-lg font-bold">Need a quick reset?</h3>
+                <p className="mt-2 text-sm text-white/80">
+                  Review kelas aktif atau kunjungi pusat bantuan dari sidebar kiri kapan saja.
+                </p>
+              </div>
+              <div className="p-5">
+                <Link to="/classroom/1">
+                  <Button className="w-full rounded-xl bg-[#0A1B45] text-white hover:bg-[#308279]">
+                    Continue current class
                   </Button>
                 </Link>
               </div>

@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router";
-import { User, Mail, Lock, Phone, GraduationCap, Calendar, Camera, ArrowLeft, Save } from "lucide-react";
+import { User, Mail, Lock, Phone, GraduationCap, Calendar, Camera, Save } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
@@ -31,14 +30,6 @@ export default function StudentProfilePage() {
       {/* Header */}
       <header className="bg-gradient-to-r from-[#0A1B45] to-[#308279] text-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center gap-4 mb-6">
-            <Link to="/student-dashboard">
-              <Button variant="ghost" className="text-white hover:bg-white/10">
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Kembali
-              </Button>
-            </Link>
-          </div>
           <h1 className="text-3xl font-bold">Profil Saya</h1>
           <p className="text-white/80 mt-2">Kelola informasi profil dan akun kamu</p>
         </div>

@@ -48,7 +48,7 @@ export default function ContactPage() {
         },
         {
           q: "Apakah ada biaya pendaftaran?",
-          a: "Tidak ada biaya pendaftaran. Kamu hanya perlu membayar untuk course yang ingin kamu ikuti dengan sistem subscription.",
+          a: "Tidak ada biaya pendaftaran. Kamu hanya perlu membayar untuk class yang ingin kamu ikuti dengan sistem subscription.",
         },
       ],
     },
@@ -61,7 +61,7 @@ export default function ContactPage() {
         },
         {
           q: "Apakah subscription bisa di-cancel?",
-          a: "Ya, kamu bisa cancel subscription kapan saja. Akses course akan tetap berlaku sampai akhir periode subscription yang sudah dibayar.",
+          a: "Ya, kamu bisa cancel subscription kapan saja. Akses class akan tetap berlaku sampai akhir periode subscription yang sudah dibayar.",
         },
         {
           q: "Bagaimana cara mendapatkan refund?",
@@ -70,15 +70,15 @@ export default function ContactPage() {
       ],
     },
     {
-      category: "Courses & Learning",
+      category: "Classes & Learning",
       questions: [
         {
-          q: "Berapa lama akses course berlaku?",
+          q: "Berapa lama akses class berlaku?",
           a: "Monthly subscription berlaku 30 hari, annual subscription 365 hari. Kamu bisa perpanjang setelah periode berakhir.",
         },
         {
-          q: "Apakah bisa akses course offline?",
-          a: "PDF materials bisa didownload untuk akses offline. Video hanya bisa streaming online untuk menjaga kualitas konten.",
+          q: "Apakah bisa akses class offline?",
+          a: "PDF materials bisa didownload untuk akses offline. Video class hanya bisa streaming online untuk menjaga kualitas konten.",
         },
         {
           q: "Bagaimana jika tidak bisa join live session?",

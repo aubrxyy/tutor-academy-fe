@@ -14,10 +14,8 @@ import {
 
 const roleDescriptions: Record<AppRole, string> = {
   student: "Browse classes, unlock paid content, track progress, and earn certificates.",
-  tutor: "Manage modules, upload learning materials, and review student outcomes.",
+  tutor: "Schedule live Zoom sessions, upload PDF or DOC materials, and support assigned classes.",
   admin: "Monitor users, class operations, and transaction visibility across the platform.",
-  founder: "Access executive-level financial controls and platform-wide reporting.",
-  "co-founder": "Access restricted finance views and shared operational oversight tools.",
 };
 
 export default function LoginPage() {
@@ -64,8 +62,8 @@ export default function LoginPage() {
 
             <p className="mt-5 max-w-xl text-base leading-7 text-white/75 sm:text-lg">
               Backend auth belum dihubungkan, jadi halaman ini memakai mock session
-              agar kita bisa lanjut mengimplementasikan flow student, tutor, admin,
-              founder, dan co-founder di frontend.
+              agar kita bisa lanjut mengimplementasikan flow student, tutor, dan
+              admin di frontend.
             </p>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-2">
@@ -109,12 +107,11 @@ export default function LoginPage() {
                 Demo Sign In
               </div>
               <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-[#0A1B45]">
-                Choose a role to continue
+                Masuk atau daftar
               </h2>
               <p className="mt-3 text-base leading-7 text-[#476074]">
-                Pick the experience you want to test right now. We can replace this
-                page with the real auth provider later without changing the route
-                guards.
+                Pendaftaran utama ditujukan untuk student. Role tutor dan admin tetap
+                tersedia di sini sebagai opsi tambahan untuk pengujian flow frontend.
               </p>
             </div>
 
@@ -135,8 +132,15 @@ export default function LoginPage() {
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <div className="text-lg font-semibold text-[#0A1B45]">
-                          {getRoleLabel(role)}
+                        <div className="flex items-center gap-2">
+                          <div className="text-lg font-semibold text-[#0A1B45]">
+                            {getRoleLabel(role)}
+                          </div>
+                          {role === "student" ? (
+                            <span className="rounded-full bg-[#EBF3F1] px-2.5 py-1 text-xs font-semibold text-[#308279]">
+                              Default signup
+                            </span>
+                          ) : null}
                         </div>
                         <div className="mt-1 text-sm leading-6 text-[#476074]">
                           {roleDescriptions[role]}

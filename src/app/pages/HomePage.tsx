@@ -176,7 +176,7 @@ export default function HomePage() {
                 className="mt-8 max-w-[34rem] text-lg leading-[1.56] text-[#476074]"
               >
                 Platform belajar inklusif dimana kamu bisa jadi murid atau tutor.
-                Akses ribuan materi, video pembelajaran, dan cheat notes dari
+                Akses ribuan materi, video kelas, dan cheat notes dari
                 sesama mahasiswa BINUS.
               </motion.p>
 
@@ -186,16 +186,16 @@ export default function HomePage() {
               >
                 <Link to="/marketplace" className="w-full sm:w-auto">
                   <Button className="h-12 w-full rounded-[10px] bg-[#308279] px-6 text-sm font-medium text-white shadow-none transition-colors duration-300 hover:bg-[#267068] sm:w-auto">
-                    Cari Materi
+                    Cari Class
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
-                <Link to="/tutor-dashboard" className="w-full sm:w-auto">
+                <Link to="/login" className="w-full sm:w-auto">
                   <Button
                     variant="outline"
                     className="h-12 w-full rounded-[10px] border-2 border-[#308279] bg-[#F3F8FA] px-6 text-sm font-medium text-[#308279] shadow-none transition-colors duration-300 hover:bg-[#E8F3F1] hover:text-[#267068] sm:w-auto"
                   >
-                    Daftar Jadi Tutor
+                    Daftar
                   </Button>
                 </Link>
               </motion.div>
@@ -334,7 +334,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Popular Courses Section */}
+      {/* Popular Classes Section */}
       <section className="py-32 bg-[#F3F8FA] relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -346,16 +346,16 @@ export default function HomePage() {
           >
             <motion.div variants={fadeUpVariants} className="max-w-2xl">
               <h2 className="text-4xl md:text-5xl font-bold text-[#0A1B45] tracking-tight mb-4">
-                Popular Modules
+                Popular Classes
               </h2>
               <p className="text-lg text-[#476074]">
-                The most sought-after courses taught by BINUS top-performers.
+                The most sought-after classes taught by BINUS top-performers.
               </p>
             </motion.div>
             <motion.div variants={fadeUpVariants}>
               <Link to="/marketplace">
                 <Button variant="ghost" className="text-[#0A1B45] hover:text-[#308279] hover:bg-white rounded-full font-medium pr-2">
-                  View All Courses
+                  View All Classes
                   <div className="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center ml-3">
                     <ArrowRight className="w-4 h-4" />
                   </div>
@@ -398,16 +398,16 @@ export default function HomePage() {
               <motion.div
                 key={course.id}
                 variants={fadeUpVariants}
-                className="bg-white border-2 border-[#0A1B45] rounded-xl p-4 shadow-[4px_4px_0px_#0A1B45] hover:shadow-[8px_8px_0px_#308279] transition-all duration-300 group flex flex-col hover:-translate-y-1 hover:-translate-x-1 cursor-pointer"
+                className="group flex cursor-pointer flex-col rounded-[1.5rem] border border-[#D7E5E9] bg-white p-5 shadow-[0_16px_36px_rgba(10,27,69,0.07)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_48px_rgba(10,27,69,0.12)]"
               >
-                <div className="relative w-full h-48 rounded-lg overflow-hidden mb-5 border-2 border-transparent group-hover:border-[#0A1B45] transition-colors">
+                <div className="relative mb-5 h-48 w-full overflow-hidden rounded-[1.25rem]">
                   <ImageWithFallback
                     src={course.image}
                     alt={course.title}
                     className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                   />
                   <div className="absolute top-3 left-3">
-                    <Badge className="bg-[#0A1B45] text-white border-none shadow-sm font-bold uppercase tracking-wider px-3 py-1 text-[10px] rounded-sm">
+                    <Badge className="rounded-full border-none bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#0A1B45] shadow-sm backdrop-blur-sm">
                       {course.major}
                     </Badge>
                   </div>
@@ -420,7 +420,7 @@ export default function HomePage() {
                     <span className="text-xs text-[#476074] font-medium ml-1">({course.reviews} reviews)</span>
                   </div>
 
-                  <h3 className="text-lg font-black text-[#0A1B45] leading-snug mb-2 group-hover:text-[#308279] transition-colors">
+                  <h3 className="mb-2 text-lg font-bold leading-snug text-[#0A1B45] transition-colors group-hover:text-[#308279]">
                     {course.title}
                   </h3>
 
@@ -428,13 +428,13 @@ export default function HomePage() {
                     By <span className="font-bold text-[#0A1B45] border-b-2 border-transparent group-hover:border-[#0A1B45]">{course.tutor}</span>
                   </p>
 
-                  <div className="mt-auto pt-4 border-t-2 border-gray-100 flex items-center justify-between">
+                  <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-4">
                     <div>
                       <div className="font-bold text-[#0A1B45] text-lg">{course.price}</div>
                       <div className="text-[10px] font-bold text-[#92B7B0] uppercase tracking-wider">{course.priceLabel}</div>
                     </div>
-                    <Link to={`/course/${course.id}`}>
-                      <div className="w-10 h-10 rounded-md bg-[#0A1B45] flex items-center justify-center text-white group-hover:bg-[#308279] transition-colors duration-300 border-2 border-transparent group-hover:border-[#0A1B45]">
+                    <Link to={`/class/${course.id}`}>
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0A1B45] text-white transition-colors duration-300 group-hover:bg-[#308279]">
                         <ArrowRight className="w-4 h-4" />
                       </div>
                     </Link>
@@ -466,7 +466,7 @@ export default function HomePage() {
               Featured Tutors
             </motion.h2>
             <motion.p variants={fadeUpVariants} className="text-lg text-[#476074]">
-              Meet the exceptional students leading our top-rated modules. They don't just teach—they mentor, guide, and ensure you truly understand the material.
+              Meet the exceptional students leading our top-rated classes. They don't just teach, they mentor, guide, and ensure you truly understand the material.
             </motion.p>
           </motion.div>
 

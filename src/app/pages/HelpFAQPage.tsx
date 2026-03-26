@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import {
-  HelpCircle, ArrowLeft, Search, BookOpen, CreditCard, Video,
-  Shield, Users, MessageCircle, Mail, Phone
+  HelpCircle, Search, BookOpen, CreditCard, Video,
+  Shield, Users, MessageCircle, Mail, Phone, Sparkles
 } from "lucide-react";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/ui/accordion";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
 
 export default function HelpFAQPage() {
   const [searchParams] = useSearchParams();
@@ -35,24 +37,24 @@ export default function HelpFAQPage() {
       ],
     },
     {
-      category: "Course & Pembelajaran",
+      category: "Class & Pembelajaran",
       icon: BookOpen,
       questions: [
         {
-          q: "Bagaimana cara mendaftar course?",
-          a: "Kunjungi halaman Marketplace, pilih course yang diinginkan, klik 'Enroll Now', dan selesaikan pembayaran. Course akan langsung muncul di dashboard kamu.",
+          q: "Bagaimana cara mendaftar class?",
+          a: "Kunjungi halaman Marketplace, pilih class yang diinginkan, klik 'Enroll Now', dan selesaikan pembayaran. Class akan langsung muncul di dashboard kamu.",
         },
         {
-          q: "Apakah course memiliki batas waktu akses?",
+          q: "Apakah class memiliki batas waktu akses?",
           a: "Tergantung paket yang kamu pilih. Paket monthly berlaku 30 hari, sedangkan paket annual berlaku 365 hari. Setelah itu, kamu perlu perpanjang subscription.",
         },
         {
           q: "Bagaimana cara mengikuti live session?",
-          a: "Buka course di dashboard, klik 'Join Live Session' pada jadwal yang tersedia. Kamu akan diarahkan ke Zoom meeting dengan link yang disediakan tutor.",
+          a: "Buka class di dashboard, klik 'Join Live Session' pada jadwal yang tersedia. Kamu akan diarahkan ke Zoom meeting dengan link yang disediakan tutor.",
         },
         {
-          q: "Apakah saya bisa download materi course?",
-          a: "Ya, semua PDF dan materi pendukung dapat didownload. Video dapat ditonton secara streaming tetapi tidak bisa didownload untuk menjaga kualitas konten.",
+          q: "Apakah saya bisa download materi class?",
+          a: "Ya, semua PDF dan materi pendukung dapat didownload. Video class dapat ditonton secara streaming tetapi tidak bisa didownload untuk menjaga kualitas konten.",
         },
       ],
     },
@@ -66,11 +68,11 @@ export default function HelpFAQPage() {
         },
         {
           q: "Bagaimana cara perpanjang subscription?",
-          a: "Sistem akan mengirimkan notifikasi 7 hari sebelum subscription berakhir. Klik link di notifikasi atau kunjungi halaman course dan pilih 'Renew Subscription'.",
+          a: "Sistem akan mengirimkan notifikasi 7 hari sebelum subscription berakhir. Klik link di notifikasi atau kunjungi halaman class dan pilih 'Renew Subscription'.",
         },
         {
           q: "Apakah ada refund policy?",
-          a: "Refund dapat dilakukan dalam 7 hari pertama jika kamu belum mengakses lebih dari 20% materi course. Hubungi support untuk proses refund.",
+          a: "Refund dapat dilakukan dalam 7 hari pertama jika kamu belum mengakses lebih dari 20% materi class. Hubungi support untuk proses refund.",
         },
         {
           q: "Bagaimana cara mendapatkan invoice pembayaran?",
@@ -140,24 +142,24 @@ export default function HelpFAQPage() {
       ],
     },
     {
-      category: "Mengelola Course",
+      category: "Live Session & Materi Tutor",
       icon: BookOpen,
       questions: [
         {
-          q: "Bagaimana cara membuat course baru?",
-          a: "Di Tutor Dashboard, klik 'Create New Course', isi informasi course (judul, deskripsi, materi), dan submit untuk review admin.",
+          q: "Apakah tutor bisa membuat class baru?",
+          a: "Tidak. Pembuatan class dilakukan admin. Tutor akan menerima class yang sudah aktif lalu mengelola live Zoom session dan materi dokumen di dalamnya.",
         },
         {
-          q: "Berapa lama review course oleh admin?",
-          a: "Proses review biasanya 2-3 hari kerja. Kamu akan mendapat notifikasi email jika course disetujui atau perlu revisi.",
+          q: "Siapa yang mengunggah video pembelajaran?",
+          a: "Video lesson diunggah dan diatur oleh admin melalui class editor. Tutor fokus pada pengajaran sinkron dan dokumen pendukung.",
         },
         {
-          q: "Apakah saya bisa update materi setelah course publish?",
-          a: "Ya, kamu bisa update materi kapan saja. Perubahan besar perlu review ulang, sedangkan perubahan kecil langsung terpublikasi.",
+          q: "Apakah saya bisa update materi setelah class publish?",
+          a: "Ya. Tutor bisa memperbarui materi PDF atau dokumen kapan saja dari tutor dashboard. Admin tetap bisa meninjau kelengkapan materi pada panel class.",
         },
         {
           q: "Format file apa saja yang didukung untuk materi?",
-          a: "PDF untuk dokumen, MP4 untuk video (max 500MB per file), dan JPG/PNG untuk gambar. Pastikan kualitas file baik.",
+          a: "PDF, DOCX, dan file presentasi untuk dokumen belajar. Upload video lesson dilakukan admin, bukan tutor.",
         },
       ],
     },
@@ -167,7 +169,7 @@ export default function HelpFAQPage() {
       questions: [
         {
           q: "Bagaimana cara schedule live session?",
-          a: "Di halaman Course Management, pilih 'Schedule Session', masukkan tanggal, waktu, durasi, dan Zoom link. Sistem akan notifikasi students otomatis.",
+          a: "Di Tutor Dashboard, pilih 'Schedule Session', masukkan tanggal, waktu, durasi, dan Zoom link. Sistem akan notifikasi students otomatis untuk class terkait.",
         },
         {
           q: "Apakah saya perlu Zoom account sendiri?",
@@ -204,7 +206,6 @@ export default function HelpFAQPage() {
   ];
 
   const currentFAQs = userRole === "student" ? studentFAQs : tutorFAQs;
-  const backLink = userRole === "student" ? "/student-dashboard" : "/tutor-dashboard";
 
   const filteredFAQs = currentFAQs.map((category) => ({
     ...category,
@@ -215,68 +216,103 @@ export default function HelpFAQPage() {
     ),
   })).filter((category) => category.questions.length > 0);
 
+  const roleSummary =
+    userRole === "student"
+      ? "Jawaban cepat untuk class, pembayaran, quiz, sertifikat, dan focus mode."
+      : "Panduan tutor untuk live session, materi dokumen, dan operasional kelas yang dikelola admin.";
+
   return (
-    <div className="min-h-screen bg-[#F3F8FA]">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-[#0A1B45] to-[#308279] text-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center gap-4 mb-6">
-            <Link to={backLink}>
-              <Button variant="ghost" className="text-white hover:bg-white/10">
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Kembali
-              </Button>
-            </Link>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-              <HelpCircle className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold">Pusat Bantuan</h1>
-              <p className="text-white/80 mt-2">
-                Temukan jawaban untuk pertanyaan kamu
-              </p>
-            </div>
-          </div>
+    <div className="min-h-screen bg-[linear-gradient(180deg,#F8FBFB_0%,#F3F8FA_38%,#F3F8FA_100%)]">
+      <Navbar />
+
+      <section className="relative overflow-hidden pt-32 pb-10">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute left-0 top-0 h-72 w-72 rounded-full bg-[#92B7B0]/20 blur-[110px]" />
+          <div className="absolute right-0 top-12 h-80 w-80 rounded-full bg-[#308279]/14 blur-[130px]" />
         </div>
-      </header>
 
-      {/* Main Content */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search */}
-        <Card className="p-6 mb-8">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#476074]" />
-            <Input
-              placeholder="Cari pertanyaan atau topik..."
-              className="pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+        <div className="relative z-10 mx-auto grid max-w-6xl gap-6 px-4 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
+          <div className="rounded-[2rem] border border-white/80 bg-white/90 p-8 shadow-[0_26px_70px_rgba(10,27,69,0.08)] backdrop-blur-sm sm:p-10">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#EBF3F1] px-4 py-2 text-sm font-medium text-[#308279]">
+              <Sparkles className="h-4 w-4" />
+              {userRole === "student" ? "Student Help Desk" : "Tutor Help Desk"}
+            </div>
+
+            <h1 className="mt-6 text-4xl font-bold tracking-[-0.04em] text-[#0A1B45] sm:text-5xl">
+              Pusat Bantuan yang lebih rapi.
+            </h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-[#476074] sm:text-lg">
+              {roleSummary}
+            </p>
+
+            <Tabs value={userRole} className="mt-8">
+              <TabsList className="grid w-full max-w-md grid-cols-2 rounded-2xl bg-[#F3F8FA] p-1">
+                <TabsTrigger value="student" asChild className="rounded-xl">
+                  <Link to="/help-faq?role=student">FAQ Student</Link>
+                </TabsTrigger>
+                <TabsTrigger value="tutor" asChild className="rounded-xl">
+                  <Link to="/help-faq?role=tutor">FAQ Tutor</Link>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
-        </Card>
 
-        {/* Role Toggle */}
-        <Tabs value={userRole} className="mb-8">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="student" asChild>
-              <Link to="/help-faq?role=student">FAQ Student</Link>
-            </TabsTrigger>
-            <TabsTrigger value="tutor" asChild>
-              <Link to="/help-faq?role=tutor">FAQ Tutor</Link>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+          <Card className="rounded-[2rem] border border-[#D9E6EA] bg-white p-6 shadow-[0_22px_60px_rgba(10,27,69,0.06)] sm:p-8">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0A1B45] to-[#308279] text-white">
+                <HelpCircle className="h-6 w-6" />
+              </div>
+              <div>
+                <div className="text-sm font-semibold uppercase tracking-[0.18em] text-[#308279]">
+                  Search help
+                </div>
+                <div className="text-lg font-bold text-[#0A1B45]">Find an answer fast</div>
+              </div>
+            </div>
 
-        {/* FAQ Categories */}
+            <div className="relative mt-6">
+              <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#476074]" />
+              <Input
+                placeholder="Cari pertanyaan atau topik..."
+                className="h-12 rounded-xl border-[#D9E6EA] pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl bg-[#F8FBFB] p-4">
+                <div className="text-sm font-semibold text-[#0A1B45]">Topik aktif</div>
+                <div className="mt-1 text-sm text-[#476074]">
+                  {userRole === "student" ? "Class access, payment, certificate" : "Scheduling, materials, tutor ops"}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-[#F8FBFB] p-4">
+                <div className="text-sm font-semibold text-[#0A1B45]">Support hours</div>
+                <div className="mt-1 text-sm text-[#476074]">Senin - Jumat, 09.00 - 17.00 WIB</div>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </section>
+
+      <div className="max-w-6xl mx-auto px-4 pb-16 sm:px-6 lg:px-8">
         <div className="space-y-6">
+          <Card className="rounded-[1.75rem] border-[#D9E6EA] bg-white p-6 shadow-[0_18px_40px_rgba(10,27,69,0.05)]">
+            <div className="mb-2 text-sm font-semibold uppercase tracking-[0.16em] text-[#308279]">
+              Frequently asked topics
+            </div>
+            <h2 className="text-2xl font-bold text-[#0A1B45]">
+              {userRole === "student" ? "Jawaban untuk perjalanan belajarmu" : "Jawaban untuk alur kerja tutor"}
+            </h2>
+          </Card>
+
           {filteredFAQs.map((category, idx) => (
-            <Card key={idx} className="overflow-hidden">
-              <div className="bg-gradient-to-r from-[#308279]/10 to-[#92B7B0]/10 p-6 border-b">
+            <Card key={idx} className="overflow-hidden rounded-[1.75rem] border-[#D9E6EA] shadow-[0_18px_40px_rgba(10,27,69,0.05)]">
+              <div className="border-b border-[#E3ECEF] bg-gradient-to-r from-[#F8FBFB] to-white p-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#308279] to-[#0A1B45] flex items-center justify-center">
-                    <category.icon className="w-6 h-6 text-white" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#308279] to-[#0A1B45]">
+                    <category.icon className="h-6 w-6 text-white" />
                   </div>
                   <h2 className="text-xl font-bold text-[#0A1B45]">{category.category}</h2>
                 </div>
@@ -300,7 +336,7 @@ export default function HelpFAQPage() {
           ))}
 
           {filteredFAQs.length === 0 && (
-            <Card className="p-12 text-center">
+            <Card className="rounded-[1.75rem] border-[#D9E6EA] p-12 text-center">
               <HelpCircle className="w-16 h-16 text-[#92B7B0] mx-auto mb-4" />
               <h3 className="text-xl font-bold text-[#0A1B45] mb-2">
                 Tidak Ada Hasil
@@ -312,8 +348,7 @@ export default function HelpFAQPage() {
           )}
         </div>
 
-        {/* Contact Support */}
-        <Card className="mt-8 overflow-hidden">
+        <Card className="mt-8 overflow-hidden rounded-[1.75rem] border-[#D9E6EA] shadow-[0_18px_40px_rgba(10,27,69,0.05)]">
           <div className="bg-gradient-to-r from-[#0A1B45] to-[#308279] p-6 text-white">
             <h3 className="text-xl font-bold mb-2">Masih butuh bantuan?</h3>
             <p className="text-white/80">Hubungi tim support kami untuk bantuan lebih lanjut</p>
@@ -349,6 +384,8 @@ export default function HelpFAQPage() {
           </div>
         </Card>
       </div>
+
+      <Footer />
     </div>
   );
 }

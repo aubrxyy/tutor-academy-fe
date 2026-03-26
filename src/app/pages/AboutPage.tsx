@@ -39,7 +39,7 @@ export default function AboutPage() {
 
   const stats = [
     { value: "2,847", label: "Active Students" },
-    { value: "145", label: "Courses Available" },
+    { value: "145", label: "Classes Available" },
     { value: "50+", label: "Expert Tutors" },
     { value: "4.9/5", label: "Average Rating" },
   ];
@@ -139,7 +139,7 @@ export default function AboutPage() {
           <div className="flex gap-4 justify-center">
             <Link to="/marketplace">
               <Button className="bg-white text-[#308279] hover:bg-white/90 text-lg px-8 py-6">
-                Browse Courses
+                Browse Classes
               </Button>
             </Link>
             <Link to="/contact">

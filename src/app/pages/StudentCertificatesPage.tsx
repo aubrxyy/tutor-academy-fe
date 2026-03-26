@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { Award, Calendar, CheckCircle, Download, Eye } from "lucide-react";
+import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../components/ui/dialog";
@@ -87,12 +90,12 @@ export default function StudentCertificatesPage() {
     doc.setTextColor(48, 130, 121);
     doc.text("Ahmad Wijaya", 148.5, 100, { align: "center" });
 
-    // Course completion text
+    // Class completion text
     doc.setFontSize(14);
     doc.setTextColor(71, 96, 116);
-    doc.text("has successfully completed the course", 148.5, 112, { align: "center" });
+    doc.text("has successfully completed the class", 148.5, 112, { align: "center" });
 
-    // Course name
+    // Class name
     doc.setFontSize(20);
     doc.setTextColor(10, 27, 69);
     doc.text(cert.courseName, 148.5, 125, { align: "center" });
@@ -139,14 +142,6 @@ export default function StudentCertificatesPage() {
       {/* Header */}
       <header className="bg-gradient-to-r from-[#0A1B45] to-[#308279] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center gap-4 mb-6">
-            <Link to="/student-dashboard">
-              <Button variant="ghost" className="text-white hover:bg-white/10">
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Kembali
-              </Button>
-            </Link>
-          </div>
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
               <Award className="w-8 h-8 text-white" />
@@ -154,7 +149,7 @@ export default function StudentCertificatesPage() {
             <div>
               <h1 className="text-3xl font-bold">Sertifikat Saya</h1>
               <p className="text-white/80 mt-2">
-                Koleksi sertifikat dari course yang telah kamu selesaikan
+                Koleksi sertifikat dari class yang telah kamu selesaikan
               </p>
             </div>
           </div>
@@ -254,11 +249,11 @@ export default function StudentCertificatesPage() {
               Belum Ada Sertifikat
             </h3>
             <p className="text-[#476074] mb-6">
-              Selesaikan course untuk mendapatkan sertifikat kamu
+              Selesaikan class untuk mendapatkan sertifikat kamu
             </p>
             <Link to="/marketplace">
               <Button className="bg-[#308279] hover:bg-[#308279]/90">
-                Browse Courses
+                Browse Classes
               </Button>
             </Link>
           </Card>
@@ -292,7 +287,7 @@ export default function StudentCertificatesPage() {
                   </h2>
                   <p className="text-[#476074]">This is to certify that</p>
                   <h3 className="text-3xl font-bold text-[#308279]">Ahmad Wijaya</h3>
-                  <p className="text-[#476074]">has successfully completed the course</p>
+                  <p className="text-[#476074]">has successfully completed the class</p>
                   <h4 className="text-2xl font-bold text-[#0A1B45] py-2">
                     {selectedCertificate.courseName}
                   </h4>

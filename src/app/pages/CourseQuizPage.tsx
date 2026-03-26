@@ -151,10 +151,10 @@ export default function CourseQuizPage() {
         <Navbar />
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <Link to={`/course/${courseId}`}>
+          <Link to={`/class/${courseId}`}>
             <Button variant="ghost" className="text-[#476074] hover:bg-[#308279]/10 mb-6">
               <ArrowLeft className="w-5 h-5 mr-2" />
-              Back to Course
+              Back to Class
             </Button>
           </Link>
 
@@ -358,11 +358,11 @@ export default function CourseQuizPage() {
                 </Button>
               )}
               <Button
-                onClick={() => navigate(`/course/${courseId}`)}
+                onClick={() => navigate(`/class/${courseId}`)}
                 variant="outline"
                 className="flex-1 border-[#308279] text-[#308279] hover:bg-[#308279]/10 h-12"
               >
-                Back to Course
+                Back to Class
               </Button>
             </div>
           </Card>

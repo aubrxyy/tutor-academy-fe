@@ -24,7 +24,7 @@ export default function NotFoundPage() {
           <Link to="/marketplace">
             <Button variant="outline" className="border-[#308279] text-[#308279] hover:bg-[#308279]/10">
               <Search className="w-4 h-4 mr-2" />
-              Browse Courses
+              Browse Classes
             </Button>
           </Link>
         </div>
