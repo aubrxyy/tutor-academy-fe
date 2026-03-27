@@ -1,4 +1,4 @@
-# Tutor Academy Frontend
+# Tutoring Academy Frontend
 
 Frontend application for an LMS + course marketplace used by students, tutors, and admins. The current repository should be treated as the frontend foundation: many pages have already been imported from Figma, but the product logic is still being implemented.
 
