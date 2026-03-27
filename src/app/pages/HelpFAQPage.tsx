@@ -4,6 +4,7 @@ import {
   HelpCircle, Search, BookOpen, CreditCard, Video,
   Shield, Users, MessageCircle, Mail, Phone, Sparkles
 } from "lucide-react";
+import { motion, type Variants } from "motion/react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Button } from "../components/ui/button";
@@ -16,6 +17,23 @@ export default function HelpFAQPage() {
   const [searchParams] = useSearchParams();
   const userRole = searchParams.get("role") || "student";
   const [searchQuery, setSearchQuery] = useState("");
+
+  const fadeUpVariants: Variants = {
+    hidden: { opacity: 0, y: 28 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "spring", bounce: 0.25, duration: 0.85 },
+    },
+  };
+
+  const staggerContainer: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.12 },
+    },
+  };
 
   const studentFAQs = [
     {
@@ -231,8 +249,13 @@ export default function HelpFAQPage() {
           <div className="absolute right-0 top-12 h-80 w-80 rounded-full bg-[#308279]/14 blur-[130px]" />
         </div>
 
-        <div className="relative z-10 mx-auto grid max-w-6xl gap-6 px-4 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
-          <div className="rounded-[2rem] border border-white/80 bg-white/90 p-8 shadow-[0_26px_70px_rgba(10,27,69,0.08)] backdrop-blur-sm sm:p-10">
+        <motion.div
+          className="relative z-10 mx-auto grid max-w-6xl gap-6 px-4 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+        >
+          <motion.div variants={fadeUpVariants} className="rounded-[2rem] border border-white/80 bg-white/90 p-8 shadow-[0_26px_70px_rgba(10,27,69,0.08)] backdrop-blur-sm sm:p-10">
             <div className="inline-flex items-center gap-2 rounded-full bg-[#EBF3F1] px-4 py-2 text-sm font-medium text-[#308279]">
               <Sparkles className="h-4 w-4" />
               {userRole === "student" ? "Student Help Desk" : "Tutor Help Desk"}
@@ -255,8 +278,9 @@ export default function HelpFAQPage() {
                 </TabsTrigger>
               </TabsList>
             </Tabs>
-          </div>
+          </motion.div>
 
+          <motion.div variants={fadeUpVariants}>
           <Card className="rounded-[2rem] border border-[#D9E6EA] bg-white p-6 shadow-[0_22px_60px_rgba(10,27,69,0.06)] sm:p-8">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0A1B45] to-[#308279] text-white">
@@ -293,11 +317,19 @@ export default function HelpFAQPage() {
               </div>
             </div>
           </Card>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       <div className="max-w-6xl mx-auto px-4 pb-16 sm:px-6 lg:px-8">
-        <div className="space-y-6">
+        <motion.div
+          className="space-y-6"
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.12 }}
+        >
+          <motion.div variants={fadeUpVariants}>
           <Card className="rounded-[1.75rem] border-[#D9E6EA] bg-white p-6 shadow-[0_18px_40px_rgba(10,27,69,0.05)]">
             <div className="mb-2 text-sm font-semibold uppercase tracking-[0.16em] text-[#308279]">
               Frequently asked topics
@@ -306,9 +338,11 @@ export default function HelpFAQPage() {
               {userRole === "student" ? "Jawaban untuk perjalanan belajarmu" : "Jawaban untuk alur kerja tutor"}
             </h2>
           </Card>
+          </motion.div>
 
           {filteredFAQs.map((category, idx) => (
-            <Card key={idx} className="overflow-hidden rounded-[1.75rem] border-[#D9E6EA] shadow-[0_18px_40px_rgba(10,27,69,0.05)]">
+            <motion.div key={idx} variants={fadeUpVariants}>
+            <Card className="overflow-hidden rounded-[1.75rem] border-[#D9E6EA] shadow-[0_18px_40px_rgba(10,27,69,0.05)]">
               <div className="border-b border-[#E3ECEF] bg-gradient-to-r from-[#F8FBFB] to-white p-6">
                 <div className="flex items-center gap-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#308279] to-[#0A1B45]">
@@ -333,9 +367,11 @@ export default function HelpFAQPage() {
                 </Accordion>
               </div>
             </Card>
+            </motion.div>
           ))}
 
           {filteredFAQs.length === 0 && (
+            <motion.div variants={fadeUpVariants}>
             <Card className="rounded-[1.75rem] border-[#D9E6EA] p-12 text-center">
               <HelpCircle className="w-16 h-16 text-[#92B7B0] mx-auto mb-4" />
               <h3 className="text-xl font-bold text-[#0A1B45] mb-2">
@@ -345,9 +381,16 @@ export default function HelpFAQPage() {
                 Coba kata kunci lain atau hubungi support kami
               </p>
             </Card>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
 
+        <motion.div
+          variants={fadeUpVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.2 }}
+        >
         <Card className="mt-8 overflow-hidden rounded-[1.75rem] border-[#D9E6EA] shadow-[0_18px_40px_rgba(10,27,69,0.05)]">
           <div className="bg-gradient-to-r from-[#0A1B45] to-[#308279] p-6 text-white">
             <h3 className="text-xl font-bold mb-2">Masih butuh bantuan?</h3>
@@ -383,6 +426,7 @@ export default function HelpFAQPage() {
             </div>
           </div>
         </Card>
+        </motion.div>
       </div>
 
       <Footer />

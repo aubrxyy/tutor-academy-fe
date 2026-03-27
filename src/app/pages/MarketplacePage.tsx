@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Search, Filter, Star, Clock, BookOpen, ArrowRight } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, type Variants } from "motion/react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Badge } from "../components/ui/badge";
@@ -10,6 +10,23 @@ import { Link } from "react-router";
 export default function MarketplacePage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+
+  const fadeUpVariants: Variants = {
+    hidden: { opacity: 0, y: 28 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "spring", bounce: 0.28, duration: 0.9 },
+    },
+  };
+
+  const staggerContainer: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.12 },
+    },
+  };
 
   const categories = ["All", "Computer Science", "Business Admin", "Accounting", "Marketing", "Design"];
 
@@ -121,18 +138,26 @@ export default function MarketplacePage() {
           />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-3xl mx-auto">
+        <motion.div
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+        >
+          <motion.div variants={fadeUpVariants} className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#0A1B45] tracking-tight mb-6">
               Explore Top <span className="text-[#308279]">Classes</span>
             </h1>
             <p className="text-lg text-[#476074]">
               Find the perfect class taught by high-achieving peers to boost your GPA.
             </p>
-          </div>
+          </motion.div>
 
           {/* Search and Filter Bar */}
-          <div className="mt-12 bg-white rounded-2xl p-4 shadow-lg border border-gray-100 flex flex-col md:flex-row gap-4 max-w-4xl mx-auto relative z-20">
+          <motion.div
+            variants={fadeUpVariants}
+            className="mt-12 bg-white rounded-2xl p-4 shadow-lg border border-gray-100 flex flex-col md:flex-row gap-4 max-w-4xl mx-auto relative z-20"
+          >
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
@@ -147,15 +172,21 @@ export default function MarketplacePage() {
               <Filter className="w-4 h-4" />
               Filters
             </button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* Content Section */}
-      <section className="pt-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <motion.section
+        className="pt-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, amount: 0.12 }}
+      >
 
         {/* Categories */}
-        <div className="flex items-center gap-3 overflow-x-auto pb-6 mb-8 no-scrollbar">
+        <motion.div variants={fadeUpVariants} className="flex items-center gap-3 overflow-x-auto pb-6 mb-8 no-scrollbar">
           {categories.map((category) => (
             <button
               key={category}
@@ -168,16 +199,15 @@ export default function MarketplacePage() {
               {category}
             </button>
           ))}
-        </div>
+        </motion.div>
 
         {/* Results Grid */}
         {filteredCourses.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <motion.div variants={staggerContainer} className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredCourses.map((course) => (
               <motion.div
                 key={course.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                variants={fadeUpVariants}
                 className="group flex flex-col overflow-hidden rounded-[1.5rem] border border-[#D7E5E9] bg-white shadow-[0_18px_40px_rgba(10,27,69,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_54px_rgba(10,27,69,0.14)]"
               >
                 {/* Image Section */}
@@ -236,9 +266,9 @@ export default function MarketplacePage() {
                 </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : (
-          <div className="bg-white rounded-2xl p-16 text-center border border-gray-100 shadow-sm max-w-2xl mx-auto">
+          <motion.div variants={fadeUpVariants} className="bg-white rounded-2xl p-16 text-center border border-gray-100 shadow-sm max-w-2xl mx-auto">
             <div className="w-20 h-20 bg-[#F3F8FA] rounded-full flex items-center justify-center mx-auto mb-6">
               <Search className="w-10 h-10 text-[#92B7B0]" />
             </div>
@@ -250,9 +280,9 @@ export default function MarketplacePage() {
             >
               Clear filters
             </button>
-          </div>
+          </motion.div>
         )}
-      </section>
+      </motion.section>
 
       <div className="mt-16">
         <Footer />
