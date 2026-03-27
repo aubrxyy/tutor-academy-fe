@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Filter, Star, Clock, BookOpen, ArrowRight } from "lucide-react";
+import { Search, Filter, Star, Clock, ArrowRight } from "lucide-react";
 import { motion, type Variants } from "motion/react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -42,8 +42,7 @@ export default function MarketplacePage() {
       tutor: "Raka Pratama",
       image: "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
       featured: true,
-      duration: "12 Weeks",
-      level: "Intermediate"
+      duration: "12 Weeks"
     },
     {
       id: 2,
@@ -56,8 +55,7 @@ export default function MarketplacePage() {
       tutor: "Siti Nurhaliza",
       image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
       featured: false,
-      duration: "8 Weeks",
-      level: "Beginner"
+      duration: "8 Weeks"
     },
     {
       id: 3,
@@ -70,8 +68,7 @@ export default function MarketplacePage() {
       tutor: "Budi Santoso",
       image: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
       featured: true,
-      duration: "10 Weeks",
-      level: "Intermediate"
+      duration: "10 Weeks"
     },
     {
       id: 4,
@@ -84,8 +81,7 @@ export default function MarketplacePage() {
       tutor: "Lisa Amanda",
       image: "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
       featured: false,
-      duration: "8 Weeks",
-      level: "Beginner"
+      duration: "8 Weeks"
     },
     {
       id: 5,
@@ -98,8 +94,7 @@ export default function MarketplacePage() {
       tutor: "Raka Pratama",
       image: "https://images.unsplash.com/photo-1527474305487-b87b222841cc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
       featured: false,
-      duration: "14 Weeks",
-      level: "Advanced"
+      duration: "14 Weeks"
     },
     {
       id: 6,
@@ -112,8 +107,7 @@ export default function MarketplacePage() {
       tutor: "Andi Wijaya",
       image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
       featured: true,
-      duration: "10 Weeks",
-      level: "Beginner"
+      duration: "10 Weeks"
     }
   ];
 
@@ -232,7 +226,6 @@ export default function MarketplacePage() {
                 {/* Meta Tags */}
                 <div className="flex items-center gap-4 border-b border-gray-100 px-5 pb-3 pt-5 text-xs font-semibold text-[#476074]">
                   <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> {course.duration}</span>
-                  <span className="flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" /> {course.level}</span>
                 </div>
 
                 {/* Content */}

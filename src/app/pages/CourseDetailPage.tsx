@@ -35,7 +35,6 @@ export default function CourseDetailPage() {
     totalReviews: 234,
     students: 450,
     duration: "12 weeks",
-    level: "Intermediate",
     pricing: {
       monthly: 150000,
       discount: 20,
@@ -116,9 +115,6 @@ Setiap sesi live akan mencakup teori, praktik coding, dan diskusi interaktif. Ka
           <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
             <div>
               <div className="mb-6 flex items-center gap-3">
-                <Badge className="border-none bg-[#0A1B45] px-3 py-1 font-bold uppercase tracking-widest text-white shadow-sm">
-                  {course.level}
-                </Badge>
                 <div className="flex items-center gap-1 rounded-full bg-[#F3F8FA] px-3 py-1 font-bold text-[#0A1B45]">
                   <Star className="h-4 w-4 fill-[#0A1B45] text-[#0A1B45]" />
                   {course.rating} <span className="text-[#476074]">({course.totalReviews})</span>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import {
   Users,
   FileText,
@@ -46,12 +46,54 @@ import { useAuth } from "../auth/AuthContext";
 import { toast } from "sonner";
 
 type AdminView = "dashboard" | "classes" | "students" | "tutors" | "financials";
+type AccountStatus = "Active" | "Inactive";
+type ClassStatus = "Active" | "Updating";
+type ManagedClass = {
+  id: number;
+  title: string;
+  category: string;
+  tutor: string;
+  students: number;
+  videos: number;
+  sessions: number;
+  docs: number;
+  completion: number;
+  status: ClassStatus;
+};
+type ManagedTutor = {
+  id: number;
+  name: string;
+  email: string;
+  assignedClassNames: string[];
+  assignedClasses: number;
+  students: number;
+  rating: number;
+  responsibility: string;
+  status: AccountStatus;
+};
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { logout, user } = useAuth();
-  const [selectedView, setSelectedView] = useState<AdminView>("dashboard");
   const [searchQuery, setSearchQuery] = useState("");
+
+  const selectedView = (() => {
+    const view = searchParams.get("view");
+    return view === "dashboard" ||
+      view === "classes" ||
+      view === "students" ||
+      view === "tutors" ||
+      view === "financials"
+      ? view
+      : "dashboard";
+  })();
+
+  const setAdminView = (view: AdminView) => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set("view", view);
+    setSearchParams(nextParams);
+  };
 
   const stats = [
     {
@@ -88,12 +130,11 @@ export default function AdminDashboardPage() {
     },
   ];
 
-  const classes = [
+  const initialClasses: ManagedClass[] = [
     {
       id: 1,
       title: "Data Structures & Algorithms",
       category: "Computer Science",
-      level: "Intermediate",
       tutor: "Raka Pratama",
       students: 234,
       videos: 18,
@@ -106,7 +147,6 @@ export default function AdminDashboardPage() {
       id: 2,
       title: "Database Management & SQL",
       category: "Computer Science",
-      level: "Intermediate",
       tutor: "Andi Wijaya",
       students: 178,
       videos: 14,
@@ -119,7 +159,6 @@ export default function AdminDashboardPage() {
       id: 3,
       title: "HCI Design Principles",
       category: "Design",
-      level: "Beginner",
       tutor: "Denny Kusuma",
       students: 145,
       videos: 11,
@@ -130,7 +169,7 @@ export default function AdminDashboardPage() {
     },
   ];
 
-  const students = [
+  const initialStudents = [
     {
       id: 1,
       name: "Ahmad Wijaya",
@@ -177,12 +216,16 @@ export default function AdminDashboardPage() {
     },
   ];
 
-  const tutors = [
+  const initialTutors: ManagedTutor[] = [
     {
       id: 1,
       name: "Raka Pratama",
       email: "raka.pratama@binus.ac.id",
-      specialty: "Computer Science",
+      assignedClassNames: [
+        "Data Structures & Algorithms",
+        "Machine Learning Basics",
+        "Algorithmic Thinking Bootcamp",
+      ],
       assignedClasses: 3,
       students: 450,
       rating: 4.9,
@@ -193,7 +236,10 @@ export default function AdminDashboardPage() {
       id: 2,
       name: "Andi Wijaya",
       email: "andi.wijaya@binus.ac.id",
-      specialty: "Database",
+      assignedClassNames: [
+        "Database Management & SQL",
+        "UI/UX Design Fundamentals",
+      ],
       assignedClasses: 2,
       students: 320,
       rating: 4.8,
@@ -204,7 +250,10 @@ export default function AdminDashboardPage() {
       id: 3,
       name: "Denny Kusuma",
       email: "denny.kusuma@binus.ac.id",
-      specialty: "HCI Design",
+      assignedClassNames: [
+        "HCI Design Principles",
+        "Design Systems Essentials",
+      ],
       assignedClasses: 2,
       students: 280,
       rating: 4.9,
@@ -273,12 +322,111 @@ export default function AdminDashboardPage() {
     { id: "financials", label: "Financials", icon: DollarSign },
   ] as const;
 
+  const [classes, setClasses] = useState(initialClasses);
+  const [students, setStudents] = useState(initialStudents);
+  const [tutors, setTutors] = useState(initialTutors);
+  const [isAddTutorOpen, setIsAddTutorOpen] = useState(false);
+  const [newTutor, setNewTutor] = useState({
+    name: "",
+    email: "",
+    assignedClassNames: [] as string[],
+  });
+
   const filteredStudents = students.filter(
     (student) =>
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.nim.includes(searchQuery) ||
       student.email.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  const filteredTutors = tutors.filter(
+    (tutor) =>
+      tutor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tutor.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tutor.assignedClassNames.join(" ").toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
+  const getStatusBadgeClassName = (status: AccountStatus) =>
+    status === "Active"
+      ? "border-0 bg-[#308279] text-white"
+      : "border-0 bg-[#FDECEC] text-[#B42318]";
+
+  const getClassStatusBadgeClassName = (status: ClassStatus) =>
+    status === "Active"
+      ? "border-0 bg-white/20 text-white"
+      : "border-0 bg-[#FCEFC7] text-[#7A5A00]";
+
+  const toggleStudentStatus = (studentId: number) => {
+    const targetStudent = students.find((student) => student.id === studentId);
+    if (!targetStudent) return;
+
+    const nextStatus: AccountStatus =
+      targetStudent.status === "Active" ? "Inactive" : "Active";
+
+    setStudents((current) =>
+      current.map((student) =>
+        student.id === studentId ? { ...student, status: nextStatus } : student,
+      ),
+    );
+
+    toast.success(
+      nextStatus === "Inactive"
+        ? `${targetStudent.name} has been deactivated.`
+        : `${targetStudent.name} has been reactivated.`,
+    );
+  };
+
+  const toggleTutorStatus = (tutorId: number) => {
+    const targetTutor = tutors.find((tutor) => tutor.id === tutorId);
+    if (!targetTutor) return;
+
+    const nextStatus: AccountStatus =
+      targetTutor.status === "Active" ? "Inactive" : "Active";
+
+    setTutors((current) =>
+      current.map((tutor) =>
+        tutor.id === tutorId ? { ...tutor, status: nextStatus } : tutor,
+      ),
+    );
+
+    toast.success(
+      nextStatus === "Inactive"
+        ? `${targetTutor.name} has been deactivated.`
+        : `${targetTutor.name} has been reactivated.`,
+    );
+  };
+
+  const handleAddTutor = () => {
+    if (
+      !newTutor.name.trim() ||
+      !newTutor.email.trim() ||
+      newTutor.assignedClassNames.length === 0
+    ) {
+      toast.error("Please complete the tutor name, email, and assign at least one class.");
+      return;
+    }
+
+    setTutors((current) => [
+      ...current,
+      {
+        id: current.length + 1,
+        name: newTutor.name.trim(),
+        email: newTutor.email.trim(),
+        assignedClassNames: newTutor.assignedClassNames,
+        assignedClasses: newTutor.assignedClassNames.length,
+        students: 0,
+        rating: 0,
+        responsibility: "Live sessions & PDF materials",
+        status: "Active" as AccountStatus,
+      },
+    ]);
+
+    toast.success("Tutor added", {
+      description: `${newTutor.name.trim()} is now available for class assignment.`,
+    });
+    setNewTutor({ name: "", email: "", assignedClassNames: [] });
+    setIsAddTutorOpen(false);
+  };
 
   return (
     <div className="flex min-h-screen bg-[#F3F8FA]">
@@ -308,7 +456,7 @@ export default function AdminDashboardPage() {
           {navItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setSelectedView(item.id)}
+              onClick={() => setAdminView(item.id)}
               className={`mb-2 flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-all ${
                 selectedView === item.id ? "bg-white/20 backdrop-blur-sm" : "hover:bg-white/10"
               }`}
@@ -360,7 +508,7 @@ export default function AdminDashboardPage() {
                     <Button
                       className="bg-white text-[#0A1B45] hover:bg-[#F3F8FA]"
                       onClick={() => {
-                        setSelectedView("classes");
+                        setAdminView("classes");
                         toast.success("Class builder opened", {
                           description: "Lanjutkan dengan membuat class baru dari panel classes.",
                         });
@@ -373,7 +521,7 @@ export default function AdminDashboardPage() {
                       variant="outline"
                       className="border-white/30 bg-white/10 text-white hover:bg-white/15 hover:text-white"
                       onClick={() => {
-                        setSelectedView("classes");
+                        setAdminView("classes");
                         toast.message("Video library", {
                           description: "Pilih class yang ingin ditambahkan video pembelajarannya.",
                         });
@@ -543,11 +691,7 @@ export default function AdminDashboardPage() {
               <div className="flex gap-3">
                 <Button
                   className="bg-[#308279] hover:bg-[#308279]/90"
-                  onClick={() =>
-                    toast.success("New class draft", {
-                      description: "Template class baru siap diisi di class editor.",
-                    })
-                  }
+                  onClick={() => navigate("/admin/classes/new/edit")}
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   New Class
@@ -572,8 +716,8 @@ export default function AdminDashboardPage() {
                 <Card key={item.id} className="overflow-hidden border-2 transition-all hover:border-[#308279] hover:shadow-lg">
                   <div className="bg-gradient-to-br from-[#0A1B45] to-[#308279] p-6 text-white">
                     <div className="mb-4 flex items-center justify-between">
-                      <Badge className="border-0 bg-white/20 text-white">{item.status}</Badge>
-                      <div className="text-sm text-white/80">{item.level}</div>
+                      <Badge className={getClassStatusBadgeClassName(item.status)}>{item.status}</Badge>
+                      <div className="text-sm text-white/80">{item.category}</div>
                     </div>
                     <h3 className="text-lg font-bold">{item.title}</h3>
                     <p className="mt-2 text-sm text-white/80">
@@ -612,18 +756,15 @@ export default function AdminDashboardPage() {
                           Edit Class
                         </Button>
                       </Link>
-                      <Button
-                        variant="outline"
-                        className="flex-1 border-[#308279] text-[#308279]"
-                        onClick={() =>
-                          toast.success("Video uploader opened", {
-                            description: `Siap upload video baru untuk ${item.title}.`,
-                          })
-                        }
-                      >
-                        <PlayCircle className="mr-2 h-4 w-4" />
-                        Add Video
-                      </Button>
+                      <Link to={`/admin/classes/${item.id}/edit?tab=videos`} className="flex-1">
+                        <Button
+                          variant="outline"
+                          className="w-full border-[#308279] text-[#308279]"
+                        >
+                          <PlayCircle className="mr-2 h-4 w-4" />
+                          Add Video
+                        </Button>
+                      </Link>
                     </div>
                   </div>
                 </Card>
@@ -682,8 +823,16 @@ export default function AdminDashboardPage() {
                       <span className="text-[#476074]">Completed:</span>
                       <span className="font-medium text-[#0A1B45]">{student.completedClasses} classes</span>
                     </div>
-                    <div className="border-t pt-2">
-                      <Badge className="border-0 bg-[#308279] text-white">{student.status}</Badge>
+                    <div className="flex items-center justify-between border-t pt-3">
+                      <Badge className={getStatusBadgeClassName(student.status)}>{student.status}</Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-[#D8E5E9] text-[#0A1B45] hover:bg-[#F3F8FA]"
+                        onClick={() => toggleStudentStatus(student.id)}
+                      >
+                        {student.status === "Active" ? "Deactivate" : "Reactivate"}
+                      </Button>
                     </div>
                   </div>
                 </Card>
@@ -694,13 +843,114 @@ export default function AdminDashboardPage() {
 
         {selectedView === "tutors" && (
           <div className="p-8">
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold text-[#0A1B45]">Tutors Management</h2>
-              <p className="mt-2 text-[#476074]">Tutors deliver sessions and documents inside admin-managed classes</p>
+            <div className="mb-8 flex items-center justify-between">
+              <div>
+                <h2 className="text-3xl font-bold text-[#0A1B45]">Tutors Management</h2>
+                <p className="mt-2 text-[#476074]">Tutors deliver sessions and documents inside admin-managed classes</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  className="bg-[#0A1B45] hover:bg-[#0A1B45]/90"
+                  onClick={() => setIsAddTutorOpen((current) => !current)}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Tutor
+                </Button>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#476074]" />
+                  <Input
+                    placeholder="Search tutors..."
+                    className="w-80 pl-10"
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                  />
+                </div>
+              </div>
             </div>
 
+            {isAddTutorOpen ? (
+              <Card className="mb-8 rounded-[1.75rem] border-[#D8E5E9] bg-white p-6 shadow-[0_16px_36px_rgba(10,27,69,0.06)]">
+                <div className="mb-5 flex items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-[#0A1B45]">Add New Tutor</h3>
+                    <p className="mt-1 text-sm text-[#476074]">
+                      Create a tutor account entry so the admin can assign them to classes.
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    className="text-[#476074] hover:bg-[#F3F8FA] hover:text-[#0A1B45]"
+                    onClick={() => setIsAddTutorOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-[#0A1B45]">Tutor name</label>
+                    <Input
+                      placeholder="e.g. Maya Prasetyo"
+                      value={newTutor.name}
+                      onChange={(event) =>
+                        setNewTutor((current) => ({ ...current, name: event.target.value }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-[#0A1B45]">Email</label>
+                    <Input
+                      placeholder="maya.prasetyo@binus.ac.id"
+                      value={newTutor.email}
+                      onChange={(event) =>
+                        setNewTutor((current) => ({ ...current, email: event.target.value }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-[#0A1B45]">Assigned classes</label>
+                    <div className="rounded-2xl border border-[#D8E5E9] bg-[#F9FCFD] p-3">
+                      <div className="grid gap-2">
+                        {classes.map((item) => {
+                          const checked = newTutor.assignedClassNames.includes(item.title);
+                          return (
+                            <label
+                              key={item.id}
+                              className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm text-[#0A1B45] hover:bg-white"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={(event) =>
+                                  setNewTutor((current) => ({
+                                    ...current,
+                                    assignedClassNames: event.target.checked
+                                      ? [...current.assignedClassNames, item.title]
+                                      : current.assignedClassNames.filter((title) => title !== item.title),
+                                  }))
+                                }
+                                className="h-4 w-4 rounded border-[#C7DCE0] text-[#308279] focus:ring-[#308279]"
+                              />
+                              <span>{item.title}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex justify-end">
+                  <Button className="bg-[#308279] hover:bg-[#308279]/90" onClick={handleAddTutor}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Save Tutor
+                  </Button>
+                </div>
+              </Card>
+            ) : null}
+
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {tutors.map((tutor) => (
+              {filteredTutors.map((tutor) => (
                 <Card key={tutor.id} className="overflow-hidden border-2 transition-all hover:border-[#308279] hover:shadow-lg">
                   <div className="bg-gradient-to-br from-[#0A1B45] to-[#476074] p-6 text-white">
                     <div className="mb-4 flex items-center justify-between">
@@ -718,7 +968,11 @@ export default function AdminDashboardPage() {
                       </div>
                     </div>
                     <h3 className="text-lg font-bold">{tutor.name}</h3>
-                    <p className="text-sm text-white/80">{tutor.specialty}</p>
+                    <p className="text-sm text-white/80">
+                      {tutor.assignedClassNames.length > 0
+                        ? tutor.assignedClassNames.join(", ")
+                        : "No classes assigned yet"}
+                    </p>
                   </div>
                   <div className="space-y-3 p-4">
                     <div className="flex items-center justify-between text-sm">
@@ -732,8 +986,16 @@ export default function AdminDashboardPage() {
                     <div className="rounded-lg bg-[#F3F8FA] p-3 text-sm text-[#476074]">
                       {tutor.responsibility}
                     </div>
-                    <div className="border-t pt-2">
-                      <Badge className="border-0 bg-[#308279] text-white">{tutor.status}</Badge>
+                    <div className="flex items-center justify-between border-t pt-3">
+                      <Badge className={getStatusBadgeClassName(tutor.status)}>{tutor.status}</Badge>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-[#D8E5E9] text-[#0A1B45] hover:bg-[#F3F8FA]"
+                        onClick={() => toggleTutorStatus(tutor.id)}
+                      >
+                        {tutor.status === "Active" ? "Deactivate" : "Reactivate"}
+                      </Button>
                     </div>
                   </div>
                 </Card>
@@ -815,6 +1077,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </main>
+
     </div>
   );
 }
