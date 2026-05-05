@@ -5,6 +5,7 @@ import CourseDetailPage from "../pages/CourseDetailPage";
 import HelpFAQPage from "../pages/HelpFAQPage";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
+import RegisterPage from "../pages/RegisterPage";
 import MarketplacePage from "../pages/MarketplacePage";
 import NotFoundPage from "../pages/NotFoundPage";
 
@@ -40,6 +41,10 @@ export const publicRoutes: RouteObject[] = [
   {
     path: "/login",
     Component: LoginPage,
+  },
+  {
+    path: "/register",
+    Component: RegisterPage,
   },
   {
     path: "/404",

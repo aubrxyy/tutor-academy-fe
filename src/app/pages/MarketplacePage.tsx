@@ -4,12 +4,15 @@ import { motion, type Variants } from "motion/react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { Link } from "react-router";
+import { useCourses } from "../api/courses";
 
 export default function MarketplacePage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const { courses, loading, error, refetch } = useCourses();
 
   const fadeUpVariants: Variants = {
     hidden: { opacity: 0, y: 28 },
@@ -28,90 +31,12 @@ export default function MarketplacePage() {
     },
   };
 
-  const categories = ["All", "Computer Science", "Business Admin", "Accounting", "Marketing", "Design"];
-
-  const courses = [
-    {
-      id: 1,
-      title: "Data Structures & Algorithms",
-      major: "Computer Science",
-      price: "Rp 150.000",
-      rating: 4.9,
-      reviews: 234,
-      students: 450,
-      tutor: "Raka Pratama",
-      image: "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      featured: true,
-      duration: "12 Weeks"
-    },
-    {
-      id: 2,
-      title: "Business Strategy",
-      major: "Business Admin",
-      price: "Rp 140.000",
-      rating: 4.8,
-      reviews: 189,
-      students: 320,
-      tutor: "Siti Nurhaliza",
-      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      featured: false,
-      duration: "8 Weeks"
-    },
-    {
-      id: 3,
-      title: "Financial Accounting",
-      major: "Accounting",
-      price: "Rp 135.000",
-      rating: 4.7,
-      reviews: 156,
-      students: 280,
-      tutor: "Budi Santoso",
-      image: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      featured: true,
-      duration: "10 Weeks"
-    },
-    {
-      id: 4,
-      title: "Digital Marketing",
-      major: "Marketing",
-      price: "Rp 145.000",
-      rating: 4.9,
-      reviews: 201,
-      students: 380,
-      tutor: "Lisa Amanda",
-      image: "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      featured: false,
-      duration: "8 Weeks"
-    },
-    {
-      id: 5,
-      title: "Machine Learning Basics",
-      major: "Computer Science",
-      price: "Rp 180.000",
-      rating: 4.9,
-      reviews: 145,
-      students: 210,
-      tutor: "Raka Pratama",
-      image: "https://images.unsplash.com/photo-1527474305487-b87b222841cc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      featured: false,
-      duration: "14 Weeks"
-    },
-    {
-      id: 6,
-      title: "UI/UX Design Fundamentals",
-      major: "Design",
-      price: "Rp 160.000",
-      rating: 4.8,
-      reviews: 167,
-      students: 340,
-      tutor: "Andi Wijaya",
-      image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-      featured: true,
-      duration: "10 Weeks"
-    }
+  const categories = [
+    "All",
+    ...Array.from(new Set(courses.map((course) => course.major))),
   ];
 
-  const filteredCourses = courses.filter(course => {
+  const filteredCourses = courses.filter((course) => {
     const matchesCategory = activeCategory === "All" || course.major === activeCategory;
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.tutor.toLowerCase().includes(searchQuery.toLowerCase());
@@ -196,7 +121,21 @@ export default function MarketplacePage() {
         </motion.div>
 
         {/* Results Grid */}
-        {filteredCourses.length > 0 ? (
+        {loading && courses.length === 0 ? (
+          <motion.div variants={fadeUpVariants} className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, index) => (
+              <div key={index} className="h-[28rem] animate-pulse rounded-[1.5rem] border border-[#D7E5E9] bg-white" />
+            ))}
+          </motion.div>
+        ) : error ? (
+          <motion.div variants={fadeUpVariants} className="mx-auto max-w-2xl rounded-2xl border border-[#F3B7B7] bg-white p-10 text-center shadow-sm">
+            <h3 className="text-2xl font-bold text-[#0A1B45]">Unable to load classes</h3>
+            <p className="mt-3 text-[#476074]">{error.message}</p>
+            <Button className="mt-6 bg-[#0A1B45] text-white hover:bg-[#308279]" onClick={() => refetch()}>
+              Try again
+            </Button>
+          </motion.div>
+        ) : filteredCourses.length > 0 ? (
           <motion.div variants={staggerContainer} className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredCourses.map((course) => (
               <motion.div

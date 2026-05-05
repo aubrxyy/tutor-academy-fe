@@ -7,60 +7,14 @@ import Footer from "../components/Footer";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { motion, useScroll, useTransform, Variants } from "motion/react";
 import { useState } from "react";
+import { useCourses } from "../api/courses";
 
 export default function HomePage() {
-  const courses = [
-    {
-      id: 1,
-      title: "Data Structures & Algorithms",
-      major: "Computer Science",
-      price: "Rp 150.000",
-      priceLabel: "/month",
-      rating: 4.9,
-      reviews: 234,
-      students: 450,
-      tutor: "Raka Pratama",
-      image: "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
-    },
-    {
-      id: 2,
-      title: "Business Strategy",
-      major: "Business Admin",
-      price: "Rp 140.000",
-      priceLabel: "/month",
-      rating: 4.8,
-      reviews: 189,
-      students: 320,
-      tutor: "Siti Nurhaliza",
-      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
-    },
-    {
-      id: 3,
-      title: "Financial Accounting",
-      major: "Accounting",
-      price: "Rp 135.000",
-      priceLabel: "/month",
-      rating: 4.7,
-      reviews: 156,
-      students: 280,
-      tutor: "Budi Santoso",
-      image: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
-    },
-    {
-      id: 4,
-      title: "Digital Marketing",
-      major: "Marketing",
-      price: "Rp 145.000",
-      priceLabel: "/month",
-      rating: 4.9,
-      reviews: 201,
-      students: 380,
-      tutor: "Lisa Amanda",
-      image: "https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080"
-    },
+  const { courses, loading, error, refetch } = useCourses();
+  const categories = [
+    "All",
+    ...Array.from(new Set(courses.map((course) => course.major))),
   ];
-
-  const categories = ["All", "Computer Science", "Business Admin", "Accounting", "Marketing"];
   const [activeCategory, setActiveCategory] = useState("All");
 
   const filteredCourses = activeCategory === "All"
@@ -190,7 +144,7 @@ export default function HomePage() {
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
-                <Link to="/login" className="w-full sm:w-auto">
+                <Link to="/register" className="w-full sm:w-auto">
                   <Button
                     variant="outline"
                     className="h-12 w-full rounded-[10px] border-2 border-[#308279] bg-[#F3F8FA] px-6 text-sm font-medium text-[#308279] shadow-none transition-colors duration-300 hover:bg-[#E8F3F1] hover:text-[#267068] sm:w-auto"
@@ -364,85 +318,135 @@ export default function HomePage() {
             </motion.div>
           </motion.div>
 
-          {/* Categories Tab Bar */}
-          <motion.div
-            className="flex items-center gap-3 overflow-x-auto pb-6 mb-8 no-scrollbar"
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={fadeUpVariants}
-          >
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${activeCategory === category
-                    ? "bg-[#0A1B45] text-white shadow-md"
-                    : "bg-white text-[#476074] hover:bg-[#F3F8FA] hover:text-[#0A1B45] border border-gray-100"
-                  }`}
-              >
-                {category}
-              </button>
-            ))}
-          </motion.div>
-
-          <motion.div
-            className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-100px" }}
-            variants={staggerContainer}
-            key={activeCategory} // Force re-render for animation on category change
-          >
-            {filteredCourses.map((course) => (
+          <>
+              {/* Categories Tab Bar */}
               <motion.div
-                key={course.id}
+                className="flex items-center gap-3 overflow-x-auto pb-6 mb-8 no-scrollbar"
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, margin: "-100px" }}
                 variants={fadeUpVariants}
-                className="group flex cursor-pointer flex-col rounded-[1.5rem] border border-[#D7E5E9] bg-white p-5 shadow-[0_16px_36px_rgba(10,27,69,0.07)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_48px_rgba(10,27,69,0.12)]"
               >
-                <div className="relative mb-5 h-48 w-full overflow-hidden rounded-[1.25rem]">
-                  <ImageWithFallback
-                    src={course.image}
-                    alt={course.title}
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute top-3 left-3">
-                    <Badge className="rounded-full border-none bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#0A1B45] shadow-sm backdrop-blur-sm">
-                      {course.major}
-                    </Badge>
-                  </div>
-                </div>
-
-                <div className="px-1 flex flex-col flex-1">
-                  <div className="flex items-center gap-1 mb-3">
-                    <Star className="w-4 h-4 fill-[#0A1B45] text-[#0A1B45]" />
-                    <span className="font-bold text-sm text-[#0A1B45]">{course.rating}</span>
-                    <span className="text-xs text-[#476074] font-medium ml-1">({course.reviews} reviews)</span>
-                  </div>
-
-                  <h3 className="mb-2 text-lg font-bold leading-snug text-[#0A1B45] transition-colors group-hover:text-[#308279]">
-                    {course.title}
-                  </h3>
-
-                  <p className="text-sm font-medium text-[#476074] mb-6">
-                    By <span className="font-bold text-[#0A1B45] border-b-2 border-transparent group-hover:border-[#0A1B45]">{course.tutor}</span>
-                  </p>
-
-                  <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-4">
-                    <div>
-                      <div className="font-bold text-[#0A1B45] text-lg">{course.price}</div>
-                      <div className="text-[10px] font-bold text-[#92B7B0] uppercase tracking-wider">{course.priceLabel}</div>
-                    </div>
-                    <Link to={`/class/${course.id}`}>
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0A1B45] text-white transition-colors duration-300 group-hover:bg-[#308279]">
-                        <ArrowRight className="w-4 h-4" />
-                      </div>
-                    </Link>
-                  </div>
-                </div>
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setActiveCategory(category)}
+                    className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${activeCategory === category
+                        ? "bg-[#0A1B45] text-white shadow-md"
+                        : "bg-white text-[#476074] hover:bg-[#F3F8FA] hover:text-[#0A1B45] border border-gray-100"
+                      }`}
+                  >
+                    {category}
+                  </button>
+                ))}
               </motion.div>
-            ))}
-          </motion.div>
+
+              {loading && courses.length === 0 ? (
+                <motion.div
+                  className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={{ once: true, margin: "-100px" }}
+                  variants={staggerContainer}
+                >
+                  {[...Array(4)].map((_, index) => (
+                    <div
+                      key={index}
+                      className="h-[26rem] animate-pulse rounded-[1.5rem] border border-[#D7E5E9] bg-white"
+                    />
+                  ))}
+                </motion.div>
+              ) : error ? (
+                <motion.div
+                  className="rounded-[2rem] border border-[#F3B7B7] bg-white p-10 text-center shadow-sm"
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={{ once: true, margin: "-100px" }}
+                  variants={fadeUpVariants}
+                >
+                  <h3 className="text-2xl font-bold text-[#0A1B45]">
+                    Unable to load classes
+                  </h3>
+                  <p className="mt-3 text-[#476074]">{error.message}</p>
+                  <Button className="mt-6 bg-[#0A1B45] text-white hover:bg-[#308279]" onClick={() => refetch()}>
+                    Try again
+                  </Button>
+                </motion.div>
+              ) : filteredCourses.length === 0 ? (
+                <motion.div
+                  className="rounded-[2rem] border border-[#D7E5E9] bg-white p-10 text-center shadow-sm"
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={{ once: true, margin: "-100px" }}
+                  variants={fadeUpVariants}
+                >
+                  <h3 className="text-2xl font-bold text-[#0A1B45]">
+                    No classes available
+                  </h3>
+                  <p className="mt-3 text-[#476074]">
+                    The backend did not return published classes for this filter.
+                  </p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+                  initial="hidden"
+                  whileInView="show"
+                  viewport={{ once: true, margin: "-100px" }}
+                  variants={staggerContainer}
+                  key={activeCategory}
+                >
+                  {filteredCourses.map((course) => (
+                    <motion.div
+                      key={course.id}
+                      variants={fadeUpVariants}
+                      className="group flex cursor-pointer flex-col rounded-[1.5rem] border border-[#D7E5E9] bg-white p-5 shadow-[0_16px_36px_rgba(10,27,69,0.07)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_48px_rgba(10,27,69,0.12)]"
+                    >
+                      <div className="relative mb-5 h-48 w-full overflow-hidden rounded-[1.25rem]">
+                        <ImageWithFallback
+                          src={course.image}
+                          alt={course.title}
+                          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                        />
+                        <div className="absolute top-3 left-3">
+                          <Badge className="rounded-full border-none bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#0A1B45] shadow-sm backdrop-blur-sm">
+                            {course.major}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <div className="px-1 flex flex-col flex-1">
+                        <div className="flex items-center gap-1 mb-3">
+                          <Star className="w-4 h-4 fill-[#0A1B45] text-[#0A1B45]" />
+                          <span className="font-bold text-sm text-[#0A1B45]">{course.rating}</span>
+                          <span className="text-xs text-[#476074] font-medium ml-1">({course.reviews} reviews)</span>
+                        </div>
+
+                        <h3 className="mb-2 text-lg font-bold leading-snug text-[#0A1B45] transition-colors group-hover:text-[#308279]">
+                          {course.title}
+                        </h3>
+
+                        <p className="text-sm font-medium text-[#476074] mb-6">
+                          By <span className="font-bold text-[#0A1B45] border-b-2 border-transparent group-hover:border-[#0A1B45]">{course.tutor}</span>
+                        </p>
+
+                        <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-4">
+                          <div>
+                            <div className="font-bold text-[#0A1B45] text-lg">{course.price}</div>
+                            <div className="text-[10px] font-bold text-[#92B7B0] uppercase tracking-wider">{course.priceLabel}</div>
+                          </div>
+                          <Link to={`/class/${course.id}`}>
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0A1B45] text-white transition-colors duration-300 group-hover:bg-[#308279]">
+                              <ArrowRight className="w-4 h-4" />
+                            </div>
+                          </Link>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+          </>
         </div>
       </section>
 

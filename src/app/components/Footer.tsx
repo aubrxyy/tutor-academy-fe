@@ -34,7 +34,7 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-6 tracking-wide">Platform</h3>
             <ul className="space-y-4">
               <li><Link to="/marketplace" className="text-[#92B7B0] hover:text-white transition-colors text-sm">Class Catalog</Link></li>
-              <li><Link to="/login" className="text-[#92B7B0] hover:text-white transition-colors text-sm">Daftar Akun</Link></li>
+              <li><Link to="/register" className="text-[#92B7B0] hover:text-white transition-colors text-sm">Daftar Akun</Link></li>
               <li><Link to="/student-dashboard" className="text-[#92B7B0] hover:text-white transition-colors text-sm">Student Dashboard</Link></li>
               <li><Link to="#" className="text-[#92B7B0] hover:text-white transition-colors text-sm">Pricing Plans</Link></li>
             </ul>

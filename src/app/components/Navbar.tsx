@@ -124,7 +124,7 @@ export default function Navbar() {
                     Log in
                   </Button>
                 </Link>
-                <Link to="/login">
+                <Link to="/register">
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Button className="bg-[#0A1B45] hover:bg-[#308279] text-white rounded-full font-medium px-6 shadow-lg hover:shadow-xl hover:shadow-[#308279]/20 transition-all duration-300">
                       Daftar
@@ -208,7 +208,7 @@ export default function Navbar() {
                         Log in
                       </Button>
                     </Link>
-                    <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                    <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
                       <Button className="w-full justify-center rounded-xl bg-[#0A1B45] text-white">
                         Daftar
                       </Button>

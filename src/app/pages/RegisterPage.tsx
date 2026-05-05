@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { ArrowRight, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -13,15 +13,17 @@ function getErrorMessage(error: unknown) {
     return error.message;
   }
 
-  return "Login failed. Please check your username and password.";
+  return "Registration failed. Please check your information and try again.";
 }
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { isAuthenticated, user, login } = useAuth();
+  const { isAuthenticated, user, register } = useAuth();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -31,25 +33,36 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, navigate, user]);
 
-  const redirectTarget =
-    searchParams.get("redirect") ||
-    (user ? getDefaultDashboardPath(user.role) : "/marketplace");
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage(null);
     setIsSubmitting(true);
 
+    // Validate password match
+    if (password !== confirmPassword) {
+      setErrorMessage("Passwords do not match.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validate password length
+    if (password.length < 8) {
+      setErrorMessage("Password must be at least 8 characters long.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      const loggedInUser = await login({
+      const registeredUser = await register({
+        name: name.trim(),
+        email: email.trim(),
         username: username.trim(),
         password,
       });
 
-      navigate(
-        searchParams.get("redirect") || getDefaultDashboardPath(loggedInUser.role),
-        { replace: true },
-      );
+      navigate(getDefaultDashboardPath(registeredUser.role), {
+        replace: true,
+      });
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {
@@ -70,12 +83,12 @@ export default function LoginPage() {
             </div>
 
             <h1 className="mt-8 max-w-[12ch] text-4xl font-bold leading-tight tracking-[-0.04em] sm:text-5xl">
-              Masuk ke Tutoring Academy.
+              Daftar ke Tutoring Academy.
             </h1>
 
             <p className="mt-5 max-w-xl text-base leading-7 text-white/75 sm:text-lg">
-              Login sekarang memakai backend GraphQL. Setelah token diterima,
-              frontend memuat profil dan role akun untuk menentukan dashboard
+              Buat akun baru melalui backend GraphQL. Setelah pendaftaran berhasil,
+              frontend akan memuat profil dan role akun untuk menentukan dashboard
               student, tutor, atau admin.
             </p>
 
@@ -117,18 +130,47 @@ export default function LoginPage() {
           <section className="rounded-[2rem] border border-white bg-white p-7 shadow-[0_22px_60px_rgba(10,27,69,0.08)] sm:p-8">
             <div>
               <div className="text-sm font-semibold uppercase tracking-[0.18em] text-[#308279]">
-                Sign In
+                Sign Up
               </div>
               <h2 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-[#0A1B45]">
-                Username dan password
+                Buat akun baru
               </h2>
               <p className="mt-3 text-base leading-7 text-[#476074]">
-                Gunakan akun backend yang sudah tersedia. Marketplace dan course
-                detail akan memuat data setelah login.
+                Isi form di bawah untuk membuat akun baru. Setelah login,
+                kamu bisa mengakses marketplace dan course detail dengan data
+                personal kamu.
               </p>
             </div>
 
             <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+              <div className="space-y-2">
+                <Label htmlFor="name">Nama Lengkap</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  autoComplete="name"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  required
+                  placeholder="John Doe"
+                  className="h-12 rounded-xl"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                  placeholder="john@example.com"
+                  className="h-12 rounded-xl"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
                 <Input
@@ -137,7 +179,7 @@ export default function LoginPage() {
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
                   required
-                  placeholder="username"
+                  placeholder="johndoe"
                   className="h-12 rounded-xl"
                 />
               </div>
@@ -146,12 +188,26 @@ export default function LoginPage() {
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
-                  autoComplete="current-password"
                   type="password"
+                  autoComplete="new-password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   required
-                  placeholder="password"
+                  placeholder="••••••••"
+                  className="h-12 rounded-xl"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Konfirmasi Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  required
+                  placeholder="••••••••"
                   className="h-12 rounded-xl"
                 />
               </div>
@@ -162,31 +218,22 @@ export default function LoginPage() {
                 </div>
               ) : null}
 
-              <div className="rounded-2xl bg-[#F3F8FA] p-5">
-                <div className="text-sm font-semibold text-[#0A1B45]">
-                  Redirect after login
-                </div>
-                <div className="mt-1 break-all text-sm text-[#476074]">
-                  {redirectTarget}
-                </div>
-              </div>
-
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Button
                   type="submit"
                   disabled={isSubmitting}
                   className="h-12 flex-1 rounded-xl bg-[#0A1B45] text-white hover:bg-[#308279]"
                 >
-                  {isSubmitting ? "Signing in..." : "Continue"}
+                  {isSubmitting ? "Creating account..." : "Register"}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-                <Link to="/" className="sm:flex-1">
+                <Link to="/login" className="sm:flex-1">
                   <Button
                     type="button"
                     variant="outline"
                     className="h-12 w-full rounded-xl border-[#0A1B45] text-[#0A1B45] hover:bg-[#F3F8FA]"
                   >
-                    Back to homepage
+                    Already have account?
                   </Button>
                 </Link>
               </div>

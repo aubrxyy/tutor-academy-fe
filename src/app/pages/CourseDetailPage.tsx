@@ -15,85 +15,71 @@ import { Badge } from "../components/ui/badge";
 import { Avatar, AvatarFallback } from "../components/ui/avatar";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { useCourseDetail } from "../api/courses";
 
 export default function CourseDetailPage() {
   const { courseId } = useParams();
+  const { course, loading, error, refetch } = useCourseDetail(courseId);
 
-  const course = {
-    id: courseId,
-    title: "Data Structures & Algorithms",
-    subtitle: "Master the fundamentals of DSA for technical interviews and software development",
-    tutor: {
-      name: "Raka Pratama",
-      title: "Computer Science • GPA 3.95",
-      avatar: "RP",
-      rating: 4.9,
-      description:
-        "Experienced software engineer with 3+ years of experience and passionate about teaching DSA concepts.",
-    },
-    rating: 4.9,
-    totalReviews: 234,
-    students: 450,
-    duration: "12 weeks",
-    pricing: {
-      monthly: 150000,
-      discount: 20,
-    },
-    features: [
-      "24 live Zoom sessions",
-      "15 PDF materials and cheat sheets",
-      "8 practice quizzes",
-      "Certificate of completion",
-      "Class discussion support",
-    ],
-    description: `Class ini dirancang khusus untuk mahasiswa BINUS yang ingin menguasai Data Structures & Algorithms dengan pendekatan praktis dan interaktif. Kamu akan belajar langsung dari tutor berpengalaman melalui live Zoom sessions, dengan materi yang disesuaikan untuk persiapan technical interview dan project development.
+  if (loading && !course) {
+    return (
+      <div className="min-h-screen bg-[#F3F8FA] font-sans">
+        <Navbar />
+        <main className="mx-auto max-w-7xl px-4 pt-32 sm:px-6 lg:px-8">
+          <div className="h-[34rem] animate-pulse rounded-[2rem] bg-white" />
+        </main>
+      </div>
+    );
+  }
 
-Setiap sesi live akan mencakup teori, praktik coding, dan diskusi interaktif. Kamu juga akan mendapatkan akses ke materials eksklusif, practice quizzes, dan sertifikat resmi setelah menyelesaikan class ini.`,
-    reviews: [
-      {
-        id: 1,
-        student: "Ahmad Wijaya",
-        studentInitials: "AW",
-        rating: 5,
-        date: "2 hari lalu",
-        helpful: 24,
-        comment:
-          "Class terbaik yang pernah saya ikuti! Penjelasan tutor sangat jelas dan materinya sangat aplikatif. Setelah mengikuti class ini, saya berhasil lolos technical interview di startup ternama. Highly recommended!",
-      },
-      {
-        id: 2,
-        student: "Siti Nurhaliza",
-        studentInitials: "SN",
-        rating: 5,
-        date: "5 hari lalu",
-        helpful: 18,
-        comment:
-          "Live sessions nya sangat interaktif dan tutor selalu siap menjawab pertanyaan. Worth every penny!",
-      },
-      {
-        id: 3,
-        student: "Budi Santoso",
-        studentInitials: "BS",
-        rating: 4,
-        date: "1 minggu lalu",
-        helpful: 12,
-        comment:
-          "Materi bagus dan comprehensive, tapi pace nya agak cepat untuk pemula. Overall still recommended untuk yang serius belajar DSA!",
-      },
-      {
-        id: 4,
-        student: "Rina Kusuma",
-        studentInitials: "RK",
-        rating: 5,
-        date: "2 minggu lalu",
-        helpful: 31,
-        comment:
-          "Tutor Raka sangat membantu dan responsive. Saya merasa progress belajar saya sangat cepat setelah join class ini.",
-      },
-    ],
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#F3F8FA] font-sans">
+        <Navbar />
+        <main className="mx-auto max-w-2xl px-4 pt-32 text-center sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-[#F3B7B7] bg-white p-10 shadow-sm">
+            <h1 className="text-3xl font-bold text-[#0A1B45]">Unable to load class</h1>
+            <p className="mt-3 text-[#476074]">{error.message}</p>
+            <Button className="mt-6 bg-[#0A1B45] text-white hover:bg-[#308279]" onClick={() => refetch()}>
+              Try again
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!course) {
+    return (
+      <div className="min-h-screen bg-[#F3F8FA] font-sans">
+        <Navbar />
+        <main className="mx-auto max-w-2xl px-4 pt-32 text-center sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-[#D8E5E9] bg-white p-10 shadow-sm">
+            <h1 className="text-3xl font-bold text-[#0A1B45]">Class not found</h1>
+            <p className="mt-3 text-[#476074]">
+              The backend did not return a class for this route.
+            </p>
+            <Link to="/marketplace">
+              <Button className="mt-6 bg-[#0A1B45] text-white hover:bg-[#308279]">
+                Back to catalog
+              </Button>
+            </Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  const discountedMonthly =
+    course.pricing.monthly * (1 - course.pricing.discount / 100);
+  const tutor = {
+    name: course.tutor,
+    title: `${course.major} mentor`,
+    avatar: "TA",
+    rating: course.rating,
+    description:
+      "Tutor assignment details are not exposed by the current course schema yet.",
   };
-
-  const discountedMonthly = course.pricing.monthly * (1 - course.pricing.discount / 100);
 
   return (
     <div className="min-h-screen bg-[#F3F8FA] font-sans selection:bg-[#308279] selection:text-white">
@@ -117,12 +103,14 @@ Setiap sesi live akan mencakup teori, praktik coding, dan diskusi interaktif. Ka
               <div className="mb-6 flex items-center gap-3">
                 <div className="flex items-center gap-1 rounded-full bg-[#F3F8FA] px-3 py-1 font-bold text-[#0A1B45]">
                   <Star className="h-4 w-4 fill-[#0A1B45] text-[#0A1B45]" />
-                  {course.rating} <span className="text-[#476074]">({course.totalReviews})</span>
+                  {course.rating} <span className="text-[#476074]">({course.reviews})</span>
                 </div>
-                <Badge className="border-none bg-[#308279] font-bold text-white shadow-sm">
-                  <TrendingUp className="mr-1 h-3 w-3" />
-                  Bestseller
-                </Badge>
+                {course.featured ? (
+                  <Badge className="border-none bg-[#308279] font-bold text-white shadow-sm">
+                    <TrendingUp className="mr-1 h-3 w-3" />
+                    Advanced
+                  </Badge>
+                ) : null}
               </div>
 
               <h1 className="mb-6 text-5xl font-black leading-tight text-[#0A1B45] md:text-6xl">
@@ -143,7 +131,7 @@ Setiap sesi live akan mencakup teori, praktik coding, dan diskusi interaktif. Ka
                 </div>
                 <div className="flex items-center gap-2 rounded-full bg-[#F3F8FA] px-4 py-2">
                   <Video className="h-5 w-5 text-[#308279]" />
-                  <span>Zoom Live Sessions</span>
+                  <span>{course.major}</span>
                 </div>
               </div>
 
@@ -163,27 +151,26 @@ Setiap sesi live akan mencakup teori, praktik coding, dan diskusi interaktif. Ka
                 <div className="flex items-start gap-5 rounded-[1.75rem] border border-[#D8E5E9] bg-[#FCFEFE] p-6 shadow-[0_16px_36px_rgba(10,27,69,0.06)]">
                   <Avatar className="h-16 w-16 border border-[#D8E5E9]">
                     <AvatarFallback className="bg-[#92B7B0] text-2xl font-black text-[#0A1B45]">
-                      {course.tutor.avatar}
+                      {tutor.avatar}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <div className="mb-1 text-xl font-bold text-[#0A1B45]">{course.tutor.name}</div>
+                    <div className="mb-1 text-xl font-bold text-[#0A1B45]">{tutor.name}</div>
                     <div className="mb-3 text-sm font-semibold uppercase tracking-wider text-[#308279]">
-                      {course.tutor.title}
+                      {tutor.title}
                     </div>
                     <p className="text-sm font-medium leading-relaxed text-[#476074]">
-                      {course.tutor.description}
+                      {tutor.description}
                     </p>
                     <div className="mt-4 flex items-center gap-4 text-xs font-bold uppercase tracking-wide text-[#0A1B45]">
                       <span className="flex items-center gap-1 rounded-full bg-[#F3F8FA] px-2.5 py-1">
                         <Star className="h-3 w-3 fill-[#0A1B45] text-[#0A1B45]" />
-                        {course.tutor.rating}
+                        {tutor.rating}
                       </span>
                       <span>Verified tutor</span>
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
 
@@ -197,16 +184,27 @@ Setiap sesi live akan mencakup teori, praktik coding, dan diskusi interaktif. Ka
                   )}
                   <div className="rounded-[1.25rem] border border-[#D8E5E9] bg-[#F7FAFB] p-5">
                     <div className="text-xs font-bold uppercase tracking-[0.18em] text-[#476074]">
-                      Monthly access
+                      {course.pricing.monthly > 0 ? "Monthly access" : "Course access"}
                     </div>
-                    <div className="mt-3 text-sm font-semibold text-[#92B7B0] line-through">
-                      Rp {course.pricing.monthly.toLocaleString()}
-                    </div>
+                    {course.pricing.discount > 0 ? (
+                      <div className="mt-3 text-sm font-semibold text-[#92B7B0] line-through">
+                        Rp {course.pricing.monthly.toLocaleString("id-ID")}
+                      </div>
+                    ) : null}
                     <div className="mt-1 flex items-end gap-2">
                       <span className="text-4xl font-black text-[#0A1B45]">
-                        <span className="text-lg">Rp</span> {discountedMonthly.toLocaleString()}
+                        {course.pricing.monthly > 0 ? (
+                          <>
+                            <span className="text-lg">Rp</span>{" "}
+                            {discountedMonthly.toLocaleString("id-ID")}
+                          </>
+                        ) : (
+                          "Free"
+                        )}
                       </span>
-                      <span className="pb-1 text-sm font-semibold text-[#476074]">/ month</span>
+                      {course.pricing.monthly > 0 ? (
+                        <span className="pb-1 text-sm font-semibold text-[#476074]">/ month</span>
+                      ) : null}
                     </div>
                     <p className="mt-3 text-sm leading-5 text-[#476074]">
                       Akses video class, live session schedule, PDF materials, dan quiz selama 30 hari.
@@ -256,7 +254,7 @@ Setiap sesi live akan mencakup teori, praktik coding, dan diskusi interaktif. Ka
                     ))}
                   </div>
                   <span className="text-3xl font-bold text-[#0A1B45]">{course.rating}</span>
-                  <span className="text-[#476074]">({course.totalReviews} reviews)</span>
+                  <span className="text-[#476074]">({course.reviews} reviews)</span>
                 </div>
               </div>
               <Link to={`/class/${courseId}/review`}>
@@ -267,42 +265,10 @@ Setiap sesi live akan mencakup teori, praktik coding, dan diskusi interaktif. Ka
               </Link>
             </div>
 
-            <div className="space-y-4">
-              {course.reviews.map((review) => (
-                <div key={review.id} className="rounded-lg bg-[#F3F8FA] p-6 transition-all hover:shadow-md">
-                  <div className="mb-4 flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarFallback className="bg-gradient-to-br from-[#308279] to-[#0A1B45] text-white">
-                          {review.studentInitials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-bold text-[#0A1B45]">{review.student}</div>
-                        <div className="text-sm text-[#476074]">{review.date}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {[...Array(review.rating)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-[#308279] text-[#308279]" />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="mb-4 leading-relaxed text-[#476074]">{review.comment}</p>
-                  <div className="flex items-center gap-4 text-sm">
-                    <button className="flex items-center gap-1 text-[#476074] transition-colors hover:text-[#308279]">
-                      <CheckCircle className="h-4 w-4" />
-                      Helpful ({review.helpful})
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 text-center">
-              <Button variant="outline" className="border-[#308279] text-[#308279]">
-                Load More Reviews
-              </Button>
+            <div className="rounded-lg bg-[#F3F8FA] p-6 text-center">
+              <p className="font-medium text-[#476074]">
+                Reviews are not available in the current backend course schema.
+              </p>
             </div>
           </Card>
         </div>
