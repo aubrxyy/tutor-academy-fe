@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import type { FormEvent } from "react";
 import { User, Mail, Lock, Phone, Camera, Save, Loader2 } from "lucide-react";
-import { gql } from "@apollo/client";
-import { apolloClient } from "../api/graphql";
+import { graphqlUrl } from "../api/graphql";
 import { useAuth } from "../auth/AuthContext";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
@@ -10,11 +9,20 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 
-const UPDATE_PROFILE_MUTATION = gql`
-  mutation UpdateProfile($input: UpdateProfileInput!) {
-    updateUserProfile(input: $input) {
+const UPDATE_PROFILE_MUTATION = `
+  mutation UpdateProfile(
+    $userId: String!
+    $input: UpdateUserProfileInput!
+    $profilePicture: Upload
+  ) {
+    updateUserProfile(
+      userId: $userId
+      input: $input
+      profilePicture: $profilePicture
+    ) {
       id
       name
+      username
       email
       contact
       avatarUrl
@@ -22,26 +30,117 @@ const UPDATE_PROFILE_MUTATION = gql`
   }
 `;
 
+interface UpdateProfileVariables {
+  userId: string;
+  input: {
+    name: string;
+    username: string;
+    email: string;
+    contact: string | null;
+  };
+  profilePicture: File | null;
+}
+
 interface UpdateProfileData {
   updateUserProfile: {
     id: string;
     name: string;
+    username: string;
     email: string;
     contact: string | null;
     avatarUrl: string | null;
   };
 }
 
+interface GraphQLResponse<TData> {
+  data?: TData;
+  errors?: Array<{ message: string }>;
+}
+
+async function updateProfileRequest(
+  token: string | null,
+  variables: UpdateProfileVariables,
+) {
+  if (!variables.profilePicture) {
+    const response = await fetch(graphqlUrl, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        query: UPDATE_PROFILE_MUTATION,
+        variables,
+      }),
+    });
+
+    const result = (await response.json()) as GraphQLResponse<UpdateProfileData>;
+
+    if (!response.ok || result.errors?.length) {
+      throw new Error(
+        result.errors?.map((error) => error.message).join(", ") ||
+          "Failed to update profile",
+      );
+    }
+
+    if (!result.data?.updateUserProfile) {
+      throw new Error("Profile update response did not include a user.");
+    }
+
+    return result.data.updateUserProfile;
+  }
+
+  const operations = {
+    query: UPDATE_PROFILE_MUTATION,
+    variables: {
+      ...variables,
+      profilePicture: null,
+    },
+  };
+
+  const formData = new FormData();
+  formData.append("operations", JSON.stringify(operations));
+
+  formData.append("map", JSON.stringify({ "0": ["variables.profilePicture"] }));
+  formData.append("0", variables.profilePicture);
+
+  const response = await fetch(graphqlUrl, {
+    method: "POST",
+    headers: {
+      "GraphQL-Preflight": "1",
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  });
+
+  const result = (await response.json()) as GraphQLResponse<UpdateProfileData>;
+
+  if (!response.ok || result.errors?.length) {
+    throw new Error(
+      result.errors?.map((error) => error.message).join(", ") ||
+        "Failed to update profile",
+    );
+  }
+
+  if (!result.data?.updateUserProfile) {
+    throw new Error("Profile update response did not include a user.");
+  }
+
+  return result.data.updateUserProfile;
+}
+
 export default function StudentProfilePage() {
-  const navigate = useNavigate();
-  const { user, token } = useAuth();
+  const { user, token, updateCurrentUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [profilePicture, setProfilePicture] = useState<File | null>(null);
+  const [profilePreviewUrl, setProfilePreviewUrl] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     name: "",
+    username: "",
     email: "",
     contact: "",
   });
@@ -51,11 +150,24 @@ export default function StudentProfilePage() {
     if (user) {
       setFormData({
         name: user.name,
+        username: user.username,
         email: user.email,
         contact: user.contact || "",
       });
     }
   }, [user]);
+
+  useEffect(() => {
+    if (!profilePicture) {
+      setProfilePreviewUrl(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(profilePicture);
+    setProfilePreviewUrl(objectUrl);
+
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [profilePicture]);
 
   if (!user) {
     return (
@@ -68,40 +180,41 @@ export default function StudentProfilePage() {
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage(null);
     setSuccessMessage(null);
     setIsLoading(true);
 
     try {
-      const result = await apolloClient.mutate<UpdateProfileData>({
-        mutation: UPDATE_PROFILE_MUTATION,
-        variables: {
-          input: {
-            name: formData.name.trim(),
-            email: formData.email.trim(),
-            contact: formData.contact.trim() || null,
-          },
+      const updatedUser = await updateProfileRequest(token, {
+        userId: user.id,
+        input: {
+          name: formData.name.trim(),
+          username: formData.username.trim(),
+          email: formData.email.trim(),
+          contact: formData.contact.trim() || null,
         },
-        context: {
-          headers: {
-            authorization: `Bearer ${token}`,
-          },
-        },
+        profilePicture,
       });
 
-      if (result.data?.updateUserProfile) {
-        // Update form with response data
-        setFormData({
-          name: result.data.updateUserProfile.name,
-          email: result.data.updateUserProfile.email,
-          contact: result.data.updateUserProfile.contact || "",
-        });
-        setSuccessMessage("Profil berhasil diperbarui!");
-        setIsEditing(false);
-        setTimeout(() => setSuccessMessage(null), 3000);
-      }
+      setFormData({
+        name: updatedUser.name,
+        username: updatedUser.username,
+        email: updatedUser.email,
+        contact: updatedUser.contact || "",
+      });
+      updateCurrentUser({
+        name: updatedUser.name,
+        username: updatedUser.username,
+        email: updatedUser.email,
+        avatarUrl: updatedUser.avatarUrl,
+        contact: updatedUser.contact,
+      });
+      setProfilePicture(null);
+      setSuccessMessage("Profil berhasil diperbarui!");
+      setIsEditing(false);
+      setTimeout(() => setSuccessMessage(null), 3000);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to update profile";
       setErrorMessage(message);
@@ -138,22 +251,36 @@ export default function StudentProfilePage() {
               <div className="flex flex-col items-center">
                 <div className="relative mb-4">
                   <Avatar className="w-32 h-32">
-                    <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
+                    <AvatarImage src={profilePreviewUrl || user.avatarUrl || undefined} alt={user.name} />
                     <AvatarFallback className="bg-gradient-to-br from-[#308279] to-[#0A1B45] text-white text-3xl">
                       {getInitials(user.name)}
                     </AvatarFallback>
                   </Avatar>
                   {isEditing && (
-                    <Button
-                      size="sm"
-                      disabled
-                      className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0 bg-[#308279] hover:bg-[#308279]/90 opacity-60 cursor-not-allowed"
-                      title="Avatar upload coming soon"
+                    <label
+                      htmlFor="profile-picture"
+                      className="absolute bottom-0 right-0 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-[#308279] text-white shadow-sm transition hover:bg-[#308279]/90"
+                      title="Upload profile picture"
                     >
                       <Camera className="w-4 h-4" />
-                    </Button>
+                      <input
+                        id="profile-picture"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0] ?? null;
+                          setProfilePicture(file);
+                        }}
+                      />
+                    </label>
                   )}
                 </div>
+                {isEditing && profilePicture ? (
+                  <p className="mb-3 max-w-full truncate text-xs font-medium text-[#308279]">
+                    {profilePicture.name}
+                  </p>
+                ) : null}
                 <h3 className="font-bold text-[#0A1B45] text-lg text-center">{user.name}</h3>
                 <p className="text-[#476074] text-sm">{user.username}</p>
                 <p className="text-[#476074] text-sm capitalize">{user.role}</p>
@@ -253,16 +380,17 @@ export default function StudentProfilePage() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="username" className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-[#476074]" />
+                        <User className="w-4 h-4 text-[#308279]" />
                         Username
                       </Label>
                       <Input
                         id="username"
-                        value={user.username}
-                        disabled
-                        className="disabled:opacity-70 disabled:cursor-not-allowed"
+                        value={formData.username}
+                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                        disabled={!isEditing || isLoading}
+                        className="disabled:opacity-70"
+                        required
                       />
-                      <p className="text-xs text-[#476074]">Username tidak dapat diubah</p>
                     </div>
                   </div>
                 </div>
@@ -313,10 +441,12 @@ export default function StudentProfilePage() {
                         if (user) {
                           setFormData({
                             name: user.name,
+                            username: user.username,
                             email: user.email,
                             contact: user.contact || "",
                           });
                         }
+                        setProfilePicture(null);
                       }}
                       disabled={isLoading}
                       className="border-[#476074]/30 disabled:opacity-60"

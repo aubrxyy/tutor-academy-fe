@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import {
   Users,
@@ -29,6 +29,7 @@ import { Card } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Input } from "../components/ui/input";
 import { Avatar, AvatarFallback } from "../components/ui/avatar";
+import { confirmLogout } from "../components/confirmLogout";
 import {
   AreaChart,
   Area,
@@ -44,24 +45,36 @@ import {
 } from "recharts";
 import { useAuth } from "../auth/AuthContext";
 import { toast } from "sonner";
+import { useAdminPanelData, type BackendUser } from "../api/admin";
+import type { Course, CourseLevel, CourseStatus } from "../api/courses";
 
 type AdminView = "dashboard" | "classes" | "students" | "tutors" | "financials";
 type AccountStatus = "Active" | "Inactive";
-type ClassStatus = "Active" | "Updating";
 type ManagedClass = {
-  id: number;
+  id: string;
   title: string;
-  category: string;
+  level: CourseLevel;
   tutor: string;
   students: number;
   videos: number;
   sessions: number;
   docs: number;
   completion: number;
-  status: ClassStatus;
+  status: CourseStatus;
+};
+type ManagedStudent = {
+  id: string;
+  name: string;
+  nim: string;
+  email: string;
+  major: string;
+  semester: number;
+  enrolledClasses: number;
+  completedClasses: number;
+  status: AccountStatus;
 };
 type ManagedTutor = {
-  id: number;
+  id: string;
   name: string;
   email: string;
   assignedClassNames: string[];
@@ -76,7 +89,17 @@ export default function AdminDashboardPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { logout, user } = useAuth();
+  const { data: adminData, loading: isAdminDataLoading, error: adminDataError } = useAdminPanelData();
   const [searchQuery, setSearchQuery] = useState("");
+
+  const handleLogout = async () => {
+    const confirmed = await confirmLogout();
+
+    if (!confirmed) return;
+
+    await logout();
+    navigate("/login");
+  };
 
   const selectedView = (() => {
     const view = searchParams.get("view");
@@ -99,16 +122,16 @@ export default function AdminDashboardPage() {
     {
       icon: Users,
       label: "Total Users",
-      value: "2,847",
-      change: "+12%",
+      value: adminData ? String(adminData.users.length) : "0",
+      change: isAdminDataLoading ? "Syncing" : "Backend",
       trend: "up",
       color: "from-[#308279] to-[#92B7B0]",
     },
     {
       icon: FileText,
       label: "Total Classes",
-      value: "145",
-      change: "+8",
+      value: adminData ? String(adminData.courses.length) : "0",
+      change: isAdminDataLoading ? "Syncing" : "Backend",
       trend: "up",
       color: "from-[#0A1B45] to-[#308279]",
     },
@@ -116,7 +139,7 @@ export default function AdminDashboardPage() {
       icon: DollarSign,
       label: "Revenue (Month)",
       value: "Rp 45jt",
-      change: "+15%",
+      change: "Static",
       trend: "up",
       color: "from-[#92B7B0] to-[#476074]",
     },
@@ -124,7 +147,7 @@ export default function AdminDashboardPage() {
       icon: Activity,
       label: "Active Sessions",
       value: "156",
-      change: "+5%",
+      change: "Static",
       trend: "up",
       color: "from-[#308279] to-[#0A1B45]",
     },
@@ -132,46 +155,46 @@ export default function AdminDashboardPage() {
 
   const initialClasses: ManagedClass[] = [
     {
-      id: 1,
+      id: "1",
       title: "Data Structures & Algorithms",
-      category: "Computer Science",
+      level: "BEGINNER",
       tutor: "Raka Pratama",
       students: 234,
       videos: 18,
       sessions: 12,
       docs: 15,
       completion: 85,
-      status: "Active",
+      status: "PUBLISHED",
     },
     {
-      id: 2,
+      id: "2",
       title: "Database Management & SQL",
-      category: "Computer Science",
+      level: "INTERMEDIATE",
       tutor: "Andi Wijaya",
       students: 178,
       videos: 14,
       sessions: 10,
       docs: 12,
       completion: 78,
-      status: "Active",
+      status: "PUBLISHED",
     },
     {
-      id: 3,
+      id: "3",
       title: "HCI Design Principles",
-      category: "Design",
+      level: "ADVANCED",
       tutor: "Denny Kusuma",
       students: 145,
       videos: 11,
       sessions: 8,
       docs: 10,
       completion: 82,
-      status: "Updating",
+      status: "DRAFT",
     },
   ];
 
-  const initialStudents = [
+  const initialStudents: ManagedStudent[] = [
     {
-      id: 1,
+      id: "1",
       name: "Ahmad Wijaya",
       nim: "2540120123",
       email: "ahmad.wijaya@binus.ac.id",
@@ -182,7 +205,7 @@ export default function AdminDashboardPage() {
       status: "Active",
     },
     {
-      id: 2,
+      id: "2",
       name: "Siti Nurhaliza",
       nim: "2540120124",
       email: "siti.nurhaliza@binus.ac.id",
@@ -193,7 +216,7 @@ export default function AdminDashboardPage() {
       status: "Active",
     },
     {
-      id: 3,
+      id: "3",
       name: "Budi Santoso",
       nim: "2540120125",
       email: "budi.santoso@binus.ac.id",
@@ -204,7 +227,7 @@ export default function AdminDashboardPage() {
       status: "Active",
     },
     {
-      id: 4,
+      id: "4",
       name: "Lisa Amanda",
       nim: "2540120126",
       email: "lisa.amanda@binus.ac.id",
@@ -218,7 +241,7 @@ export default function AdminDashboardPage() {
 
   const initialTutors: ManagedTutor[] = [
     {
-      id: 1,
+      id: "1",
       name: "Raka Pratama",
       email: "raka.pratama@binus.ac.id",
       assignedClassNames: [
@@ -233,7 +256,7 @@ export default function AdminDashboardPage() {
       status: "Active",
     },
     {
-      id: 2,
+      id: "2",
       name: "Andi Wijaya",
       email: "andi.wijaya@binus.ac.id",
       assignedClassNames: [
@@ -247,7 +270,7 @@ export default function AdminDashboardPage() {
       status: "Active",
     },
     {
-      id: 3,
+      id: "3",
       name: "Denny Kusuma",
       email: "denny.kusuma@binus.ac.id",
       assignedClassNames: [
@@ -322,6 +345,46 @@ export default function AdminDashboardPage() {
     { id: "financials", label: "Financials", icon: DollarSign },
   ] as const;
 
+  const mapCourseToManagedClass = (course: Course): ManagedClass => ({
+    id: course.id,
+    title: course.title,
+    level: course.level,
+    tutor: "Unassigned",
+    students: 0,
+    videos: course.totalLectures,
+    sessions: 0,
+    docs: course.totalSections,
+    completion: course.status === "PUBLISHED" ? 100 : 35,
+    status: course.status,
+  });
+
+  const mapUserToStudent = (backendUser: BackendUser): ManagedStudent => ({
+    id: backendUser.id,
+    name: backendUser.name,
+    nim: backendUser.username,
+    email: backendUser.email,
+    major: "Tutoring Academy",
+    semester: 0,
+    enrolledClasses: backendUser.enrolledCourses.length,
+    completedClasses: 0,
+    status: "Active",
+  });
+
+  const mapUserToTutor = (backendUser: BackendUser): ManagedTutor => ({
+    id: backendUser.id,
+    name: backendUser.name,
+    email: backendUser.email,
+    assignedClassNames:
+      adminData?.courses
+        .filter((course) => backendUser.teachingCourses.includes(course.id))
+        .map((course) => course.title) ?? [],
+    assignedClasses: backendUser.teachingCourses.length,
+    students: 0,
+    rating: 0,
+    responsibility: "Live sessions & PDF materials",
+    status: "Active",
+  });
+
   const [classes, setClasses] = useState(initialClasses);
   const [students, setStudents] = useState(initialStudents);
   const [tutors, setTutors] = useState(initialTutors);
@@ -331,6 +394,22 @@ export default function AdminDashboardPage() {
     email: "",
     assignedClassNames: [] as string[],
   });
+
+  useEffect(() => {
+    if (!adminData) return;
+
+    setClasses(adminData.courses.map(mapCourseToManagedClass));
+    setStudents(
+      adminData.users
+        .filter((backendUser) => backendUser.role === "USER")
+        .map(mapUserToStudent),
+    );
+    setTutors(
+      adminData.users
+        .filter((backendUser) => backendUser.role === "TUTOR")
+        .map(mapUserToTutor),
+    );
+  }, [adminData]);
 
   const filteredStudents = students.filter(
     (student) =>
@@ -351,12 +430,36 @@ export default function AdminDashboardPage() {
       ? "border-0 bg-[#308279] text-white"
       : "border-0 bg-[#FDECEC] text-[#B42318]";
 
-  const getClassStatusBadgeClassName = (status: ClassStatus) =>
-    status === "Active"
-      ? "border-0 bg-white/20 text-white"
-      : "border-0 bg-[#FCEFC7] text-[#7A5A00]";
+  const getCourseLevelLabel = (level: CourseLevel) => {
+    switch (level) {
+      case "BEGINNER":
+        return "Beginner";
+      case "INTERMEDIATE":
+        return "Intermediate";
+      case "ADVANCED":
+        return "Advanced";
+    }
+  };
 
-  const toggleStudentStatus = (studentId: number) => {
+  const getCourseStatusLabel = (status: CourseStatus) => {
+    switch (status) {
+      case "DRAFT":
+        return "Draft";
+      case "PUBLISHED":
+        return "Published";
+      case "ARCHIVED":
+        return "Archived";
+    }
+  };
+
+  const getClassStatusBadgeClassName = (status: CourseStatus) =>
+    status === "PUBLISHED"
+      ? "border-0 bg-white/20 text-white"
+      : status === "DRAFT"
+        ? "border-0 bg-[#FCEFC7] text-[#7A5A00]"
+        : "border-0 bg-white/15 text-white/75";
+
+  const toggleStudentStatus = (studentId: string) => {
     const targetStudent = students.find((student) => student.id === studentId);
     if (!targetStudent) return;
 
@@ -376,7 +479,7 @@ export default function AdminDashboardPage() {
     );
   };
 
-  const toggleTutorStatus = (tutorId: number) => {
+  const toggleTutorStatus = (tutorId: string) => {
     const targetTutor = tutors.find((tutor) => tutor.id === tutorId);
     if (!targetTutor) return;
 
@@ -409,7 +512,7 @@ export default function AdminDashboardPage() {
     setTutors((current) => [
       ...current,
       {
-        id: current.length + 1,
+        id: `local-${Date.now()}`,
         name: newTutor.name.trim(),
         email: newTutor.email.trim(),
         assignedClassNames: newTutor.assignedClassNames,
@@ -477,10 +580,7 @@ export default function AdminDashboardPage() {
           <Button
             variant="ghost"
             className="w-full justify-start text-white hover:bg-white/10"
-            onClick={() => {
-              logout();
-              navigate("/login");
-            }}
+            onClick={handleLogout}
           >
             <LogOut className="mr-3 h-5 w-5" />
             Logout
@@ -716,12 +816,14 @@ export default function AdminDashboardPage() {
                 <Card key={item.id} className="overflow-hidden border-2 transition-all hover:border-[#308279] hover:shadow-lg">
                   <div className="bg-gradient-to-br from-[#0A1B45] to-[#308279] p-6 text-white">
                     <div className="mb-4 flex items-center justify-between">
-                      <Badge className={getClassStatusBadgeClassName(item.status)}>{item.status}</Badge>
-                      <div className="text-sm text-white/80">{item.category}</div>
+                      <Badge className={getClassStatusBadgeClassName(item.status)}>
+                        {getCourseStatusLabel(item.status)}
+                      </Badge>
+                      <div className="text-sm text-white/80">{getCourseLevelLabel(item.level)}</div>
                     </div>
                     <h3 className="text-lg font-bold">{item.title}</h3>
                     <p className="mt-2 text-sm text-white/80">
-                      {item.category} • Tutor: {item.tutor}
+                      {getCourseLevelLabel(item.level)} • Tutor: {item.tutor}
                     </p>
                   </div>
                   <div className="space-y-4 p-6">

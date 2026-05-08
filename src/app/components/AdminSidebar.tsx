@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { useAuth } from "../auth/AuthContext";
+import { confirmLogout } from "./confirmLogout";
 
 export type AdminView = "dashboard" | "classes" | "students" | "tutors" | "financials";
 
@@ -32,6 +33,17 @@ type AdminSidebarProps = {
 export default function AdminSidebar({ activeView }: AdminSidebarProps) {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
+
+  const handleLogout = async () => {
+    const confirmed = await confirmLogout();
+
+    if (!confirmed) {
+      return;
+    }
+
+    await logout();
+    navigate("/login");
+  };
 
   return (
     <aside className="sticky top-0 h-screen w-72 bg-gradient-to-b from-[#081734] to-[#308279] text-white shadow-[18px_0_40px_rgba(10,27,69,0.12)]">
@@ -81,10 +93,7 @@ export default function AdminSidebar({ activeView }: AdminSidebarProps) {
         <Button
           variant="ghost"
           className="w-full justify-start text-white hover:bg-white/10"
-          onClick={() => {
-            logout();
-            navigate("/login");
-          }}
+          onClick={handleLogout}
         >
           <LogOut className="mr-3 h-5 w-5" />
           Logout

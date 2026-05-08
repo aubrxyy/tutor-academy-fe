@@ -5,6 +5,7 @@ import { getDefaultDashboardPath, useAuth } from "../auth/AuthContext";
 import { Button } from "./ui/button";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "./ui/utils";
+import { confirmLogout } from "./confirmLogout";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -49,6 +50,16 @@ export default function Navbar() {
     }
 
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  };
+
+  const handleLogout = async () => {
+    const confirmed = await confirmLogout();
+
+    if (!confirmed) {
+      return;
+    }
+
+    await logout();
   };
 
   if (isDashboard) return null;
@@ -112,7 +123,7 @@ export default function Navbar() {
                 <Button
                   variant="outline"
                   className="rounded-full border-[#0A1B45] px-6 text-[#0A1B45] hover:bg-[#F3F8FA]"
-                  onClick={logout}
+                  onClick={handleLogout}
                 >
                   Log out
                 </Button>
@@ -193,8 +204,14 @@ export default function Navbar() {
                     </Link>
                     <Button
                       className="w-full justify-center rounded-xl bg-[#0A1B45] text-white"
-                      onClick={() => {
-                        logout();
+                      onClick={async () => {
+                        const confirmed = await confirmLogout();
+
+                        if (!confirmed) {
+                          return;
+                        }
+
+                        await logout();
                         setMobileMenuOpen(false);
                       }}
                     >

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import {
   Users,
@@ -51,9 +51,13 @@ import {
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { useTutorPanelCourses } from "../api/admin";
 
 export default function TutorDashboardPage() {
   const { user } = useAuth();
+  const teachingCourseIds = user?.teachingCourses ?? [];
+  const { data: tutorCourseData, loading: isTutorCourseLoading } =
+    useTutorPanelCourses(teachingCourseIds);
   const [activeView, setActiveView] = useState<"overview" | "sessions" | "materials" | "analytics">("overview");
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [isMaterialDialogOpen, setIsMaterialDialogOpen] = useState(false);
@@ -84,8 +88,10 @@ export default function TutorDashboardPage() {
     {
       icon: BookOpen,
       label: "Assigned Classes",
-      value: "3",
-      change: "Admin managed",
+      value: isTutorCourseLoading
+        ? "..."
+        : String(tutorCourseData?.courses.length ?? teachingCourseIds.length),
+      change: "Backend",
       color: "from-[#308279] to-[#0A1B45]",
     },
   ];
@@ -197,6 +203,22 @@ export default function TutorDashboardPage() {
       adminVideos: 11,
     },
   ];
+
+  const backendAssignedClasses = useMemo(
+    () =>
+      (tutorCourseData?.courses ?? []).map((course) => ({
+        id: course.id,
+        title: course.title,
+        students: 0,
+        nextLive: "Belum ada jadwal baru",
+        tutorDocs: course.totalSections,
+        adminVideos: course.totalLectures,
+      })),
+    [tutorCourseData],
+  );
+
+  const assignedClassCards =
+    backendAssignedClasses.length > 0 ? backendAssignedClasses : assignedClasses;
 
   const tutorNavItems = [
     { label: "Overview", icon: BookOpen, active: activeView === "overview", onClick: () => setActiveView("overview") },
@@ -348,12 +370,12 @@ export default function TutorDashboardPage() {
                 <p className="text-[#476074]">Semua class yang sedang kamu handle tampil di satu overview.</p>
               </div>
               <Badge className="border-0 bg-[#308279]/10 px-3 py-1.5 text-[#308279]">
-                {assignedClasses.length} active classes
+                {assignedClassCards.length} active classes
               </Badge>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-3">
-              {assignedClasses.map((item) => (
+              {assignedClassCards.map((item) => (
                 <Card
                   key={item.id}
                   className="border-[#D9E6EA] bg-white p-6 shadow-[0_18px_40px_rgba(10,27,69,0.08)] transition-all hover:-translate-y-1 hover:shadow-[0_24px_48px_rgba(10,27,69,0.12)]"

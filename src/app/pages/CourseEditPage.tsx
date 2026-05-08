@@ -17,6 +17,7 @@ import { Label } from "../components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Textarea } from "../components/ui/textarea";
 import { toast } from "sonner";
+import type { CourseLevel, CourseStatus } from "../api/courses";
 
 type EditorTab = "basic" | "videos";
 
@@ -28,6 +29,18 @@ type ManagedVideo = {
   sourceValue: string;
   status: "Published" | "Draft";
 };
+
+const courseLevelOptions: Array<{ value: CourseLevel; label: string }> = [
+  { value: "BEGINNER", label: "Beginner" },
+  { value: "INTERMEDIATE", label: "Intermediate" },
+  { value: "ADVANCED", label: "Advanced" },
+];
+
+const courseStatusOptions: Array<{ value: CourseStatus; label: string }> = [
+  { value: "DRAFT", label: "Draft" },
+  { value: "PUBLISHED", label: "Published" },
+  { value: "ARCHIVED", label: "Archived" },
+];
 
 export default function CourseEditPage() {
   const { courseId } = useParams();
@@ -43,10 +56,10 @@ export default function CourseEditPage() {
     description: isNewClass
       ? ""
       : "Kelas intensif untuk mahasiswa BINUS yang ingin memahami DSA lewat video lesson, live Zoom session, dan materi PDF pendukung.",
-    category: isNewClass ? "Computer Science" : "Computer Science",
+    level: "BEGINNER" as CourseLevel,
     duration: isNewClass ? "" : "12 weeks",
     tutor: isNewClass ? tutorOptions[0] : "Raka Pratama",
-    status: "Active",
+    status: "DRAFT" as CourseStatus,
   });
 
   const [videos, setVideos] = useState<ManagedVideo[]>(
@@ -221,18 +234,23 @@ export default function CourseEditPage() {
 
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="category">Category</Label>
+                      <Label htmlFor="level">Level</Label>
                       <select
-                        id="category"
-                        value={classData.category}
-                        onChange={(event) => setClassData({ ...classData, category: event.target.value })}
+                        id="level"
+                        value={classData.level}
+                        onChange={(event) =>
+                          setClassData({
+                            ...classData,
+                            level: event.target.value as CourseLevel,
+                          })
+                        }
                         className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
                       >
-                        <option>Computer Science</option>
-                        <option>Business</option>
-                        <option>Marketing</option>
-                        <option>Accounting</option>
-                        <option>Design</option>
+                        {courseLevelOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div className="space-y-2">
@@ -264,11 +282,19 @@ export default function CourseEditPage() {
                       <select
                         id="status"
                         value={classData.status}
-                        onChange={(event) => setClassData({ ...classData, status: event.target.value })}
+                        onChange={(event) =>
+                          setClassData({
+                            ...classData,
+                            status: event.target.value as CourseStatus,
+                          })
+                        }
                         className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
                       >
-                        <option>Active</option>
-                        <option>Updating</option>
+                        {courseStatusOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>

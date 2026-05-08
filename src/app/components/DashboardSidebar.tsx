@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { GraduationCap, LogOut, type LucideIcon } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { cn } from "./ui/utils";
+import { confirmLogout } from "./confirmLogout";
 
 export interface DashboardNavItem {
   label: string;
@@ -35,6 +36,17 @@ export default function DashboardSidebar({ roleLabel, navItems }: DashboardSideb
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    const confirmed = await confirmLogout();
+
+    if (!confirmed) {
+      return;
+    }
+
+    await logout();
+    navigate("/login");
+  };
 
   return (
     <aside className="w-full border-b border-[#D9E6EA] bg-white/95 backdrop-blur-md lg:sticky lg:top-0 lg:h-screen lg:w-[280px] lg:flex-shrink-0 lg:border-b-0 lg:border-r">
@@ -87,10 +99,7 @@ export default function DashboardSidebar({ roleLabel, navItems }: DashboardSideb
         <button
           type="button"
           className="mt-auto flex w-full items-center justify-center gap-2 rounded-2xl border border-[#D9E6EA] bg-white px-4 py-3 text-sm font-semibold text-[#0A1B45] transition-colors hover:border-[#308279] hover:bg-[#F3F8FA]"
-          onClick={() => {
-            logout();
-            navigate("/login");
-          }}
+          onClick={handleLogout}
         >
           <LogOut className="h-4 w-4 text-[#308279]" />
           Logout

@@ -21,6 +21,8 @@ export interface AuthUser {
   email: string;
   role: AppRole;
   contact: string | null;
+  enrolledCourses: string[];
+  teachingCourses: string[];
 }
 
 interface AuthContextValue {
@@ -30,6 +32,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   login: (input: LoginCredentials) => Promise<AuthUser>;
   register: (input: RegisterCredentials) => Promise<AuthUser>;
+  updateCurrentUser: (nextUser: Partial<AuthUser>) => void;
   logout: () => Promise<void>;
   hasRole: (...roles: AppRole[]) => boolean;
 }
@@ -119,6 +122,8 @@ interface AuthUserData {
     email: string;
     role: BackendRole;
     contact: string | null;
+    enrolledCourses: string[];
+    teachingCourses: string[];
   }>;
 }
 
@@ -199,6 +204,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: backendUser.email,
             role: mapBackendRole(backendUser.role),
             contact: backendUser.contact,
+            enrolledCourses: backendUser.enrolledCourses,
+            teachingCourses: backendUser.teachingCourses,
           });
         }
       } catch (error) {
@@ -258,6 +265,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: backendUser.email,
       role: mapBackendRole(backendUser.role),
       contact: backendUser.contact,
+      enrolledCourses: backendUser.enrolledCourses,
+      teachingCourses: backendUser.teachingCourses,
     };
 
     const nextSession: AuthSession = {
@@ -319,6 +328,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: backendUser.email,
       role: mapBackendRole(backendUser.role),
       contact: backendUser.contact,
+      enrolledCourses: backendUser.enrolledCourses,
+      teachingCourses: backendUser.teachingCourses,
     };
 
     const nextSession: AuthSession = {
@@ -341,6 +352,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await apolloClient.clearStore();
   };
 
+  const updateCurrentUser = (nextUser: Partial<AuthUser>) => {
+    setUser((currentUser) => {
+      if (!currentUser) {
+        return currentUser;
+      }
+
+      return {
+        ...currentUser,
+        ...nextUser,
+      };
+    });
+  };
+
   const value = useMemo<AuthContextValue>(() => {
     const hasRole = (...roles: AppRole[]) => {
       if (!user) {
@@ -357,6 +381,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: Boolean(session?.token && user),
       login,
       register,
+      updateCurrentUser,
       logout,
       hasRole,
     };
