@@ -60,15 +60,15 @@ export default function HelpFAQPage() {
       questions: [
         {
           q: "Bagaimana cara mendaftar class?",
-          a: "Kunjungi halaman Marketplace, pilih class yang diinginkan, klik 'Enroll Now', dan selesaikan pembayaran. Class akan langsung muncul di dashboard kamu.",
+          a: "Kunjungi halaman Marketplace, buka course yang diinginkan, pilih batch yang masih terbuka, lalu selesaikan pembayaran. Batch yang berhasil kamu ambil akan muncul di dashboard.",
         },
         {
           q: "Apakah class memiliki batas waktu akses?",
-          a: "Tergantung paket yang kamu pilih. Paket monthly berlaku 30 hari, sedangkan paket annual berlaku 365 hari. Setelah itu, kamu perlu perpanjang subscription.",
+          a: "Ya. Setiap batch berjalan dalam periode tertentu, misalnya 3 bulan. Selama batch aktif, kamu mengikuti cohort yang sama dari awal sampai akhir pembelajaran.",
         },
         {
           q: "Bagaimana cara mengikuti live session?",
-          a: "Buka class di dashboard, klik 'Join Live Session' pada jadwal yang tersedia. Kamu akan diarahkan ke Zoom meeting dengan link yang disediakan tutor.",
+          a: "Buka classroom batch kamu, lihat jadwal pertemuan yang tersedia, lalu klik 'Join' pada sesi yang sedang berlangsung. Jika tutor menambahkan link Zoom, kamu akan diarahkan ke meeting tersebut.",
         },
         {
           q: "Apakah saya bisa download materi class?",
@@ -186,8 +186,8 @@ export default function HelpFAQPage() {
       icon: Video,
       questions: [
         {
-          q: "Bagaimana cara schedule live session?",
-          a: "Di Tutor Dashboard, pilih 'Schedule Session', masukkan tanggal, waktu, durasi, dan Zoom link. Sistem akan notifikasi students otomatis untuk class terkait.",
+          q: "Bagaimana cara menambahkan pertemuan batch?",
+          a: "Di Tutor Dashboard, buka menu 'Pertemuan', lalu isi judul pertemuan, kelas/batch, jam mulai-selesai, topik, absensi, dan link Zoom jika ada.",
         },
         {
           q: "Apakah saya perlu Zoom account sendiri?",
@@ -209,11 +209,11 @@ export default function HelpFAQPage() {
       questions: [
         {
           q: "Bagaimana sistem kompensasi untuk tutor?",
-          a: "Tutor menerima gaji tetap bulanan dari platform berdasarkan jumlah students dan rating. Detail kompensasi dibahas saat kontrak.",
+          a: "Kompensasi tutor dihitung per sesi/pertemuan yang selesai diajar. Rekap absensi dan status pertemuan akan dipakai sebagai dasar perhitungan financial analytics dan payroll.",
         },
         {
           q: "Kapan gaji dibayarkan?",
-          a: "Gaji dibayarkan setiap tanggal 1 setiap bulan via transfer bank. Pastikan data rekening kamu sudah terupdate di profil.",
+          a: "Jadwal pembayaran payroll akan mengikuti rekap sesi yang selesai di periode berjalan. Detail tanggal final masih akan mengikuti kebijakan finance platform.",
         },
         {
           q: "Apakah ada bonus untuk tutor?",
@@ -236,8 +236,8 @@ export default function HelpFAQPage() {
 
   const roleSummary =
     userRole === "student"
-      ? "Jawaban cepat untuk class, pembayaran, quiz, sertifikat, dan focus mode."
-      : "Panduan tutor untuk live session, materi dokumen, dan operasional kelas yang dikelola admin.";
+      ? "Jawaban cepat untuk course, batch, pembayaran, quiz, sertifikat, dan focus mode."
+      : "Panduan tutor untuk pertemuan batch, materi dokumen, dan operasional kelas yang dikelola admin.";
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#F8FBFB_0%,#F3F8FA_38%,#F3F8FA_100%)]">

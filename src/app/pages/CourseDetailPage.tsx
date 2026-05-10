@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router";
 import {
   ArrowLeft,
+  Calendar,
   Star,
   Users,
   Clock,
@@ -16,6 +17,7 @@ import { Avatar, AvatarFallback } from "../components/ui/avatar";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useCourseDetail } from "../api/courses";
+import { getMockBatchesForCourse } from "../data/batches";
 
 export default function CourseDetailPage() {
   const { courseId } = useParams();
@@ -80,6 +82,7 @@ export default function CourseDetailPage() {
     description:
       "Tutor assignment details are not exposed by the current course schema yet.",
   };
+  const batches = getMockBatchesForCourse(courseId, tutor.name, discountedMonthly);
 
   return (
     <div className="min-h-screen bg-[#F3F8FA] font-sans selection:bg-[#308279] selection:text-white">
@@ -176,55 +179,68 @@ export default function CourseDetailPage() {
 
             <div>
               <div className="sticky top-24 rounded-[1.75rem] border border-[#D8E5E9] bg-white p-8 shadow-[0_24px_54px_rgba(10,27,69,0.08)]">
-                <div className="mb-8">
-                  {course.pricing.discount > 0 && (
-                    <Badge className="mb-4 border-none bg-[#308279] px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-white shadow-sm">
-                      {course.pricing.discount}% off this month
-                    </Badge>
-                  )}
-                  <div className="rounded-[1.25rem] border border-[#D8E5E9] bg-[#F7FAFB] p-5">
-                    <div className="text-xs font-bold uppercase tracking-[0.18em] text-[#476074]">
-                      {course.pricing.monthly > 0 ? "Monthly access" : "Course access"}
-                    </div>
-                    {course.pricing.discount > 0 ? (
-                      <div className="mt-3 text-sm font-semibold text-[#92B7B0] line-through">
-                        Rp {course.pricing.monthly.toLocaleString("id-ID")}
-                      </div>
-                    ) : null}
-                    <div className="mt-1 flex items-end gap-2">
-                      <span className="text-4xl font-black text-[#0A1B45]">
-                        {course.pricing.monthly > 0 ? (
-                          <>
-                            <span className="text-lg">Rp</span>{" "}
-                            {discountedMonthly.toLocaleString("id-ID")}
-                          </>
-                        ) : (
-                          "Free"
-                        )}
-                      </span>
-                      {course.pricing.monthly > 0 ? (
-                        <span className="pb-1 text-sm font-semibold text-[#476074]">/ month</span>
-                      ) : null}
-                    </div>
-                    <p className="mt-3 text-sm leading-5 text-[#476074]">
-                      Akses video class, live session schedule, PDF materials, dan quiz selama 30 hari.
-                    </p>
+                <div className="mb-6 rounded-[1.25rem] border border-[#D8E5E9] bg-[#F7FAFB] p-5">
+                  <div className="text-xs font-bold uppercase tracking-[0.18em] text-[#476074]">
+                    Cohort-based enrollment
                   </div>
+                  <div className="mt-2 text-2xl font-black text-[#0A1B45]">
+                    Pilih batch untuk ikut course ini
+                  </div>
+                  <p className="mt-3 text-sm leading-5 text-[#476074]">
+                    Setiap course dibuka dalam beberapa batch. Kamu akan belajar bersama cohort
+                    yang sama dari awal sampai akhir periode.
+                  </p>
                 </div>
 
-                <Button className="mb-3 h-14 w-full bg-[#0A1B45] text-base font-bold text-white shadow-sm transition-all hover:bg-[#308279]">
-                  Enroll Now
-                </Button>
-                <Button
-                  variant="outline"
-                  className="mb-6 h-12 w-full border-[#D8E5E9] bg-white font-semibold text-[#0A1B45] hover:bg-[#F3F8FA]"
-                >
-                  Preview Materials
-                </Button>
+                <div className="mb-6 space-y-4">
+                  {batches.map((batch) => (
+                    <div
+                      key={batch.id}
+                      className="rounded-[1.25rem] border border-[#D8E5E9] bg-white p-5 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="text-lg font-bold text-[#0A1B45]">{batch.name}</div>
+                          <div className="mt-1 text-sm text-[#476074]">{batch.periodLabel}</div>
+                        </div>
+                        <Badge className="border-0 bg-[#308279]/10 text-[#1F6D66]">
+                          {batch.seatsLeft}/{batch.totalSeats} seats
+                        </Badge>
+                      </div>
+                      <div className="mt-4 space-y-2 text-sm text-[#476074]">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4 text-[#308279]" />
+                          <span>Daftar sebelum {batch.enrollmentDeadline}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4 text-[#308279]" />
+                          <span>{batch.sessionPattern}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Users className="h-4 w-4 text-[#308279]" />
+                          <span>Tutor batch: {batch.tutorName}</span>
+                        </div>
+                      </div>
+                      <div className="mt-5 flex items-center justify-between gap-3">
+                        <div>
+                          <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#476074]">
+                            Batch fee
+                          </div>
+                          <div className="text-xl font-black text-[#0A1B45]">{batch.priceLabel}</div>
+                        </div>
+                        <Link to={`/classroom/${courseId}?batch=${batch.id}`}>
+                          <Button className="bg-[#0A1B45] text-white hover:bg-[#308279]">
+                            Pilih Batch
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
                 <div className="space-y-3 border-t border-gray-100 pt-6">
                   <div className="mb-4 text-xs font-black uppercase tracking-widest text-[#476074]">
-                    Included In This Class
+                    Included In This Course
                   </div>
                   {course.features.map((feature, idx) => (
                     <div key={idx} className="flex items-start gap-3 text-sm font-medium text-[#0A1B45]">

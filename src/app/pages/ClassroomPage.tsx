@@ -1,185 +1,227 @@
-import { useState } from "react";
-import { Link, useParams } from "react-router";
-import { 
-  Play, Pause, Volume2, Maximize, Settings, ChevronLeft, 
-  FileText, Download, Clock, CheckCircle, Circle, Eye, Star,
-  Video, Calendar, Users, MessageSquare, Trophy, Target, BookOpen,
-  AlertCircle, Award, TrendingUp
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useParams, useSearchParams } from "react-router";
+import {
+  Calendar,
+  CheckCircle,
+  ChevronLeft,
+  Circle,
+  Clock,
+  Download,
+  Eye,
+  FileText,
+  PlayCircle,
+  Target,
+  Users,
+  Video,
 } from "lucide-react";
+import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
-import { Badge } from "../components/ui/badge";
-import { Switch } from "../components/ui/switch";
 import { Progress } from "../components/ui/progress";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../components/ui/accordion";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { Avatar, AvatarFallback } from "../components/ui/avatar";
-import { EyeTrackingOverlay, FocusAlertModal, WebcamPreview } from "../components/EyeTrackingComponents";
+import { Switch } from "../components/ui/switch";
+import {
+  EyeTrackingOverlay,
+  FocusAlertModal,
+  WebcamPreview,
+} from "../components/EyeTrackingComponents";
+import { getMockBatchesForCourse } from "../data/batches";
+
+type ContentKind = "video" | "material" | "quiz" | "meeting";
+
+type ContentItem = {
+  id: string;
+  kind: ContentKind;
+  title: string;
+  section: string;
+  meta: string;
+  description: string;
+  completed?: boolean;
+  actionLabel: string;
+  actionHref?: string;
+  downloadable?: boolean;
+};
+
+function getKindBadge(kind: ContentKind) {
+  switch (kind) {
+    case "video":
+      return {
+        label: "Video",
+        className: "border-0 bg-[#0A1B45]/8 text-[#0A1B45]",
+      };
+    case "material":
+      return {
+        label: "Material",
+        className: "border-0 bg-[#308279]/10 text-[#308279]",
+      };
+    case "quiz":
+      return {
+        label: "Quiz",
+        className: "border-0 bg-[#FCEFC7] text-[#7A5A00]",
+      };
+    case "meeting":
+      return {
+        label: "Pertemuan",
+        className: "border-0 bg-[#E8EEF9] text-[#21416B]",
+      };
+  }
+}
 
 export default function ClassroomPage() {
   const { courseId } = useParams();
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [searchParams] = useSearchParams();
   const [eyeTrackingEnabled, setEyeTrackingEnabled] = useState(false);
   const [showFocusAlert, setShowFocusAlert] = useState(false);
-  const [currentVideo, setCurrentVideo] = useState(1);
+  const batchId = searchParams.get("batch") ?? `${courseId ?? "course"}-batch-a`;
+  const selectedInfoRef = useRef<HTMLDivElement | null>(null);
 
-  // Mock class data
   const courseData = {
     id: courseId,
     title: "Data Structures & Algorithms Complete Guide",
     instructor: "Raka Pratama",
-    instructorGPA: "3.95",
     progress: 45,
-    totalVideos: 12,
-    completedVideos: 5,
-    rating: 4.9,
-    totalReviews: 234,
+    totalItems: 19,
+    completedItems: 8,
   };
 
-  const curriculum = [
-    {
-      section: "Introduction & Fundamentals",
-      videos: [
-        { id: 1, title: "Class Overview & Learning Path", duration: "15:30", completed: true },
-        { id: 2, title: "Time & Space Complexity", duration: "22:45", completed: true },
-        { id: 3, title: "Big O Notation Explained", duration: "18:20", completed: true },
-      ],
-    },
-    {
-      section: "Arrays & Strings",
-      videos: [
-        { id: 4, title: "Array Basics & Operations", duration: "25:10", completed: true },
-        { id: 5, title: "Two Pointer Technique", duration: "20:35", completed: true },
-        { id: 6, title: "Sliding Window Problems", duration: "28:15", completed: false },
-      ],
-    },
-    {
-      section: "Linked Lists",
-      videos: [
-        { id: 7, title: "Singly Linked List Implementation", duration: "30:20", completed: false },
-        { id: 8, title: "Doubly Linked List", duration: "22:50", completed: false },
-        { id: 9, title: "Linked List Interview Problems", duration: "35:40", completed: false },
-      ],
-    },
-    {
-      section: "Trees & Graphs",
-      videos: [
-        { id: 10, title: "Binary Trees Fundamentals", duration: "28:30", completed: false },
-        { id: 11, title: "Tree Traversal Techniques", duration: "32:15", completed: false },
-        { id: 12, title: "Graph Algorithms", duration: "40:25", completed: false },
-      ],
-    },
-  ];
+  const batches = useMemo(
+    () => getMockBatchesForCourse(courseId, courseData.instructor, 499000),
+    [courseData.instructor, courseId],
+  );
+  const selectedBatch = batches.find((batch) => batch.id === batchId) ?? batches[0];
 
-  const cheatNotes = [
-    { id: 1, title: "Big O Notation Cheat Sheet", pages: 5, size: "2.3 MB", category: "Reference" },
-    { id: 2, title: "Array & String Patterns", pages: 8, size: "3.1 MB", category: "Study Guide" },
-    { id: 3, title: "Linked List Quick Reference", pages: 6, size: "2.7 MB", category: "Cheat Sheet" },
-    { id: 4, title: "Tree & Graph Algorithms", pages: 12, size: "4.5 MB", category: "Study Guide" },
-  ];
+  const contentItems = useMemo<ContentItem[]>(
+    () => [
+      {
+        id: "video-1",
+        kind: "video",
+        title: "Class Overview & Learning Path",
+        section: "Introduction & Fundamentals",
+        meta: "15:30 • Video lesson",
+        description: "Gambaran alur belajar cohort, ekspektasi batch, dan milestone utama selama periode berjalan.",
+        completed: true,
+        actionLabel: "Open Video",
+      },
+      {
+        id: "material-1",
+        kind: "material",
+        title: "Big O Notation Cheat Sheet",
+        section: "Introduction & Fundamentals",
+        meta: "PDF • 5 pages • 2.3 MB",
+        description: "Ringkasan notasi kompleksitas yang dipakai sepanjang course untuk referensi cepat saat belajar.",
+        completed: true,
+        actionLabel: "Download",
+        downloadable: true,
+      },
+      {
+        id: "video-2",
+        kind: "video",
+        title: "Array Basics & Operations",
+        section: "Arrays & Strings",
+        meta: "25:10 • Video lesson",
+        description: "Konsep dasar array, operasi umum, serta contoh implementasi yang dipakai sebelum pertemuan batch berikutnya.",
+        completed: true,
+        actionLabel: "Open Video",
+      },
+      {
+        id: "material-2",
+        kind: "material",
+        title: "Array & String Patterns",
+        section: "Arrays & Strings",
+        meta: "PDF • 8 pages • 3.1 MB",
+        description: "Materi downloadable untuk pola problem solving array dan string yang sering keluar di latihan batch.",
+        completed: false,
+        actionLabel: "Download",
+        downloadable: true,
+      },
+      {
+        id: "meeting-1",
+        kind: "meeting",
+        title: "Pertemuan 04 - Two Pointer Technique",
+        section: "Live Meetings",
+        meta: "Senin, 17 Feb 2026 • 14:00 - 15:30",
+        description: "Sesi live cohort untuk membahas two pointer, review latihan batch, dan Q&A dengan tutor.",
+        completed: true,
+        actionLabel: "Open Meeting",
+      },
+      {
+        id: "meeting-2",
+        kind: "meeting",
+        title: "Pertemuan 05 - Binary Search Deep Dive",
+        section: "Live Meetings",
+        meta: "Rabu, 19 Feb 2026 • 16:00 - 17:30",
+        description: "Pertemuan berikutnya untuk live coding dan diskusi soal binary search pada cohort ini.",
+        completed: false,
+        actionLabel: "Join When Live",
+      },
+      {
+        id: "quiz-1",
+        kind: "quiz",
+        title: "Array & Linked List Quiz",
+        section: "Class Evaluation",
+        meta: "15 questions • 30 minutes",
+        description: "Quiz umum tingkat course untuk mengukur pemahaman awal sebelum lanjut ke section berikutnya.",
+        completed: true,
+        actionLabel: "Retake Quiz",
+        actionHref: `/class/${courseId}/quiz/1`,
+      },
+      {
+        id: "video-3",
+        kind: "video",
+        title: "Sliding Window Problems",
+        section: "Arrays & Strings",
+        meta: "28:15 • Video lesson",
+        description: "Pembahasan langkah demi langkah untuk pattern sliding window yang dipakai di latihan dan quiz class.",
+        completed: false,
+        actionLabel: "Open Video",
+      },
+      {
+        id: "quiz-2",
+        kind: "quiz",
+        title: "Tree & Graph Quiz",
+        section: "Class Evaluation",
+        meta: "20 questions • 45 minutes",
+        description: "Evaluasi class-level untuk memastikan progres kamu siap lanjut ke topik graph dan tree.",
+        completed: false,
+        actionLabel: "Start Quiz",
+        actionHref: `/class/${courseId}/quiz/2`,
+      },
+    ],
+    [courseId, selectedBatch.batchCode],
+  );
 
-  const upcomingSessions = [
-    {
-      id: 1,
-      title: "Two Pointer Technique & Sliding Window",
-      date: "Senin, 17 Feb 2026",
-      time: "14:00 - 15:30",
-      zoomLink: "https://zoom.us/j/example1",
-      attendees: 124,
-      status: "upcoming",
-    },
-    {
-      id: 2,
-      title: "Binary Search Deep Dive",
-      date: "Rabu, 19 Feb 2026",
-      time: "16:00 - 17:30",
-      zoomLink: "https://zoom.us/j/example2",
-      attendees: 118,
-      status: "upcoming",
-    },
-    {
-      id: 3,
-      title: "Dynamic Programming Basics",
-      date: "Jumat, 21 Feb 2026",
-      time: "13:00 - 14:30",
-      zoomLink: "https://zoom.us/j/example3",
-      attendees: 132,
-      status: "upcoming",
-    },
-  ];
+  const [selectedContentId, setSelectedContentId] = useState(contentItems[0]?.id ?? "");
 
-  const quizzes = [
-    {
-      id: 1,
-      title: "Array & Linked List Quiz",
-      questions: 15,
-      duration: 30,
-      difficulty: "Medium",
-      status: "available",
-      bestScore: 85,
-      attempts: 2,
-    },
-    {
-      id: 2,
-      title: "Tree & Graph Quiz",
-      questions: 20,
-      duration: 45,
-      difficulty: "Hard",
-      status: "available",
-      bestScore: null,
-      attempts: 0,
-    },
-    {
-      id: 3,
-      title: "Sorting & Searching Quiz",
-      questions: 12,
-      duration: 25,
-      difficulty: "Easy",
-      status: "available",
-      bestScore: 92,
-      attempts: 1,
-    },
-  ];
+  const selectedContent =
+    contentItems.find((item) => item.id === selectedContentId) ?? contentItems[0];
 
-  const reviews = [
-    {
-      id: 1,
-      student: "Ahmad Wijaya",
-      studentInitials: "AW",
-      rating: 5,
-      date: "2 hari lalu",
-      helpful: 24,
-      comment: "Class terbaik yang pernah saya ikuti! Penjelasan tutor sangat jelas dan materinya sangat aplikatif.",
-    },
-    {
-      id: 2,
-      student: "Siti Nurhaliza",
-      studentInitials: "SN",
-      rating: 5,
-      date: "5 hari lalu",
-      helpful: 18,
-      comment: "Live sessions nya sangat interaktif dan tutor selalu siap menjawab pertanyaan. Worth it!",
-    },
-    {
-      id: 3,
-      student: "Budi Santoso",
-      studentInitials: "BS",
-      rating: 4,
-      date: "1 minggu lalu",
-      helpful: 12,
-      comment: "Materi bagus, tapi pace nya agak cepat untuk pemula. Overall recommended!",
-    },
-  ];
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.innerWidth >= 1280) return;
 
-  // Simulate unfocused detection
-  const handleEyeTrackingToggle = (enabled: boolean) => {
+    selectedInfoRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, [selectedContentId]);
+
+  const groupedItems = useMemo(() => {
+    const groups = new Map<string, ContentItem[]>();
+
+    for (const item of contentItems) {
+      const current = groups.get(item.section) ?? [];
+      current.push(item);
+      groups.set(item.section, current);
+    }
+
+    return Array.from(groups.entries());
+  }, [contentItems]);
+
+  const handleFocusToggle = (enabled: boolean) => {
     setEyeTrackingEnabled(enabled);
     if (enabled) {
-      // Simulate detection after 10 seconds
       setTimeout(() => {
         if (enabled) {
           setShowFocusAlert(true);
-          setIsPlaying(false);
         }
       }, 10000);
     }
@@ -187,43 +229,58 @@ export default function ClassroomPage() {
 
   const handleResumeFocus = () => {
     setShowFocusAlert(false);
-    setIsPlaying(true);
   };
 
   return (
     <div className="min-h-screen bg-[#F3F8FA]">
-      {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-30">
-        <div className="max-w-[1920px] mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+      <EyeTrackingOverlay isActive={eyeTrackingEnabled} onDismiss={() => {}} />
+
+      <header className="sticky top-0 z-30 border-b border-[#D8E5E9] bg-white">
+        <div className="mx-auto max-w-[1600px] px-6 py-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-4">
               <Link to="/student-dashboard">
                 <Button variant="ghost" size="sm">
-                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  <ChevronLeft className="mr-1 h-4 w-4" />
                   Kembali
                 </Button>
               </Link>
               <div>
-                <h1 className="font-bold text-[#0A1B45]">{courseData.title}</h1>
-                <div className="flex items-center gap-3 text-sm text-[#476074]">
-                  <span>oleh {courseData.instructor}</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-xl font-bold text-[#0A1B45]">{courseData.title}</h1>
+                  <Badge className="border-0 bg-[#0A1B45]/8 text-[#0A1B45]">
+                    {selectedBatch.batchCode}
+                  </Badge>
+                  <Badge
+                    className={
+                      selectedBatch.admissionStatus === "Approved"
+                        ? "border-0 bg-[#308279]/10 text-[#308279]"
+                        : selectedBatch.admissionStatus === "Pending Review"
+                          ? "border-0 bg-[#FCEFC7] text-[#7A5A00]"
+                          : "border-0 bg-[#E8EEF9] text-[#21416B]"
+                    }
+                  >
+                    {selectedBatch.admissionStatus}
+                  </Badge>
+                </div>
+                <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-[#476074]">
+                  <span>{selectedBatch.name}</span>
                   <span>•</span>
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-[#308279] text-[#308279]" />
-                    <span>{courseData.rating}</span>
-                  </div>
+                  <span>{selectedBatch.periodLabel}</span>
+                  <span>•</span>
+                  <span>Tutor: {courseData.instructor}</span>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <div className="text-sm text-[#476074]">Progress Kamu</div>
+                <div className="text-sm text-[#476074]">Progress cohort</div>
                 <div className="font-bold text-[#308279]">
-                  {courseData.completedVideos}/{courseData.totalVideos} videos • {courseData.progress}%
+                  {courseData.completedItems}/{courseData.totalItems} item • {courseData.progress}%
                 </div>
               </div>
-              <div className="w-32">
+              <div className="w-36">
                 <Progress value={courseData.progress} className="h-2" />
               </div>
             </div>
@@ -231,446 +288,276 @@ export default function ClassroomPage() {
         </div>
       </header>
 
-      <div className="max-w-[1920px] mx-auto p-6">
-        <div className="grid lg:grid-cols-[1fr_450px] gap-6">
-          {/* Main Video Section */}
-          <div className="space-y-6">
-            {/* Video Player */}
-            <Card className="overflow-hidden relative">
-              {/* Eye Tracking Overlay */}
-              <EyeTrackingOverlay isActive={eyeTrackingEnabled && isPlaying} onDismiss={() => {}} />
-
-              {/* Video Container */}
-              <div className="relative bg-black aspect-video">
-                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#0A1B45] to-[#308279]">
-                  <div className="text-center text-white">
-                    <Play className="w-20 h-20 mx-auto mb-4 opacity-50" />
-                    <p className="text-lg">Video Player Placeholder</p>
-                  </div>
-                </div>
-
-                {/* Video Controls */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                  <div className="flex items-center gap-4">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-white hover:bg-white/20"
-                      onClick={() => setIsPlaying(!isPlaying)}
-                    >
-                      {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                    </Button>
-                    <div className="flex-1">
-                      <Progress value={35} className="h-1" />
-                    </div>
-                    <span className="text-white text-sm">8:45 / 25:10</span>
-                    <Button size="sm" variant="ghost" className="text-white hover:bg-white/20">
-                      <Volume2 className="w-5 h-5" />
-                    </Button>
-                    <Button size="sm" variant="ghost" className="text-white hover:bg-white/20">
-                      <Settings className="w-5 h-5" />
-                    </Button>
-                    <Button size="sm" variant="ghost" className="text-white hover:bg-white/20">
-                      <Maximize className="w-5 h-5" />
-                    </Button>
-                  </div>
-                </div>
+      <div className="mx-auto grid max-w-[1600px] gap-6 px-6 py-6 xl:grid-cols-[minmax(0,1.1fr)_420px]">
+        <div className="space-y-6 self-start">
+          <Card
+            className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-6 shadow-[0_18px_42px_rgba(10,27,69,0.06)]"
+          >
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-[#0A1B45]">Learning Workspace</h2>
+                <p className="mt-2 max-w-3xl text-[#476074]">
+                  Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptatem dolor reiciendis quae magnam! Magni, officia, deleniti autem doloribus odit, nemo atque eum sapiente iste vero vitae? Necessitatibus, nulla. Expedita repellendus sunt eveniet tenetur harum temporibus inventore sint assumenda. Voluptates, fugiat.
+                </p>
               </div>
-
-              {/* Eye Tracking Toggle */}
-              <div className="p-6 border-t bg-white">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#308279] to-[#92B7B0] flex items-center justify-center">
-                      <Eye className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-[#0A1B45]">Focus Mode (Eye Tracking)</span>
-                        <Badge variant="outline" className="border-[#308279] text-[#308279]">Beta</Badge>
-                      </div>
-                      <p className="text-sm text-[#476074]">
-                        AI akan memantau fokus kamu dan memberikan notifikasi jika terdeteksi tidak fokus
-                      </p>
-                    </div>
-                  </div>
-                  <Switch
-                    checked={eyeTrackingEnabled}
-                    onCheckedChange={handleEyeTrackingToggle}
-                    className="data-[state=checked]:bg-[#308279]"
-                  />
-                </div>
-
-                {eyeTrackingEnabled && (
-                  <div className="mt-4 p-4 bg-[#308279]/5 rounded-lg border border-[#308279]/20">
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div>
-                        <div className="text-2xl font-bold text-[#0A1B45]">92%</div>
-                        <div className="text-xs text-[#476074]">Focus Score</div>
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold text-[#308279]">3x</div>
-                        <div className="text-xs text-[#476074]">Unfocused</div>
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold text-[#0A1B45]">24m</div>
-                        <div className="text-xs text-[#476074]">Active Time</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+              <div className="rounded-2xl border border-[#D8E5E9] bg-[#F9FCFD] px-4 py-3 text-sm text-[#476074]">
+                <span className="font-semibold text-[#0A1B45]">Catatan batch:</span> {selectedBatch.intakeWindow}
               </div>
-            </Card>
+            </div>
+          </Card>
 
-            {/* Video Info Tabs */}
-            <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-4 h-auto">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="sessions">Live Sessions</TabsTrigger>
-                <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
-                <TabsTrigger value="reviews">Reviews</TabsTrigger>
-              </TabsList>
-
-              {/* Overview Tab */}
-              <TabsContent value="overview" className="mt-6">
-                <Card className="p-6">
-                  <h2 className="text-2xl font-bold text-[#0A1B45] mb-2">
-                    Array Basics & Operations
-                  </h2>
-                  <p className="text-[#476074] leading-relaxed mb-4">
-                    Dalam video ini, kita akan mempelajari konsep dasar array, operasi-operasi yang bisa dilakukan pada array, dan implementasinya. Materi ini sangat penting untuk memahami data structures lebih lanjut.
+          <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
+            <div className="border-b border-[#D8E5E9] px-6 py-5">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-bold text-[#0A1B45]">Daftar Konten Kelas</h2>
+                  <p className="mt-1 text-sm text-[#476074]">
+                    Materi pembelajaran, quiz, video, dan pertemuan.
                   </p>
-                  <div className="flex items-center gap-6 text-sm text-[#476074] mb-6">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
-                      <span>25:10 menit</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Eye className="w-4 h-4" />
-                      <span>1,234 views</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-[#308279]" />
-                      <span>Completed</span>
-                    </div>
-                  </div>
-
-                  {/* Key Learning Points */}
-                  <div className="border-t pt-6">
-                    <h3 className="font-bold text-[#0A1B45] mb-4">What You'll Learn:</h3>
-                    <ul className="space-y-2">
-                      {[
-                        "Understanding array data structure and memory allocation",
-                        "Common array operations: insertion, deletion, search",
-                        "Time and space complexity analysis",
-                        "Practical coding examples and exercises",
-                      ].map((point, idx) => (
-                        <li key={idx} className="flex items-start gap-3 text-[#476074]">
-                          <CheckCircle className="w-5 h-5 text-[#308279] flex-shrink-0 mt-0.5" />
-                          <span>{point}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </Card>
-              </TabsContent>
-
-              {/* Live Sessions Tab */}
-              <TabsContent value="sessions" className="mt-6">
-                <Card className="p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-[#0A1B45] mb-1">Upcoming Live Sessions</h2>
-                      <p className="text-sm text-[#476074]">Join interactive Zoom sessions with your tutor</p>
-                    </div>
-                    <Badge className="bg-[#308279]/10 text-[#308279] border-0">
-                      {upcomingSessions.length} scheduled
-                    </Badge>
-                  </div>
-                  <div className="space-y-4">
-                    {upcomingSessions.map((session) => (
-                      <div
-                        key={session.id}
-                        className="p-5 bg-[#F3F8FA] rounded-lg hover:shadow-md transition-all border-2 border-transparent hover:border-[#308279]"
-                      >
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                          <div className="flex items-start gap-4 flex-1">
-                            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#308279] to-[#0A1B45] flex items-center justify-center flex-shrink-0">
-                              <Video className="w-6 h-6 text-white" />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-bold text-[#0A1B45] mb-2">{session.title}</h3>
-                              <div className="flex flex-wrap items-center gap-3 text-sm text-[#476074]">
-                                <span className="flex items-center gap-1">
-                                  <Calendar className="w-4 h-4" />
-                                  {session.date}
-                                </span>
-                                <span>•</span>
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-4 h-4" />
-                                  {session.time}
-                                </span>
-                                <span>•</span>
-                                <span className="flex items-center gap-1">
-                                  <Users className="w-4 h-4" />
-                                  {session.attendees} joined
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          <Button className="bg-[#308279] hover:bg-[#308279]/90 text-white">
-                            <Play className="w-4 h-4 mr-2" />
-                            Join Now
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </TabsContent>
-
-              {/* Quizzes Tab */}
-              <TabsContent value="quizzes" className="mt-6">
-                <Card className="p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-[#0A1B45] mb-1">Practice Quizzes</h2>
-                      <p className="text-sm text-[#476074]">Test your knowledge and track your progress</p>
-                    </div>
-                    <Link to="/student-quizzes">
-                      <Button variant="outline" className="border-[#308279] text-[#308279]">
-                        View All
-                      </Button>
-                    </Link>
-                  </div>
-                  <div className="space-y-4">
-                    {quizzes.map((quiz) => (
-                      <div
-                        key={quiz.id}
-                        className="p-5 bg-[#F3F8FA] rounded-lg hover:shadow-md transition-all border-2 border-transparent hover:border-[#308279]"
-                      >
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <h3 className="font-bold text-[#0A1B45]">{quiz.title}</h3>
-                              <Badge
-                                variant="outline"
-                                className={
-                                  quiz.difficulty === "Hard"
-                                    ? "border-red-500 text-red-500"
-                                    : quiz.difficulty === "Medium"
-                                    ? "border-[#308279] text-[#308279]"
-                                    : "border-green-500 text-green-500"
-                                }
-                              >
-                                {quiz.difficulty}
-                              </Badge>
-                              {quiz.bestScore && (
-                                <Badge className="bg-[#308279]/10 text-[#308279] border-0">
-                                  Best: {quiz.bestScore}%
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="flex flex-wrap items-center gap-4 text-sm text-[#476074]">
-                              <span className="flex items-center gap-1">
-                                <Target className="w-4 h-4" />
-                                {quiz.questions} questions
-                              </span>
-                              <span>•</span>
-                              <span className="flex items-center gap-1">
-                                <Clock className="w-4 h-4" />
-                                {quiz.duration} minutes
-                              </span>
-                              {quiz.attempts > 0 && (
-                                <>
-                                  <span>•</span>
-                                  <span>{quiz.attempts} attempt{quiz.attempts > 1 ? 's' : ''}</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                          <Link to={`/class/${courseId}/quiz/${quiz.id}`}>
-                            <Button className="bg-[#308279] hover:bg-[#308279]/90 text-white">
-                              {quiz.bestScore ? "Retake" : "Start Quiz"}
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </TabsContent>
-
-              {/* Reviews Tab */}
-              <TabsContent value="reviews" className="mt-6">
-                <Card className="p-6">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
-                    <div>
-                      <h2 className="text-2xl font-bold text-[#0A1B45] mb-3">Student Reviews</h2>
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className="w-5 h-5 fill-[#308279] text-[#308279]" />
-                          ))}
-                        </div>
-                        <span className="text-2xl font-bold text-[#0A1B45]">{courseData.rating}</span>
-                        <span className="text-[#476074]">({courseData.totalReviews} reviews)</span>
-                      </div>
-                    </div>
-                    <Link to={`/class/${courseId}/review`}>
-                      <Button className="bg-[#308279] hover:bg-[#308279]/90 text-white">
-                        <MessageSquare className="w-4 h-4 mr-2" />
-                        Write Review
-                      </Button>
-                    </Link>
-                  </div>
-
-                  <div className="space-y-4">
-                    {reviews.map((review) => (
-                      <div key={review.id} className="p-5 bg-[#F3F8FA] rounded-lg">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-start gap-3">
-                            <Avatar className="w-10 h-10">
-                              <AvatarFallback className="bg-gradient-to-br from-[#308279] to-[#0A1B45] text-white text-sm">
-                                {review.studentInitials}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-bold text-[#0A1B45]">{review.student}</div>
-                              <div className="text-sm text-[#476074]">{review.date}</div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            {[...Array(review.rating)].map((_, i) => (
-                              <Star key={i} className="w-4 h-4 fill-[#308279] text-[#308279]" />
-                            ))}
-                          </div>
-                        </div>
-                        <p className="text-[#476074] leading-relaxed mb-3">{review.comment}</p>
-                        <button className="flex items-center gap-1 text-sm text-[#476074] hover:text-[#308279] transition-colors">
-                          <CheckCircle className="w-4 h-4" />
-                          Helpful ({review.helpful})
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-6 text-center">
-                    <Button variant="outline" className="border-[#308279] text-[#308279]">
-                      Load More Reviews
-                    </Button>
-                  </div>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Class Stats Card */}
-            <Card className="p-6 bg-gradient-to-br from-[#308279] to-[#0A1B45] text-white">
-              <h3 className="font-bold text-lg mb-4">Your Progress</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
-                  <Trophy className="w-8 h-8 mx-auto mb-2" />
-                  <div className="text-2xl font-bold">{courseData.progress}%</div>
-                  <div className="text-xs text-white/80">Completed</div>
                 </div>
-                <div className="text-center p-4 bg-white/10 rounded-lg backdrop-blur-sm">
-                  <Award className="w-8 h-8 mx-auto mb-2" />
-                  <div className="text-2xl font-bold">
-                    {quizzes.filter(q => q.bestScore).length}/{quizzes.length}
-                  </div>
-                  <div className="text-xs text-white/80">Quizzes Taken</div>
-                </div>
+                <Badge className="border-0 bg-[#308279]/10 text-[#308279]">
+                  {contentItems.length} items
+                </Badge>
               </div>
-            </Card>
+            </div>
 
-            {/* Main Tabs */}
-            <Tabs defaultValue="curriculum" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 h-12">
-                <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
-                <TabsTrigger value="materials">Materials</TabsTrigger>
-              </TabsList>
+            <div className="space-y-6 px-6 py-6">
+              {groupedItems.map(([section, items]) => (
+                <section key={section}>
+                  <div className="mb-3 flex items-center gap-3">
+                    <h3 className="text-lg font-bold text-[#0A1B45]">{section}</h3>
+                    <div className="h-px flex-1 bg-[#E5EEF1]" />
+                    <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#92A4AE]">
+                      {items.length} items
+                    </span>
+                  </div>
 
-              <TabsContent value="curriculum" className="mt-6">
-                <Card className="overflow-hidden max-h-[calc(100vh-450px)] overflow-y-auto">
-                  <Accordion type="single" collapsible defaultValue="item-1">
-                    {curriculum.map((section, sectionIndex) => (
-                      <AccordionItem key={sectionIndex} value={`item-${sectionIndex}`}>
-                        <AccordionTrigger className="px-6 hover:bg-[#F3F8FA]">
-                          <div className="text-left">
-                            <div className="font-bold text-[#0A1B45]">{section.section}</div>
-                            <div className="text-xs text-[#476074]">
-                              {section.videos.filter(v => v.completed).length}/{section.videos.length} completed
-                            </div>
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <div className="space-y-1">
-                            {section.videos.map((video) => (
-                              <button
-                                key={video.id}
-                                onClick={() => setCurrentVideo(video.id)}
-                                className={`w-full text-left px-6 py-3 hover:bg-[#F3F8FA] transition-colors ${
-                                  currentVideo === video.id ? 'bg-[#308279]/10 border-l-4 border-[#308279]' : ''
+                  <div className="space-y-3">
+                    {items.map((item) => {
+                      const badge = getKindBadge(item.kind);
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => setSelectedContentId(item.id)}
+                          className={`w-full rounded-[1.25rem] border p-4 text-left transition-all ${
+                            selectedContentId === item.id
+                              ? "border-[#308279] bg-[#F4FAF8] shadow-sm"
+                              : "border-[#D8E5E9] bg-[#FCFEFE] hover:border-[#A8C6C0] hover:bg-white"
+                          }`}
+                        >
+                          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div className="flex items-start gap-4">
+                              <div
+                                className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl ${
+                                  item.kind === "video"
+                                    ? "bg-[#0A1B45] text-white"
+                                    : item.kind === "material"
+                                      ? "bg-[#308279] text-white"
+                                      : item.kind === "quiz"
+                                        ? "bg-[#FCEFC7] text-[#7A5A00]"
+                                        : "bg-[#E8EEF9] text-[#21416B]"
                                 }`}
                               >
-                                <div className="flex items-start gap-3">
-                                  {video.completed ? (
-                                    <CheckCircle className="w-5 h-5 text-[#308279] flex-shrink-0 mt-0.5" />
-                                  ) : (
-                                    <Circle className="w-5 h-5 text-[#92B7B0] flex-shrink-0 mt-0.5" />
-                                  )}
-                                  <div className="flex-1 min-w-0">
-                                    <div className="font-medium text-[#0A1B45] mb-1">{video.title}</div>
-                                    <div className="text-xs text-[#476074]">{video.duration}</div>
-                                  </div>
-                                  {currentVideo === video.id && (
-                                    <Badge className="bg-[#308279] text-white text-xs">Playing</Badge>
-                                  )}
+                                {item.kind === "video" ? (
+                                  <PlayCircle className="h-5 w-5" />
+                                ) : item.kind === "material" ? (
+                                  <FileText className="h-5 w-5" />
+                                ) : item.kind === "quiz" ? (
+                                  <Target className="h-5 w-5" />
+                                ) : (
+                                  <Video className="h-5 w-5" />
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <div className="font-semibold text-[#0A1B45]">{item.title}</div>
+                                  <Badge className={badge.className}>{badge.label}</Badge>
+                                  {item.completed ? (
+                                    <Badge className="border-0 bg-[#308279]/10 text-[#308279]">
+                                      Selesai
+                                    </Badge>
+                                  ) : null}
                                 </div>
-                              </button>
-                            ))}
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
-                </Card>
-              </TabsContent>
+                                <div className="mt-1 text-sm text-[#476074]">{item.meta}</div>
+                                <p className="mt-2 text-sm leading-6 text-[#476074]">{item.description}</p>
+                              </div>
+                            </div>
 
-              <TabsContent value="materials" className="mt-6">
-                <Card className="p-4 space-y-3 max-h-[calc(100vh-450px)] overflow-y-auto">
-                  {cheatNotes.map((note) => (
-                    <div
-                      key={note.id}
-                      className="flex items-center gap-3 p-4 border rounded-lg hover:border-[#308279] hover:bg-[#F3F8FA] transition-all cursor-pointer"
-                    >
-                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-[#308279] to-[#0A1B45] flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-6 h-6 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <Badge variant="outline" className="text-xs border-[#308279] text-[#308279] mb-1">
-                          {note.category}
-                        </Badge>
-                        <h4 className="font-medium text-[#0A1B45] mb-1">{note.title}</h4>
-                        <p className="text-xs text-[#476074]">{note.pages} pages • {note.size}</p>
-                      </div>
-                      <Button size="sm" variant="ghost" className="text-[#308279] hover:text-[#308279] hover:bg-[#308279]/10">
-                        <Download className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </Card>
-              </TabsContent>
-            </Tabs>
+                            <div className="flex items-center gap-3 lg:pl-6">
+                              {item.completed ? (
+                                <CheckCircle className="h-5 w-5 text-[#308279]" />
+                              ) : (
+                                <Circle className="h-5 w-5 text-[#92B7B0]" />
+                              )}
+                              <span className="text-sm font-semibold text-[#0A1B45]">
+                                {item.actionLabel}
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </Card>
+        </div>
+
+        <div className="space-y-6">
+          <div className="space-y-6 self-start xl:sticky xl:top-28">
+          <Card
+            ref={selectedInfoRef}
+            className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-6 shadow-[0_18px_42px_rgba(10,27,69,0.06)]"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#92A4AE]">
+                  Selected Item
+                </div>
+                <h2 className="mt-2 text-2xl font-bold text-[#0A1B45]">{selectedContent.title}</h2>
+              </div>
+              <Badge className={getKindBadge(selectedContent.kind).className}>
+                {getKindBadge(selectedContent.kind).label}
+              </Badge>
+            </div>
+
+            <div className="mt-5 space-y-4">
+              <div className="rounded-2xl bg-[#F3F8FA] p-4">
+                <div className="text-xs font-bold uppercase tracking-[0.14em] text-[#92A4AE]">
+                  Location
+                </div>
+                <div className="mt-2 text-sm font-semibold text-[#0A1B45]">
+                  {selectedContent.section}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-[#F3F8FA] p-4">
+                <div className="text-xs font-bold uppercase tracking-[0.14em] text-[#92A4AE]">
+                  Info
+                </div>
+                <div className="mt-2 text-sm font-semibold text-[#0A1B45]">
+                  {selectedContent.meta}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-[#FCFEFE] p-4">
+                <div className="text-xs font-bold uppercase tracking-[0.14em] text-[#92A4AE]">
+                  Description
+                </div>
+                <p className="mt-2 text-sm leading-6 text-[#476074]">
+                  {selectedContent.description}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3">
+              {selectedContent.actionHref ? (
+                <Link to={selectedContent.actionHref}>
+                  <Button className="w-full bg-[#0A1B45] text-white hover:bg-[#308279]">
+                    {selectedContent.actionLabel}
+                  </Button>
+                </Link>
+              ) : (
+                <Button className="w-full bg-[#0A1B45] text-white hover:bg-[#308279]">
+                  {selectedContent.actionLabel}
+                </Button>
+              )}
+
+              {selectedContent.downloadable ? (
+                <Button
+                  variant="outline"
+                  className="w-full border-[#308279] text-[#308279] hover:bg-[#308279]/5"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Resource
+                </Button>
+              ) : null}
+            </div>
+          </Card>
+
+          <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-6 shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-xl font-bold text-[#0A1B45]">Batch Access Info</h3>
+                <p className="mt-2 text-sm leading-6 text-[#476074]">
+                  Admin masih memantau peserta secara manual. Pastikan kamu hanya memakai batch
+                  yang terdaftar dan menunggu approval jika status belum aktif.
+                </p>
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#0A1B45] text-white">
+                <Users className="h-5 w-5" />
+              </div>
+            </div>
+
+            <div className="mt-5 space-y-3">
+              <div className="flex items-center justify-between rounded-xl bg-[#F3F8FA] px-4 py-3">
+                <span className="text-sm text-[#476074]">Batch code</span>
+                <span className="font-semibold text-[#0A1B45]">{selectedBatch.batchCode}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-[#F3F8FA] px-4 py-3">
+                <span className="text-sm text-[#476074]">Admission</span>
+                <span className="font-semibold text-[#0A1B45]">{selectedBatch.admissionStatus}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-xl bg-[#F3F8FA] px-4 py-3">
+                <span className="text-sm text-[#476074]">Enrollment deadline</span>
+                <span className="font-semibold text-[#0A1B45]">{selectedBatch.enrollmentDeadline}</span>
+              </div>
+              <div className="rounded-xl border border-dashed border-[#D8E5E9] bg-[#FCFEFE] px-4 py-3 text-sm leading-6 text-[#476074]">
+                Jika ada murid yang belum terverifikasi, akses batch bisa ditahan sampai admin
+                menerima peserta tersebut satu per satu.
+              </div>
+            </div>
+          </Card>
+          
+
+          <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-6 shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#308279] to-[#92B7B0]">
+                  <Eye className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-[#0A1B45]">Focus Mode</span>
+                    <Badge variant="outline" className="border-[#308279] text-[#308279]">
+                      Beta
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-[#476074]">
+                    Pantau fokus belajar saat membuka konten video atau materi.
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={eyeTrackingEnabled}
+                onCheckedChange={handleFocusToggle}
+                className="data-[state=checked]:bg-[#308279]"
+              />
+            </div>
+
+            {eyeTrackingEnabled ? (
+              <div className="mt-4 rounded-lg border border-[#308279]/20 bg-[#308279]/5 p-4">
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-[#0A1B45]">92%</div>
+                    <div className="text-xs text-[#476074]">Focus Score</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-[#308279]">3x</div>
+                    <div className="text-xs text-[#476074]">Alert</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-[#0A1B45]">24m</div>
+                    <div className="text-xs text-[#476074]">Tracked</div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </Card>
           </div>
         </div>
       </div>
 
-      {/* Eye Tracking Components */}
-      <WebcamPreview isActive={eyeTrackingEnabled && isPlaying} />
+      <WebcamPreview isActive={eyeTrackingEnabled} />
       <FocusAlertModal isOpen={showFocusAlert} onResume={handleResumeFocus} />
     </div>
   );

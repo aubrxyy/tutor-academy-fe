@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
 import {
   ArrowLeft,
+  ClipboardCheck,
+  FileText,
+  Pencil,
   Plus,
   Save,
   Trash2,
@@ -17,24 +20,41 @@ import { Label } from "../components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Textarea } from "../components/ui/textarea";
 import { toast } from "sonner";
-import type { CourseLevel, CourseStatus } from "../api/courses";
+import type { CourseStatus } from "../api/courses";
 
-type EditorTab = "basic" | "videos";
+type EditorTab = "basic" | "curriculum";
+type CurriculumItemType = "video" | "material" | "quiz";
+type CurriculumSourceType = "upload" | "link";
 
-type ManagedVideo = {
+type CurriculumItem = {
   id: number;
   title: string;
+  type: CurriculumItemType;
   description: string;
-  sourceType: "upload" | "link";
+  sourceType: CurriculumSourceType;
   sourceValue: string;
   status: "Published" | "Draft";
 };
 
-const courseLevelOptions: Array<{ value: CourseLevel; label: string }> = [
-  { value: "BEGINNER", label: "Beginner" },
-  { value: "INTERMEDIATE", label: "Intermediate" },
-  { value: "ADVANCED", label: "Advanced" },
-];
+type CurriculumSection = {
+  id: number;
+  title: string;
+  summary: string;
+  items: CurriculumItem[];
+};
+
+type SectionDraft = {
+  title: string;
+  summary: string;
+};
+
+type ItemDraft = {
+  title: string;
+  type: CurriculumItemType;
+  description: string;
+  sourceType: CurriculumSourceType;
+  sourceValue: string;
+};
 
 const courseStatusOptions: Array<{ value: CourseStatus; label: string }> = [
   { value: "DRAFT", label: "Draft" },
@@ -42,56 +62,151 @@ const courseStatusOptions: Array<{ value: CourseStatus; label: string }> = [
   { value: "ARCHIVED", label: "Archived" },
 ];
 
+const emptySectionDraft: SectionDraft = {
+  title: "",
+  summary: "",
+};
+
+const emptyItemDraft: ItemDraft = {
+  title: "",
+  type: "video",
+  description: "",
+  sourceType: "upload",
+  sourceValue: "",
+};
+
+function getItemBadge(type: CurriculumItemType) {
+  switch (type) {
+    case "video":
+      return {
+        label: "Video",
+        className: "border-0 bg-[#0A1B45]/8 text-[#0A1B45]",
+        icon: Video,
+      };
+    case "material":
+      return {
+        label: "Material",
+        className: "border-0 bg-[#308279]/10 text-[#308279]",
+        icon: FileText,
+      };
+    case "quiz":
+      return {
+        label: "Quiz",
+        className: "border-0 bg-[#FCEFC7] text-[#7A5A00]",
+        icon: ClipboardCheck,
+      };
+  }
+}
+
 export default function CourseEditPage() {
   const { courseId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = searchParams.get("tab");
-  const activeTab: EditorTab = initialTab === "videos" ? "videos" : "basic";
-  const tutorOptions = ["Raka Pratama", "Andi Wijaya", "Denny Kusuma"];
   const isNewClass = courseId === "new";
+  const initialTab = searchParams.get("tab");
+  const activeTab: EditorTab =
+    initialTab === "curriculum" || initialTab === "videos" ? "curriculum" : "basic";
+  const tutorOptions = ["Raka Pratama", "Andi Wijaya", "Denny Kusuma"];
 
   const [classData, setClassData] = useState({
     title: isNewClass ? "" : "Data Structures & Algorithms",
     subtitle: isNewClass ? "" : "Master the fundamentals of DSA",
     description: isNewClass
       ? ""
-      : "Kelas intensif untuk mahasiswa BINUS yang ingin memahami DSA lewat video lesson, live Zoom session, dan materi PDF pendukung.",
-    level: "BEGINNER" as CourseLevel,
+      : "Kelas intensif untuk mahasiswa BINUS yang ingin memahami struktur data lewat cohort-based learning, on-demand video, dan materi terkurasi.",
     duration: isNewClass ? "" : "12 weeks",
     tutor: isNewClass ? tutorOptions[0] : "Raka Pratama",
     status: "DRAFT" as CourseStatus,
   });
 
-  const [videos, setVideos] = useState<ManagedVideo[]>(
+  const [sections, setSections] = useState<CurriculumSection[]>(
     isNewClass
       ? []
       : [
           {
             id: 1,
-            title: "Class Overview & Learning Path",
-            description: "Ringkasan struktur pembelajaran, target capaian, dan roadmap class untuk mahasiswa baru bergabung.",
-            sourceType: "link",
-            sourceValue: "https://zoom.us/rec/share/class-overview",
-            status: "Published",
+            title: "Introduction & Fundamentals",
+            summary:
+              "Pondasi course, learning path, dan konsep dasar complexity yang dibutuhkan sebelum masuk ke latihan cohort.",
+            items: [
+              {
+                id: 1,
+                title: "Class Overview & Learning Path",
+                type: "video",
+                description: "Video pembuka untuk menjelaskan struktur pembelajaran, target capaian, dan ritme cohort.",
+                sourceType: "link",
+                sourceValue: "https://example.com/class-overview",
+                status: "Published",
+              },
+              {
+                id: 2,
+                title: "Big O Notation Cheat Sheet",
+                type: "material",
+                description: "PDF reference untuk notasi kompleksitas yang dipakai di seluruh class.",
+                sourceType: "upload",
+                sourceValue: "big-o-cheat-sheet.pdf",
+                status: "Published",
+              },
+            ],
           },
           {
             id: 2,
-            title: "Array Fundamentals",
-            description: "Penjelasan dasar array, operasi umum, dan studi kasus yang akan dipakai di live session berikutnya.",
-            sourceType: "upload",
-            sourceValue: "array-fundamentals.mp4",
-            status: "Published",
+            title: "Arrays & Strings",
+            summary:
+              "Section yang menampung video core arrays, materi pendukung, dan quiz class-level untuk checkpoint awal.",
+            items: [
+              {
+                id: 3,
+                title: "Array Fundamentals",
+                type: "video",
+                description: "Konsep dasar array, operasi umum, dan problem framing sebelum live cohort dimulai.",
+                sourceType: "upload",
+                sourceValue: "array-fundamentals.mp4",
+                status: "Published",
+              },
+              {
+                id: 4,
+                title: "Array & Linked List Quiz",
+                type: "quiz",
+                description: "Quiz umum untuk memastikan pemahaman siswa siap lanjut ke section berikutnya.",
+                sourceType: "link",
+                sourceValue: "Quiz managed from evaluation service",
+                status: "Draft",
+              },
+            ],
           },
         ],
   );
 
-  const [newVideo, setNewVideo] = useState({
-    title: "",
-    description: "",
-    sourceType: "upload" as const,
-    sourceValue: "",
-  });
+  const [selectedSectionId, setSelectedSectionId] = useState<number | null>(sections[0]?.id ?? null);
+  const [editingSectionId, setEditingSectionId] = useState<number | null>(null);
+  const [editingItemId, setEditingItemId] = useState<number | null>(null);
+  const [sectionDraft, setSectionDraft] = useState<SectionDraft>(emptySectionDraft);
+  const [itemDraft, setItemDraft] = useState<ItemDraft>(emptyItemDraft);
   const [isUploadDragActive, setIsUploadDragActive] = useState(false);
+
+  const selectedSection =
+    sections.find((section) => section.id === selectedSectionId) ?? sections[0] ?? null;
+
+  const curriculumSummary = useMemo(() => {
+    let videoCount = 0;
+    let materialCount = 0;
+    let quizCount = 0;
+
+    sections.forEach((section) => {
+      section.items.forEach((item) => {
+        if (item.type === "video") videoCount += 1;
+        if (item.type === "material") materialCount += 1;
+        if (item.type === "quiz") quizCount += 1;
+      });
+    });
+
+    return {
+      totalSections: sections.length,
+      totalVideos: videoCount,
+      totalMaterials: materialCount,
+      totalQuizzes: quizCount,
+    };
+  }, [sections]);
 
   const setTab = (tab: EditorTab) => {
     const nextParams = new URLSearchParams(searchParams);
@@ -99,39 +214,78 @@ export default function CourseEditPage() {
     setSearchParams(nextParams);
   };
 
-  const handleAddVideo = () => {
-    if (
-      !newVideo.title.trim() ||
-      !newVideo.description.trim() ||
-      !newVideo.sourceValue.trim()
-    ) {
-      toast.error("Please complete the video title, description, and source.");
+  const resetSectionDraft = () => {
+    setSectionDraft(emptySectionDraft);
+    setEditingSectionId(null);
+  };
+
+  const resetItemDraft = () => {
+    setItemDraft(emptyItemDraft);
+    setEditingItemId(null);
+    setIsUploadDragActive(false);
+  };
+
+  const handleSectionSubmit = () => {
+    if (!sectionDraft.title.trim() || !sectionDraft.summary.trim()) {
+      toast.error("Please complete the section title and summary.");
       return;
     }
 
-    setVideos((current) => [
-      ...current,
-      {
-        id: current.length + 1,
-        title: newVideo.title.trim(),
-        description: newVideo.description.trim(),
-        sourceType: newVideo.sourceType,
-        sourceValue: newVideo.sourceValue.trim(),
-        status: "Draft",
-      },
-    ]);
-    setNewVideo({ title: "", description: "", sourceType: "upload", sourceValue: "" });
-    toast.success("Video added successfully!");
+    if (editingSectionId) {
+      setSections((current) =>
+        current.map((section) =>
+          section.id === editingSectionId
+            ? {
+                ...section,
+                title: sectionDraft.title.trim(),
+                summary: sectionDraft.summary.trim(),
+              }
+            : section,
+        ),
+      );
+      toast.success("Section updated");
+    } else {
+      const nextId = Date.now();
+      setSections((current) => [
+        ...current,
+        {
+          id: nextId,
+          title: sectionDraft.title.trim(),
+          summary: sectionDraft.summary.trim(),
+          items: [],
+        },
+      ]);
+      setSelectedSectionId(nextId);
+      toast.success("Section created");
+    }
+
+    resetSectionDraft();
   };
 
-  const handleDeleteVideo = (id: number) => {
-    setVideos((current) => current.filter((video) => video.id !== id));
-    toast.success("Video removed");
+  const handleEditSection = (section: CurriculumSection) => {
+    setSelectedSectionId(section.id);
+    setEditingSectionId(section.id);
+    setSectionDraft({
+      title: section.title,
+      summary: section.summary,
+    });
   };
 
-  const handleVideoFileSelect = (file: File | null) => {
+  const handleDeleteSection = (sectionId: number) => {
+    setSections((current) => current.filter((section) => section.id !== sectionId));
+    if (selectedSectionId === sectionId) {
+      const remaining = sections.filter((section) => section.id !== sectionId);
+      setSelectedSectionId(remaining[0]?.id ?? null);
+    }
+    if (editingSectionId === sectionId) {
+      resetSectionDraft();
+    }
+    toast.success("Section deleted");
+  };
+
+  const handleItemFileSelect = (file: File | null) => {
     if (!file) return;
-    setNewVideo((current) => ({
+    setItemDraft((current) => ({
       ...current,
       sourceType: "upload",
       sourceValue: file.name,
@@ -139,11 +293,107 @@ export default function CourseEditPage() {
     setIsUploadDragActive(false);
   };
 
+  const handleItemSubmit = () => {
+    if (!selectedSectionId) {
+      toast.error("Create or select a section first.");
+      return;
+    }
+
+    if (
+      !itemDraft.title.trim() ||
+      !itemDraft.description.trim() ||
+      !itemDraft.sourceValue.trim()
+    ) {
+      toast.error("Please complete the item title, description, and source.");
+      return;
+    }
+
+    if (editingItemId) {
+      setSections((current) =>
+        current.map((section) =>
+          section.id !== selectedSectionId
+            ? section
+            : {
+                ...section,
+                items: section.items.map((item) =>
+                  item.id === editingItemId
+                    ? {
+                        ...item,
+                        title: itemDraft.title.trim(),
+                        type: itemDraft.type,
+                        description: itemDraft.description.trim(),
+                        sourceType: itemDraft.sourceType,
+                        sourceValue: itemDraft.sourceValue.trim(),
+                      }
+                    : item,
+                ),
+              },
+        ),
+      );
+      toast.success("Curriculum item updated");
+    } else {
+      const nextId = Date.now();
+      setSections((current) =>
+        current.map((section) =>
+          section.id !== selectedSectionId
+            ? section
+            : {
+                ...section,
+                items: [
+                  ...section.items,
+                  {
+                    id: nextId,
+                    title: itemDraft.title.trim(),
+                    type: itemDraft.type,
+                    description: itemDraft.description.trim(),
+                    sourceType: itemDraft.sourceType,
+                    sourceValue: itemDraft.sourceValue.trim(),
+                    status: "Draft",
+                  },
+                ],
+              },
+        ),
+      );
+      toast.success("Curriculum item created");
+    }
+
+    resetItemDraft();
+  };
+
+  const handleEditItem = (sectionId: number, item: CurriculumItem) => {
+    setSelectedSectionId(sectionId);
+    setEditingItemId(item.id);
+    setItemDraft({
+      title: item.title,
+      type: item.type,
+      description: item.description,
+      sourceType: item.sourceType,
+      sourceValue: item.sourceValue,
+    });
+  };
+
+  const handleDeleteItem = (sectionId: number, itemId: number) => {
+    setSections((current) =>
+      current.map((section) =>
+        section.id !== sectionId
+          ? section
+          : {
+              ...section,
+              items: section.items.filter((item) => item.id !== itemId),
+            },
+      ),
+    );
+    if (editingItemId === itemId) {
+      resetItemDraft();
+    }
+    toast.success("Curriculum item deleted");
+  };
+
   const handleSaveChanges = () => {
     toast.success(isNewClass ? "New class created" : "Class changes saved", {
       description: isNewClass
-        ? `Draft for ${classData.title || "untitled class"} is ready for publishing.`
-        : `Konfigurasi class #${courseId ?? "1"} berhasil diperbarui.`,
+        ? `Draft for ${classData.title || "untitled class"} is ready with ${sections.length} curriculum section(s).`
+        : `Konfigurasi class #${courseId ?? "1"} berhasil diperbarui bersama curriculum builder-nya.`,
     });
   };
 
@@ -153,7 +403,7 @@ export default function CourseEditPage() {
 
       <main className="min-w-0 flex-1">
         <div className="border-b border-[#D8E5E9] bg-gradient-to-r from-[#0A1B45] via-[#123061] to-[#308279] text-white">
-          <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-10">
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-10">
             <Link to="/admin-dashboard?view=classes">
               <Button variant="ghost" className="mb-6 text-white hover:bg-white/10">
                 <ArrowLeft className="mr-2 h-5 w-5" />
@@ -164,13 +414,14 @@ export default function CourseEditPage() {
             <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.18em] text-white/75">
-                  Class workspace
+                  Curriculum workspace
                 </div>
                 <h1 className="mt-5 text-4xl font-bold tracking-[-0.03em]">
                   {isNewClass ? "Create New Class" : "Edit Class"}
                 </h1>
-                <p className="mt-3 max-w-2xl text-white/80">
-                  Manage class details, publish on-demand videos, and review the tutor-managed support materials.
+                <p className="mt-3 max-w-3xl text-white/80">
+                  Manage class details and build the full curriculum structure: sections, videos,
+                  downloadable materials, and class-level quizzes.
                 </p>
               </div>
 
@@ -182,20 +433,20 @@ export default function CourseEditPage() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-10">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-10">
           <Tabs value={activeTab} onValueChange={(value) => setTab(value as EditorTab)} className="w-full">
-            <TabsList className="mb-8 grid w-full max-w-xl grid-cols-2 rounded-2xl border border-[#D8E5E9] bg-white p-1">
+            <TabsList className="mb-8 grid w-full max-w-2xl grid-cols-2 rounded-2xl border border-[#D8E5E9] bg-white p-1">
               <TabsTrigger
                 value="basic"
                 className="rounded-xl font-semibold text-[#476074] data-[state=active]:border-[#0A1B45]/10 data-[state=active]:bg-[#0A1B45] data-[state=active]:text-white"
               >
-                Basic Info
+                Class Information
               </TabsTrigger>
               <TabsTrigger
-                value="videos"
+                value="curriculum"
                 className="rounded-xl font-semibold text-[#476074] data-[state=active]:border-[#0A1B45]/10 data-[state=active]:bg-[#0A1B45] data-[state=active]:text-white"
               >
-                Video Library
+                Curriculum Builder
               </TabsTrigger>
             </TabsList>
 
@@ -232,27 +483,7 @@ export default function CourseEditPage() {
                     />
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="level">Level</Label>
-                      <select
-                        id="level"
-                        value={classData.level}
-                        onChange={(event) =>
-                          setClassData({
-                            ...classData,
-                            level: event.target.value as CourseLevel,
-                          })
-                        }
-                        className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
-                      >
-                        {courseLevelOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                  <div className="grid gap-4 md:grid-cols-3">
                     <div className="space-y-2">
                       <Label htmlFor="duration">Duration</Label>
                       <Input
@@ -261,9 +492,6 @@ export default function CourseEditPage() {
                         onChange={(event) => setClassData({ ...classData, duration: event.target.value })}
                       />
                     </div>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="tutor">Assigned Tutor</Label>
                       <select
@@ -302,174 +530,398 @@ export default function CourseEditPage() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="videos">
-              <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-                <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.07)]">
-                  <div className="mb-6 flex items-center justify-between gap-4">
-                    <div>
-                      <h2 className="text-2xl font-bold text-[#0A1B45]">Video Library</h2>
+            <TabsContent value="curriculum">
+              <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_380px]">
+                <div className="space-y-6">
+                  <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.07)]">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      <div>
+                        <h2 className="text-2xl font-bold text-[#0A1B45]">Curriculum Structure</h2>
+                        <p className="mt-2 text-[#476074]">
+                          Build the class from top to bottom: section first, then attach videos,
+                          materials, or class-level quizzes inside each section.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge className="border-0 bg-[#0A1B45]/8 text-[#0A1B45]">
+                          {curriculumSummary.totalSections} sections
+                        </Badge>
+                        <Badge className="border-0 bg-[#308279]/10 text-[#308279]">
+                          {curriculumSummary.totalVideos} videos
+                        </Badge>
+                        <Badge className="border-0 bg-[#308279]/10 text-[#308279]">
+                          {curriculumSummary.totalMaterials} materials
+                        </Badge>
+                        <Badge className="border-0 bg-[#FCEFC7] text-[#7A5A00]">
+                          {curriculumSummary.totalQuizzes} quizzes
+                        </Badge>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {sections.length === 0 ? (
+                    <Card className="rounded-[1.75rem] border border-dashed border-[#C7DCE0] bg-[#FCFEFE] p-10 text-center shadow-[0_18px_42px_rgba(10,27,69,0.04)]">
+                      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#0A1B45] text-white">
+                        <Plus className="h-6 w-6" />
+                      </div>
+                      <h3 className="mt-5 text-xl font-bold text-[#0A1B45]">No curriculum section yet</h3>
                       <p className="mt-2 text-[#476074]">
-                        Admin uploads and sequences the on-demand videos for this class.
+                        Start by creating the first section on the right side, then add videos,
+                        materials, and quizzes into that section.
                       </p>
-                    </div>
-                    <Badge className="border-0 bg-[#308279]/10 text-[#1F6D66]">
-                      {videos.length} total videos
-                    </Badge>
-                  </div>
-
-                  <div className="space-y-4">
-                    {videos.map((video) => (
-                      <div
-                        key={video.id}
-                        className="flex flex-col gap-4 rounded-[1.25rem] border border-[#D8E5E9] bg-[#F9FCFD] p-5 sm:flex-row sm:items-center sm:justify-between"
+                    </Card>
+                  ) : (
+                    sections.map((section) => (
+                      <Card
+                        key={section.id}
+                        className={`rounded-[1.75rem] border bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.07)] transition-all ${
+                          selectedSectionId === section.id
+                            ? "border-[#308279] ring-1 ring-[#308279]/20"
+                            : "border-[#D8E5E9]"
+                        }`}
                       >
-                        <div className="flex items-start gap-4">
-                          <div className="flex size-12 items-center justify-center rounded-full bg-[#0A1B45] text-white">
-                            <Video className="h-5 w-5" />
-                          </div>
+                        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                           <div>
-                            <div className="font-semibold text-[#0A1B45]">{video.title}</div>
-                            <div className="mt-1 text-sm leading-6 text-[#476074]">{video.description}</div>
-                            <div className="mt-2 text-xs font-medium uppercase tracking-[0.14em] text-[#92A4AE]">
-                              {video.sourceType === "upload" ? "Uploaded file" : "Video link"}: {video.sourceValue}
+                            <button
+                              type="button"
+                              onClick={() => setSelectedSectionId(section.id)}
+                              className="text-left"
+                            >
+                              <div className="text-sm font-semibold uppercase tracking-[0.16em] text-[#308279]">
+                                Section {section.id}
+                              </div>
+                              <h3 className="mt-2 text-2xl font-bold text-[#0A1B45]">{section.title}</h3>
+                            </button>
+                            <p className="mt-3 max-w-3xl text-sm leading-6 text-[#476074]">
+                              {section.summary}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              className="border-[#D8E5E9] text-[#0A1B45] hover:bg-[#F3F8FA]"
+                              onClick={() => handleEditSection(section)}
+                            >
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              className="text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]"
+                              onClick={() => handleDeleteSection(section.id)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+
+                        <div className="mt-6 space-y-4">
+                          {section.items.length === 0 ? (
+                            <div className="rounded-[1.25rem] border border-dashed border-[#D8E5E9] bg-[#FCFEFE] px-5 py-6 text-sm text-[#476074]">
+                              No curriculum item inside this section yet.
                             </div>
-                          </div>
+                          ) : (
+                            section.items.map((item) => {
+                              const badge = getItemBadge(item.type);
+                              const ItemIcon = badge.icon;
+
+                              return (
+                                <div
+                                  key={item.id}
+                                  className="flex flex-col gap-4 rounded-[1.25rem] border border-[#D8E5E9] bg-[#F9FCFD] p-5 lg:flex-row lg:items-start lg:justify-between"
+                                >
+                                  <div className="flex items-start gap-4">
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0A1B45] text-white">
+                                      <ItemIcon className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <div className="font-semibold text-[#0A1B45]">{item.title}</div>
+                                        <Badge className={badge.className}>{badge.label}</Badge>
+                                        <Badge
+                                          className={
+                                            item.status === "Published"
+                                              ? "border-0 bg-[#308279]/10 text-[#308279]"
+                                              : "border-0 bg-[#FCEFC7] text-[#7A5A00]"
+                                          }
+                                        >
+                                          {item.status}
+                                        </Badge>
+                                      </div>
+                                      <p className="mt-2 max-w-3xl text-sm leading-6 text-[#476074]">
+                                        {item.description}
+                                      </p>
+                                      <div className="mt-3 text-xs font-medium uppercase tracking-[0.14em] text-[#92A4AE]">
+                                        {item.sourceType === "upload" ? "Uploaded file" : "Linked resource"}:{" "}
+                                        {item.sourceValue}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="outline"
+                                      className="border-[#D8E5E9] text-[#0A1B45] hover:bg-[#F3F8FA]"
+                                      onClick={() => handleEditItem(section.id, item)}
+                                    >
+                                      <Pencil className="mr-2 h-4 w-4" />
+                                      Edit
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      className="text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]"
+                                      onClick={() => handleDeleteItem(section.id, item.id)}
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Delete
+                                    </Button>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          )}
                         </div>
+                      </Card>
+                    ))
+                  )}
+                </div>
 
-                        <div className="flex items-center gap-3">
-                          <Badge
-                            className={
-                              video.status === "Published"
-                                ? "border-0 bg-[#308279]/12 text-[#1F6D66]"
-                                : "border-0 bg-[#FCEFC7] text-[#7A5A00]"
-                            }
-                          >
-                            {video.status}
-                          </Badge>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]"
-                            onClick={() => handleDeleteVideo(video.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                <div className="space-y-6">
+                  <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.07)]">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-xl font-bold text-[#0A1B45]">
+                          {editingSectionId ? "Edit Section" : "Create Section"}
+                        </h3>
+                        <p className="mt-1 text-sm text-[#476074]">
+                          Section adalah grouping utama untuk video, material, dan quiz.
+                        </p>
                       </div>
-                    ))}
-                  </div>
-                </Card>
+                      {editingSectionId ? (
+                        <Badge className="border-0 bg-[#0A1B45]/8 text-[#0A1B45]">
+                          Editing
+                        </Badge>
+                      ) : null}
+                    </div>
 
-                <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.07)]">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#308279] text-white">
-                      <Upload className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-[#0A1B45]">Add New Video</h3>
-                      <p className="text-sm text-[#476074]">Publish a new lesson to this class.</p>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="video-title">Video title</Label>
-                      <Input
-                        id="video-title"
-                        placeholder="e.g. Graph Traversal Fundamentals"
-                        value={newVideo.title}
-                        onChange={(event) => setNewVideo({ ...newVideo, title: event.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="video-description">Description</Label>
-                      <Textarea
-                        id="video-description"
-                        placeholder="Summarize what students will learn from this video..."
-                        rows={5}
-                        value={newVideo.description}
-                        onChange={(event) => setNewVideo({ ...newVideo, description: event.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="video-source-type">Video Source</Label>
-                      <select
-                        id="video-source-type"
-                        value={newVideo.sourceType}
-                        onChange={(event) =>
-                          setNewVideo({
-                            ...newVideo,
-                            sourceType: event.target.value as "upload" | "link",
-                            sourceValue: "",
-                          })
-                        }
-                        className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
-                      >
-                        <option value="upload">Upload Video</option>
-                        <option value="link">Add Video Link</option>
-                      </select>
-                    </div>
-                    {newVideo.sourceType === "upload" ? (
+                    <div className="mt-6 space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="video-file-upload">Video Upload</Label>
-                        <label
-                          htmlFor="video-file-upload"
-                          onDragOver={(event) => {
-                            event.preventDefault();
-                            setIsUploadDragActive(true);
-                          }}
-                          onDragLeave={() => setIsUploadDragActive(false)}
-                          onDrop={(event) => {
-                            event.preventDefault();
-                            handleVideoFileSelect(event.dataTransfer.files?.[0] ?? null);
-                          }}
-                          className={`flex cursor-pointer flex-col items-center justify-center rounded-[1.25rem] border-2 border-dashed px-5 py-8 text-center transition ${
-                            isUploadDragActive
-                              ? "border-[#308279] bg-[#EBF3F1]"
-                              : "border-[#C7DCE0] bg-[#F9FCFD] hover:border-[#308279]/60 hover:bg-[#F4FAF8]"
-                          }`}
-                        >
-                          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#308279] text-white shadow-sm">
-                            <Upload className="h-6 w-6" />
-                          </div>
-                          <div className="mt-4 text-base font-semibold text-[#0A1B45]">
-                            Drag and drop your video here
-                          </div>
-                          <div className="mt-2 text-sm leading-6 text-[#476074]">
-                            or click to browse a local video file for this class library.
-                          </div>
-                          <div className="mt-4 rounded-full bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#308279] shadow-sm">
-                            {newVideo.sourceValue || "Choose video file"}
-                          </div>
-                          <input
-                            id="video-file-upload"
-                            type="file"
-                            accept="video/*"
-                            className="hidden"
-                            onChange={(event) =>
-                              handleVideoFileSelect(event.target.files?.[0] ?? null)
-                            }
-                          />
-                        </label>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <Label htmlFor="video-source-value">Video link</Label>
+                        <Label htmlFor="section-title">Section title</Label>
                         <Input
-                          id="video-source-value"
-                          placeholder="https://example.com/video"
-                          value={newVideo.sourceValue}
-                          onChange={(event) => setNewVideo({ ...newVideo, sourceValue: event.target.value })}
+                          id="section-title"
+                          placeholder="e.g. Arrays & Strings"
+                          value={sectionDraft.title}
+                          onChange={(event) =>
+                            setSectionDraft({ ...sectionDraft, title: event.target.value })
+                          }
                         />
                       </div>
-                    )}
+                      <div className="space-y-2">
+                        <Label htmlFor="section-summary">Summary</Label>
+                        <Textarea
+                          id="section-summary"
+                          rows={4}
+                          placeholder="Summarize the purpose of this section..."
+                          value={sectionDraft.summary}
+                          onChange={(event) =>
+                            setSectionDraft({ ...sectionDraft, summary: event.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="flex gap-3">
+                        <Button className="flex-1 bg-[#0A1B45] hover:bg-[#308279]" onClick={handleSectionSubmit}>
+                          <Plus className="mr-2 h-4 w-4" />
+                          {editingSectionId ? "Save Section" : "Add Section"}
+                        </Button>
+                        {(editingSectionId || sectionDraft.title || sectionDraft.summary) && (
+                          <Button variant="outline" className="border-[#D8E5E9]" onClick={resetSectionDraft}>
+                            Reset
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
 
-                    <Button className="w-full bg-[#308279] hover:bg-[#308279]/90" onClick={handleAddVideo}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Video
-                    </Button>
-                  </div>
-                </Card>
+                  <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.07)]">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-xl font-bold text-[#0A1B45]">
+                          {editingItemId ? "Edit Curriculum Item" : "Add Curriculum Item"}
+                        </h3>
+                        <p className="mt-1 text-sm text-[#476074]">
+                          Attach video, material, or class-level quiz into the selected section.
+                        </p>
+                      </div>
+                      {selectedSection ? (
+                        <Badge className="border-0 bg-[#308279]/10 text-[#308279]">
+                          {selectedSection.title}
+                        </Badge>
+                      ) : null}
+                    </div>
+
+                    <div className="mt-6 space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="curriculum-section">Target section</Label>
+                        <select
+                          id="curriculum-section"
+                          value={selectedSectionId ?? ""}
+                          onChange={(event) => setSelectedSectionId(Number(event.target.value))}
+                          className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                        >
+                          <option value="" disabled>
+                            Select section
+                          </option>
+                          {sections.map((section) => (
+                            <option key={section.id} value={section.id}>
+                              {section.title}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="item-title">Item title</Label>
+                        <Input
+                          id="item-title"
+                          placeholder="e.g. Array Fundamentals"
+                          value={itemDraft.title}
+                          onChange={(event) =>
+                            setItemDraft({ ...itemDraft, title: event.target.value })
+                          }
+                        />
+                      </div>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="item-type">Item type</Label>
+                          <select
+                            id="item-type"
+                            value={itemDraft.type}
+                            onChange={(event) =>
+                              setItemDraft({
+                                ...itemDraft,
+                                type: event.target.value as CurriculumItemType,
+                              })
+                            }
+                            className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                          >
+                            <option value="video">Video</option>
+                            <option value="material">Material</option>
+                            <option value="quiz">Quiz</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="item-source-type">Source type</Label>
+                          <select
+                            id="item-source-type"
+                            value={itemDraft.sourceType}
+                            onChange={(event) =>
+                              setItemDraft({
+                                ...itemDraft,
+                                sourceType: event.target.value as CurriculumSourceType,
+                                sourceValue: "",
+                              })
+                            }
+                            className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                          >
+                            <option value="upload">Upload file</option>
+                            <option value="link">Use link / external source</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="item-description">Description</Label>
+                        <Textarea
+                          id="item-description"
+                          rows={4}
+                          placeholder="Explain how this item is used in the class..."
+                          value={itemDraft.description}
+                          onChange={(event) =>
+                            setItemDraft({ ...itemDraft, description: event.target.value })
+                          }
+                        />
+                      </div>
+
+                      {itemDraft.sourceType === "upload" ? (
+                        <div className="space-y-2">
+                          <Label htmlFor="item-file-upload">Upload source</Label>
+                          <label
+                            htmlFor="item-file-upload"
+                            onDragOver={(event) => {
+                              event.preventDefault();
+                              setIsUploadDragActive(true);
+                            }}
+                            onDragLeave={() => setIsUploadDragActive(false)}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              handleItemFileSelect(event.dataTransfer.files?.[0] ?? null);
+                            }}
+                            className={`flex cursor-pointer flex-col items-center justify-center rounded-[1.25rem] border-2 border-dashed px-5 py-8 text-center transition ${
+                              isUploadDragActive
+                                ? "border-[#308279] bg-[#EBF3F1]"
+                                : "border-[#C7DCE0] bg-[#F9FCFD] hover:border-[#308279]/60 hover:bg-[#F4FAF8]"
+                            }`}
+                          >
+                            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#308279] text-white shadow-sm">
+                              <Upload className="h-6 w-6" />
+                            </div>
+                            <div className="mt-4 text-base font-semibold text-[#0A1B45]">
+                              Drag and drop a curriculum file here
+                            </div>
+                            <div className="mt-2 text-sm leading-6 text-[#476074]">
+                              Works for video uploads, downloadable material, or supporting files.
+                            </div>
+                            <div className="mt-4 rounded-full bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#308279] shadow-sm">
+                              {itemDraft.sourceValue || "Choose file"}
+                            </div>
+                            <input
+                              id="item-file-upload"
+                              type="file"
+                              className="hidden"
+                              onChange={(event) =>
+                                handleItemFileSelect(event.target.files?.[0] ?? null)
+                              }
+                            />
+                          </label>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <Label htmlFor="item-source-value">Source value</Label>
+                          <Input
+                            id="item-source-value"
+                            placeholder={
+                              itemDraft.type === "quiz"
+                                ? "e.g. Quiz managed from evaluation service"
+                                : "https://example.com/resource"
+                            }
+                            value={itemDraft.sourceValue}
+                            onChange={(event) =>
+                              setItemDraft({ ...itemDraft, sourceValue: event.target.value })
+                            }
+                          />
+                        </div>
+                      )}
+
+                      <div className="flex gap-3">
+                        <Button className="flex-1 bg-[#308279] hover:bg-[#308279]/90" onClick={handleItemSubmit}>
+                          <Plus className="mr-2 h-4 w-4" />
+                          {editingItemId ? "Save Item" : "Add Item"}
+                        </Button>
+                        {(editingItemId ||
+                          itemDraft.title ||
+                          itemDraft.description ||
+                          itemDraft.sourceValue) && (
+                          <Button variant="outline" className="border-[#D8E5E9]" onClick={resetItemDraft}>
+                            Reset
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                </div>
               </div>
             </TabsContent>
           </Tabs>

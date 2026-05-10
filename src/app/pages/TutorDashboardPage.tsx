@@ -58,7 +58,7 @@ export default function TutorDashboardPage() {
   const teachingCourseIds = user?.teachingCourses ?? [];
   const { data: tutorCourseData, loading: isTutorCourseLoading } =
     useTutorPanelCourses(teachingCourseIds);
-  const [activeView, setActiveView] = useState<"overview" | "sessions" | "materials" | "analytics">("overview");
+  const [activeView, setActiveView] = useState<"overview" | "meetings" | "materials" | "analytics">("overview");
   const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
   const [isMaterialDialogOpen, setIsMaterialDialogOpen] = useState(false);
   const firstName = user?.name.split(" ")[0] ?? "Raka";
@@ -73,7 +73,7 @@ export default function TutorDashboardPage() {
     },
     {
       icon: Video,
-      label: "Live Sessions",
+      label: "Pertemuan",
       value: "24",
       change: "+8",
       color: "from-[#0A1B45] to-[#308279]",
@@ -91,7 +91,7 @@ export default function TutorDashboardPage() {
       value: isTutorCourseLoading
         ? "..."
         : String(tutorCourseData?.courses.length ?? teachingCourseIds.length),
-      change: "Backend",
+      change: "Active batches",
       color: "from-[#308279] to-[#0A1B45]",
     },
   ];
@@ -100,32 +100,41 @@ export default function TutorDashboardPage() {
     {
       id: 1,
       classId: 1,
-      title: "Data Structures Q&A Session",
-      className: "Data Structures & Algorithms",
+      title: "Pertemuan 04 - Data Structures Q&A",
+      className: "Data Structures & Algorithms • Batch Reguler A",
       date: "Senin, 17 Feb 2026",
-      time: "14:00 - 15:30",
-      students: 45,
+      startTime: "14:00",
+      endTime: "15:30",
+      attendance: 45,
+      topic: "Diskusi linked list, array traversal, dan latihan soal.",
       zoomLink: "https://zoom.us/j/123456789",
+      status: "Completed",
     },
     {
       id: 2,
       classId: 1,
-      title: "Algorithm Workshop - Live Coding",
-      className: "Data Structures & Algorithms",
+      title: "Pertemuan 05 - Algorithm Workshop",
+      className: "Data Structures & Algorithms • Batch Reguler A",
       date: "Rabu, 19 Feb 2026",
-      time: "16:00 - 18:00",
-      students: 52,
+      startTime: "16:00",
+      endTime: "18:00",
+      attendance: 0,
+      topic: "Live coding two-pointer dan sliding window.",
       zoomLink: "https://zoom.us/j/987654321",
+      status: "Scheduled",
     },
     {
       id: 3,
       classId: 2,
-      title: "Database Design Fundamentals",
-      className: "Database Management & SQL",
+      title: "Pertemuan 03 - Database Design Fundamentals",
+      className: "Database Management & SQL • Batch Weekend",
       date: "Jumat, 21 Feb 2026",
-      time: "13:00 - 14:30",
-      students: 38,
-      zoomLink: "https://zoom.us/j/456789123",
+      startTime: "13:00",
+      endTime: "14:30",
+      attendance: 38,
+      topic: "Normalisasi, ERD, dan checkpoint tugas batch.",
+      zoomLink: "",
+      status: "Completed",
     },
   ];
 
@@ -222,7 +231,7 @@ export default function TutorDashboardPage() {
 
   const tutorNavItems = [
     { label: "Overview", icon: BookOpen, active: activeView === "overview", onClick: () => setActiveView("overview") },
-    { label: "Live Sessions", icon: Video, active: activeView === "sessions", onClick: () => setActiveView("sessions") },
+    { label: "Pertemuan", icon: Video, active: activeView === "meetings", onClick: () => setActiveView("meetings") },
     { label: "Materials", icon: FileText, active: activeView === "materials", onClick: () => setActiveView("materials") },
     { label: "Analytics", icon: BarChart3, active: activeView === "analytics", onClick: () => setActiveView("analytics") },
     { label: "Help Center", to: "/help-faq?role=tutor", icon: HelpCircle, exact: true },
@@ -245,7 +254,7 @@ export default function TutorDashboardPage() {
     event.preventDefault();
     setIsScheduleDialogOpen(false);
     toast.success("Session scheduled", {
-      description: "Jadwal Zoom baru sudah ditambahkan ke class yang dipilih.",
+      description: "Pertemuan batch baru sudah ditambahkan ke kelas yang dipilih.",
     });
   };
 
@@ -266,13 +275,13 @@ export default function TutorDashboardPage() {
       badge: `Tutor overview for ${firstName}`,
       title: "Tutor Dashboard",
       description:
-        "Lihat ringkasan class yang kamu pegang sebelum masuk ke alur live session, dokumen materi, dan analytics.",
+        "Lihat ringkasan batch yang kamu pegang sebelum masuk ke alur pertemuan, dokumen materi, dan analytics.",
     },
-    sessions: {
-      badge: `Live sessions by ${firstName}`,
-      title: "Live Sessions",
+    meetings: {
+      badge: `Pertemuan by ${firstName}`,
+      title: "Pertemuan Batch",
       description:
-        "Kelola jadwal Zoom untuk semua class yang sudah diassign admin tanpa distraksi dari overview dashboard.",
+        "Kelola jadwal, topik, absensi, dan link Zoom untuk semua batch yang kamu ajar.",
     },
     materials: {
       badge: `Materials by ${firstName}`,
@@ -284,7 +293,7 @@ export default function TutorDashboardPage() {
       badge: `Analytics for ${firstName}`,
       title: "Teaching Analytics",
       description:
-        "Pantau engagement, attendance, dan performa pengajaran dalam satu halaman yang lebih fokus.",
+        "Pantau engagement, attendance, dan indikator payroll per sesi dalam satu halaman yang lebih fokus.",
     },
   } as const;
 
@@ -318,10 +327,10 @@ export default function TutorDashboardPage() {
                     onClick={() => setIsScheduleDialogOpen(true)}
                   >
                     <Calendar className="mr-2 h-4 w-4" />
-                    Schedule Session
+                    Tambah Pertemuan
                   </Button>
                 ) : null}
-                {activeView !== "sessions" ? (
+                {activeView !== "meetings" ? (
                   <Button
                     variant="outline"
                     className="border-white/30 bg-white/10 text-white hover:bg-white/15 hover:text-white"
@@ -416,69 +425,75 @@ export default function TutorDashboardPage() {
           </section>
         ) : null}
 
-        {activeView === "sessions" ? (
+        {activeView === "meetings" ? (
           <section className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-[#0A1B45]">Upcoming Live Sessions</h2>
-                <p className="text-[#476074]">Jadwal Zoom class yang kamu pegang minggu ini</p>
+                <h2 className="text-2xl font-bold text-[#0A1B45]">Daftar Pertemuan Batch</h2>
+                <p className="text-[#476074]">Pertemuan cohort yang kamu ajar sekaligus basis payroll per sesi</p>
               </div>
               <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="bg-[#308279] hover:bg-[#308279]/90">
                     <Plus className="mr-2 h-4 w-4" />
-                    Schedule Session
+                    Tambah Pertemuan
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl">
                   <DialogHeader>
-                    <DialogTitle>Schedule New Live Session</DialogTitle>
+                    <DialogTitle>Tambah Pertemuan Baru</DialogTitle>
                     <DialogDescription>
-                      Tambahkan jadwal Zoom baru untuk class yang sudah aktif.
+                      Input detail pertemuan yang akan dipakai untuk delivery batch dan rekap gaji tutor.
                     </DialogDescription>
                   </DialogHeader>
                   <form className="space-y-4" onSubmit={handleScheduleSubmit}>
                     <div className="space-y-2">
-                      <Label htmlFor="session-title">Session Title</Label>
-                      <Input id="session-title" placeholder="e.g., Data Structures Q&A Session" />
+                      <Label htmlFor="session-title">Judul Pertemuan</Label>
+                      <Input id="session-title" placeholder="e.g., Pertemuan 05 - Algorithm Workshop" />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="class-select">Class</Label>
+                      <Label htmlFor="class-select">Kelas / Batch</Label>
                       <select id="class-select" className="w-full rounded-md border p-2">
-                        <option>Data Structures & Algorithms</option>
-                        <option>Database Management & SQL</option>
-                        <option>HCI Design Principles</option>
+                        <option>Data Structures & Algorithms • Batch Reguler A</option>
+                        <option>Database Management & SQL • Batch Weekend</option>
+                        <option>HCI Design Principles • Batch Intensif</option>
                       </select>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="session-date">Tanggal</Label>
                         <Input id="session-date" type="date" />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="session-time">Waktu</Label>
-                        <Input id="session-time" type="time" />
+                        <Label htmlFor="session-start">Jam Mulai</Label>
+                        <Input id="session-start" type="time" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="session-end">Jam Selesai</Label>
+                        <Input id="session-end" type="time" />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="session-duration">Durasi (menit)</Label>
-                      <Input id="session-duration" type="number" placeholder="90" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="zoom-link">Zoom Meeting Link</Label>
-                      <Input id="zoom-link" placeholder="https://zoom.us/j/..." />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="session-description">Agenda Singkat</Label>
+                      <Label htmlFor="session-description">Topik</Label>
                       <Textarea
                         id="session-description"
-                        placeholder="Jelaskan topik utama yang akan dibahas di sesi ini..."
+                        placeholder="Jelaskan topik utama yang akan dibahas di pertemuan ini..."
                         rows={3}
                       />
                     </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="session-attendance">Absensi</Label>
+                        <Input id="session-attendance" type="number" placeholder="0" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="zoom-link">Link Zoom (opsional)</Label>
+                        <Input id="zoom-link" placeholder="https://zoom.us/j/..." />
+                      </div>
+                    </div>
                     <div className="flex gap-3 pt-4">
                       <Button type="submit" className="bg-[#308279] hover:bg-[#308279]/90">
-                        Schedule Session
+                        Simpan Pertemuan
                       </Button>
                       <Button type="button" variant="outline" onClick={() => setIsScheduleDialogOpen(false)}>
                         Batal
@@ -511,13 +526,16 @@ export default function TutorDashboardPage() {
                             </div>
                             <div className="flex items-center gap-1 text-[#476074]">
                               <Clock className="h-4 w-4" />
-                              <span>{session.time}</span>
+                              <span>
+                                {session.startTime} - {session.endTime}
+                              </span>
                             </div>
                             <div className="flex items-center gap-1 text-[#476074]">
                               <Users className="h-4 w-4" />
-                              <span>{session.students} students</span>
+                              <span>{session.attendance} hadir</span>
                             </div>
                           </div>
+                          <p className="mt-3 text-sm leading-6 text-[#476074]">{session.topic}</p>
                         </div>
                       </div>
                       <DropdownMenu>
@@ -552,22 +570,28 @@ export default function TutorDashboardPage() {
                       </DropdownMenu>
                     </div>
 
-                    <div className="rounded-lg border border-[#308279]/20 bg-[#F3F8FA] p-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <div>
-                          <p className="mb-1 text-xs text-[#476074]">Zoom Meeting Link:</p>
-                          <code className="text-sm font-mono text-[#0A1B45]">{session.zoomLink}</code>
+                    {session.zoomLink ? (
+                      <div className="rounded-lg border border-[#308279]/20 bg-[#F3F8FA] p-4">
+                        <div className="flex items-center justify-between gap-4">
+                          <div>
+                            <p className="mb-1 text-xs text-[#476074]">Zoom Meeting Link:</p>
+                            <code className="text-sm font-mono text-[#0A1B45]">{session.zoomLink}</code>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-[#308279] text-[#308279]"
+                            onClick={() => handleCopyLink(session.zoomLink)}
+                          >
+                            Copy Link
+                          </Button>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="border-[#308279] text-[#308279]"
-                          onClick={() => handleCopyLink(session.zoomLink)}
-                        >
-                          Copy Link
-                        </Button>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="rounded-lg border border-dashed border-[#D8E5E9] bg-[#FCFEFE] p-4 text-sm text-[#476074]">
+                        Pertemuan ini tidak memakai Zoom link. Bisa dipakai untuk sesi offline atau pending setup.
+                      </div>
+                    )}
                   </div>
                 </Card>
               ))}
@@ -733,7 +757,7 @@ export default function TutorDashboardPage() {
               </Card>
 
               <Card className="p-6">
-                <h3 className="mb-4 text-lg font-bold text-[#0A1B45]">Session Attendance Rate</h3>
+                <h3 className="mb-4 text-lg font-bold text-[#0A1B45]">Meeting Attendance Rate</h3>
                 <div className="flex h-64 items-center justify-center">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -757,7 +781,7 @@ export default function TutorDashboardPage() {
                 <div className="mt-4 rounded-lg bg-[#308279]/5 p-4">
                   <p className="text-sm text-[#476074]">
                     <span className="font-bold text-[#308279]">85%</span> students rata-rata hadir di
-                    live session kamu minggu ini.
+                    pertemuan batch kamu minggu ini.
                   </p>
                 </div>
               </Card>
@@ -775,12 +799,12 @@ export default function TutorDashboardPage() {
                   <div className="text-sm text-[#476074]">Dokumen Aktif</div>
                 </div>
                 <div className="rounded-lg bg-[#F3F8FA] p-4">
-                  <div className="mb-1 text-2xl font-bold text-[#0A1B45]">85%</div>
-                  <div className="text-sm text-[#476074]">Attendance Rate</div>
+                  <div className="mb-1 text-2xl font-bold text-[#0A1B45]">19</div>
+                  <div className="text-sm text-[#476074]">Completed Meetings</div>
                 </div>
                 <div className="rounded-lg bg-[#F3F8FA] p-4">
-                  <div className="mb-1 text-2xl font-bold text-[#308279]">234</div>
-                  <div className="text-sm text-[#476074]">Total Reviews</div>
+                  <div className="mb-1 text-2xl font-bold text-[#308279]">Rp 5.700.000</div>
+                  <div className="text-sm text-[#476074]">Projected Session Payroll</div>
                 </div>
               </div>
               <div className="mt-6 flex justify-end">
