@@ -17,11 +17,20 @@ import { Avatar, AvatarFallback } from "../components/ui/avatar";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useCourseDetail } from "../api/courses";
+import { useCourseReviews } from "../api/reviews";
 import { getMockBatchesForCourse } from "../data/batches";
 
 export default function CourseDetailPage() {
   const { courseId } = useParams();
   const { course, loading, error, refetch } = useCourseDetail(courseId);
+  const { data: reviewsData, loading: isReviewsLoading } = useCourseReviews(courseId);
+  const reviews = reviewsData?.reviews ?? [];
+  const reviewCount = reviews.length;
+  const averageRating =
+    reviewCount > 0
+      ? reviews.reduce((total, review) => total + review.rating, 0) / reviewCount
+      : course?.rating ?? 0;
+  const displayRating = averageRating.toFixed(1);
 
   if (loading && !course) {
     return (
@@ -78,7 +87,7 @@ export default function CourseDetailPage() {
     name: course.tutor,
     title: `${course.major} mentor`,
     avatar: "TA",
-    rating: course.rating,
+    rating: displayRating,
     description:
       "Tutor assignment details are not exposed by the current course schema yet.",
   };
@@ -106,7 +115,7 @@ export default function CourseDetailPage() {
               <div className="mb-6 flex items-center gap-3">
                 <div className="flex items-center gap-1 rounded-full bg-[#F3F8FA] px-3 py-1 font-bold text-[#0A1B45]">
                   <Star className="h-4 w-4 fill-[#0A1B45] text-[#0A1B45]" />
-                  {course.rating} <span className="text-[#476074]">({course.reviews})</span>
+                  {displayRating} <span className="text-[#476074]">({reviewCount})</span>
                 </div>
                 {course.featured ? (
                   <Badge className="border-none bg-[#308279] font-bold text-white shadow-sm">
@@ -269,8 +278,10 @@ export default function CourseDetailPage() {
                       <Star key={i} className="h-6 w-6 fill-[#308279] text-[#308279]" />
                     ))}
                   </div>
-                  <span className="text-3xl font-bold text-[#0A1B45]">{course.rating}</span>
-                  <span className="text-[#476074]">({course.reviews} reviews)</span>
+                  <span className="text-3xl font-bold text-[#0A1B45]">{displayRating}</span>
+                  <span className="text-[#476074]">
+                    {isReviewsLoading ? "Loading reviews..." : `(${reviewCount} reviews)`}
+                  </span>
                 </div>
               </div>
               <Link to={`/class/${courseId}/review`}>
@@ -281,11 +292,43 @@ export default function CourseDetailPage() {
               </Link>
             </div>
 
-            <div className="rounded-lg bg-[#F3F8FA] p-6 text-center">
-              <p className="font-medium text-[#476074]">
-                Reviews are not available in the current backend course schema.
-              </p>
-            </div>
+            {reviewCount === 0 ? (
+              <div className="rounded-lg bg-[#F3F8FA] p-6 text-center">
+                <p className="font-medium text-[#476074]">
+                  No reviews yet. Be the first student to share feedback for this class.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {reviews.slice(0, 5).map((review) => (
+                  <div
+                    key={review.id}
+                    className="rounded-2xl border border-[#D8E5E9] bg-[#F9FCFD] p-5"
+                  >
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`h-4 w-4 ${
+                              star <= review.rating
+                                ? "fill-[#308279] text-[#308279]"
+                                : "text-[#C7DCE0]"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-[#476074]">
+                        Student review
+                      </span>
+                    </div>
+                    <p className="text-sm leading-6 text-[#476074]">
+                      {review.comment || "No written comment provided."}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
         </div>
       </div>

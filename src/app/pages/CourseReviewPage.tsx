@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMutation } from "@apollo/client/react";
 import { Link, useParams, useNavigate } from "react-router";
 import { ArrowLeft, Star } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -7,10 +8,15 @@ import { Textarea } from "../components/ui/textarea";
 import { Label } from "../components/ui/label";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { useAuth } from "../auth/AuthContext";
+import { CREATE_REVIEW } from "../api/reviews";
+import { toast } from "sonner";
 
 export default function CourseReviewPage() {
   const { courseId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [createReview, { loading: isSubmitting }] = useMutation(CREATE_REVIEW);
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [review, setReview] = useState("");
@@ -20,11 +26,35 @@ export default function CourseReviewPage() {
     tutor: "Raka Pratama",
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle review submission
-    console.log({ rating, review });
-    navigate(`/class/${courseId}`);
+    if (!courseId || !user?.id) {
+      toast.error("Unable to submit review", {
+        description: "Please sign in and open a valid class before submitting.",
+      });
+      return;
+    }
+
+    try {
+      await createReview({
+        variables: {
+          input: {
+            courseId,
+            userId: user.id,
+            rating,
+            comment: review.trim(),
+          },
+        },
+        refetchQueries: ["GetCourseReviews"],
+      });
+      toast.success("Review submitted", {
+        description: "Thanks for sharing your class feedback.",
+      });
+      navigate(`/course/${courseId}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Please try again.";
+      toast.error("Unable to submit review", { description: message });
+    }
   };
 
   return (
@@ -32,7 +62,7 @@ export default function CourseReviewPage() {
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Link to={`/class/${courseId}`}>
+        <Link to={`/course/${courseId}`}>
           <Button variant="ghost" className="text-[#476074] hover:bg-[#308279]/10 mb-6">
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back to Class
@@ -141,15 +171,15 @@ export default function CourseReviewPage() {
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Button
                 type="submit"
-                disabled={rating === 0 || review.trim().length < 10}
+                disabled={rating === 0 || review.trim().length < 10 || isSubmitting}
                 className="flex-1 bg-[#308279] hover:bg-[#308279]/90 text-white h-12 text-lg disabled:opacity-50"
               >
-                Submit Review
+                {isSubmitting ? "Submitting..." : "Submit Review"}
               </Button>
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate(`/class/${courseId}`)}
+                onClick={() => navigate(`/course/${courseId}`)}
                 className="flex-1 border-[#476074] text-[#476074] hover:bg-[#476074]/10 h-12 text-lg"
               >
                 Cancel
