@@ -1,13 +1,13 @@
 import type { RouteObject } from "react-router";
-import AboutPage from "../pages/AboutPage";
-import ContactPage from "../pages/ContactPage";
-import CourseDetailPage from "../pages/CourseDetailPage";
-import HelpFAQPage from "../pages/HelpFAQPage";
-import HomePage from "../pages/HomePage";
-import LoginPage from "../pages/LoginPage";
-import RegisterPage from "../pages/RegisterPage";
-import MarketplacePage from "../pages/MarketplacePage";
-import NotFoundPage from "../pages/NotFoundPage";
+import AboutPage from "../pages/public/AboutPage";
+import ContactPage from "../pages/public/ContactPage";
+import CourseDetailPage from "../pages/shared/course/CourseDetailPage";
+import HelpFAQPage from "../pages/public/HelpFAQPage";
+import HomePage from "../pages/public/HomePage";
+import LoginPage from "../pages/public/LoginPage";
+import RegisterPage from "../pages/public/RegisterPage";
+import MarketplacePage from "../pages/public/MarketplacePage";
+import NotFoundPage from "../pages/public/NotFoundPage";
 
 export const publicRoutes: RouteObject[] = [
   {

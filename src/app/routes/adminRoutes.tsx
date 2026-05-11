@@ -1,7 +1,7 @@
 import type { RouteObject } from "react-router";
-import ProtectedRoute from "../components/ProtectedRoute";
-import AdminDashboardPage from "../pages/AdminDashboardPage";
-import CourseEditPage from "../pages/CourseEditPage";
+import ProtectedRoute from "../components/auth/ProtectedRoute";
+import AdminDashboardPage from "../pages/admin/dashboard/AdminDashboardPage";
+import CourseEditPage from "../pages/admin/classes/CourseEditPage";
 
 export const adminRoutes: RouteObject[] = [
   {

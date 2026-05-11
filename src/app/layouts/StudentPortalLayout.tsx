@@ -1,6 +1,6 @@
 import { Award, ClipboardList, HelpCircle, LayoutDashboard, UserRound } from "lucide-react";
 import { Outlet } from "react-router";
-import DashboardSidebar from "../components/DashboardSidebar";
+import DashboardSidebar from "../components/navigation/DashboardSidebar";
 
 const studentNavItems = [
   { label: "Dashboard", to: "/student-dashboard", icon: LayoutDashboard, exact: true },

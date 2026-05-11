@@ -1,6 +1,6 @@
 import { createBrowserRouter, type RouteObject } from "react-router";
 import RootLayout from "./layouts/RootLayout";
-import NotFoundPage from "./pages/NotFoundPage";
+import NotFoundPage from "./pages/public/NotFoundPage";
 import { adminRoutes } from "./routes/adminRoutes";
 import { publicRoutes } from "./routes/publicRoutes";
 import { studentRoutes } from "./routes/studentRoutes";

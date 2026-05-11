@@ -1,18 +1,18 @@
 import type { RouteObject } from "react-router";
-import ProtectedRoute from "../components/ProtectedRoute";
+import ProtectedRoute from "../components/auth/ProtectedRoute";
 import ClassroomLayout from "../layouts/ClassroomLayout";
 import StudentPortalLayout from "../layouts/StudentPortalLayout";
-import ClassroomPage from "../pages/ClassroomPage";
-import ClassroomMaterialPage from "../pages/ClassroomMaterialPage";
-import ClassroomMeetingPage from "../pages/ClassroomMeetingPage";
-import ClassroomQuizPage from "../pages/ClassroomQuizPage";
-import ClassroomVideoPage from "../pages/ClassroomVideoPage";
-import CourseQuizPage from "../pages/CourseQuizPage";
-import CourseReviewPage from "../pages/CourseReviewPage";
-import StudentCertificatesPage from "../pages/StudentCertificatesPage";
-import StudentDashboardPage from "../pages/StudentDashboardPage";
-import StudentProfilePage from "../pages/StudentProfilePage";
-import StudentQuizzesPage from "../pages/StudentQuizzesPage";
+import ClassroomPage from "../pages/student/classroom/ClassroomPage";
+import ClassroomMaterialPage from "../pages/student/classroom/ClassroomMaterialPage";
+import ClassroomMeetingPage from "../pages/student/classroom/ClassroomMeetingPage";
+import ClassroomQuizPage from "../pages/student/classroom/ClassroomQuizPage";
+import ClassroomVideoPage from "../pages/student/classroom/ClassroomVideoPage";
+import CourseQuizPage from "../pages/shared/course/CourseQuizPage";
+import CourseReviewPage from "../pages/shared/course/CourseReviewPage";
+import StudentCertificatesPage from "../pages/student/portal/StudentCertificatesPage";
+import StudentDashboardPage from "../pages/student/portal/StudentDashboardPage";
+import StudentProfilePage from "../pages/student/portal/StudentProfilePage";
+import StudentQuizzesPage from "../pages/student/portal/StudentQuizzesPage";
 
 export const studentRoutes: RouteObject[] = [
   {

@@ -3,7 +3,7 @@ import { ChevronLeft } from "lucide-react";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Progress } from "../components/ui/progress";
-import ClassroomCurriculumRail from "../components/ClassroomCurriculumRail";
+import ClassroomCurriculumRail from "../components/classroom/ClassroomCurriculumRail";
 import { getMockClassroomData } from "../data/classroomContent";
 
 export default function ClassroomLayout() {
