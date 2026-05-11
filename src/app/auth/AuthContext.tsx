@@ -57,8 +57,6 @@ const LOGIN_MUTATION = gql`
       id
       name
       avatarUrl
-      username
-      email
     }
   }
 `;
@@ -79,15 +77,17 @@ const REGISTER_MUTATION = gql`
 const GET_AUTH_USER = gql`
   query GetAuthUser($userId: String!) {
     users(where: { id: { eq: $userId } }) {
-      id
-      name
-      username
-      avatarUrl
-      email
-      role
-      contact
-      enrolledCourses
-      teachingCourses
+      nodes {
+        id
+        name
+        username
+        avatarUrl
+        email
+        role
+        contact
+        enrolledCourses
+        teachingCourses
+      }
     }
   }
 `;
@@ -115,17 +115,19 @@ interface RegisterData {
 }
 
 interface AuthUserData {
-  users: Array<{
-    id: string;
-    name: string;
-    username: string;
-    avatarUrl: string | null;
-    email: string;
-    role: BackendRole;
-    contact: string | null;
-    enrolledCourses: string[];
-    teachingCourses: string[];
-  }>;
+  users: {
+    nodes: Array<{
+      id: string;
+      name: string;
+      username: string;
+      avatarUrl: string | null;
+      email: string;
+      role: BackendRole;
+      contact: string | null;
+      enrolledCourses: string[];
+      teachingCourses: string[];
+    }>;
+  } | null;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -195,7 +197,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           fetchPolicy: "network-only",
         });
 
-        const backendUser = userResult.data?.users?.[0];
+        const backendUser = userResult.data?.users?.nodes?.[0];
         if (backendUser) {
           setUser({
             id: backendUser.id,
@@ -252,7 +254,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       fetchPolicy: "network-only",
     });
 
-    const backendUser = userResult.data?.users?.[0];
+    const backendUser = userResult.data?.users?.nodes?.[0];
 
     if (!backendUser) {
       throw new Error("Authenticated user profile could not be loaded.");
@@ -315,7 +317,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       fetchPolicy: "network-only",
     });
 
-    const backendUser = userResult.data?.users?.[0];
+    const backendUser = userResult.data?.users?.nodes?.[0];
 
     if (!backendUser) {
       throw new Error("Authenticated user profile could not be loaded.");

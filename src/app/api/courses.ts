@@ -82,7 +82,9 @@ export const COURSE_FIELDS = gql`
 export const GET_PUBLISHED_COURSES = gql`
   query GetPublishedCourses {
     courses(where: { status: { eq: PUBLISHED } }, order: [{ title: ASC }]) {
-      ...CourseFields
+      nodes {
+        ...CourseFields
+      }
     }
   }
   ${COURSE_FIELDS}
@@ -133,14 +135,18 @@ export const DELETE_COURSE = gql`
 export const GET_COURSE_BY_ID = gql`
   query GetCourseById($courseId: String!) {
     courses(where: { id: { eq: $courseId } }) {
-      ...CourseFields
+      nodes {
+        ...CourseFields
+      }
     }
   }
   ${COURSE_FIELDS}
 `;
 
 interface CoursesData {
-  courses: Course[];
+  courses: {
+    nodes: Course[];
+  } | null;
 }
 
 function formatPrice(course: Course) {
@@ -222,7 +228,7 @@ export function useCourses(options: { enabled?: boolean } = {}) {
   );
 
   return {
-    courses: (data?.courses ?? []).map(mapCourseToCard),
+    courses: (data?.courses?.nodes ?? []).map(mapCourseToCard),
     loading: enabled ? loading : false,
     error,
     refetch,
@@ -239,7 +245,7 @@ export function useCourseDetail(courseId: string | undefined) {
     },
   );
 
-  const course = data?.courses?.[0];
+  const course = data?.courses?.nodes?.[0];
 
   return {
     course: course ? mapCourseToDetail(course) : null,

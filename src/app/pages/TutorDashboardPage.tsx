@@ -90,7 +90,7 @@ export default function TutorDashboardPage() {
       label: "Assigned Classes",
       value: isTutorCourseLoading
         ? "..."
-        : String(tutorCourseData?.courses.length ?? teachingCourseIds.length),
+        : String(tutorCourseData?.courses?.nodes.length ?? teachingCourseIds.length),
       change: "Active batches",
       color: "from-[#308279] to-[#0A1B45]",
     },
@@ -215,7 +215,7 @@ export default function TutorDashboardPage() {
 
   const backendAssignedClasses = useMemo(
     () =>
-      (tutorCourseData?.courses ?? []).map((course) => ({
+      (tutorCourseData?.courses?.nodes ?? []).map((course) => ({
         id: course.id,
         title: course.title,
         students: 0,

@@ -138,7 +138,9 @@ const courseLevelOptions: Array<{ value: CourseLevel; label: string }> = [
 ];
 
 type CourseByIdData = {
-  courses: Course[];
+  courses: {
+    nodes: Course[];
+  } | null;
 };
 
 type CourseFormState = {
@@ -430,7 +432,7 @@ export default function CourseEditPage() {
   );
   const [createCourse, { loading: isCreatingCourse }] = useMutation(CREATE_COURSE);
   const [updateCourse, { loading: isUpdatingCourse }] = useMutation(UPDATE_COURSE);
-  const tutorOptions = tutorUsersData?.users ?? [];
+  const tutorOptions = tutorUsersData?.users?.nodes ?? [];
   const isSavingCourse = isCreatingCourse || isUpdatingCourse;
 
   const [classData, setClassData] = useState<CourseFormState>({
@@ -524,7 +526,7 @@ export default function CourseEditPage() {
   const [isUploadDragActive, setIsUploadDragActive] = useState(false);
 
   useEffect(() => {
-    const course = courseData?.courses?.[0];
+    const course = courseData?.courses?.nodes?.[0];
     if (!course || isNewClass) return;
     const parsedDuration = parseDurationParts(`${course.totalDuration} weeks`);
 

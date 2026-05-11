@@ -73,10 +73,14 @@ export const LECTURE_FIELDS = gql`
 export const GET_COURSE_CURRICULUM = gql`
   query GetCourseCurriculum($courseId: String!) {
     sections(where: { courseId: { eq: $courseId } }, order: [{ order: ASC }]) {
-      ...SectionFields
+      nodes {
+        ...SectionFields
+      }
     }
     lectures(where: { courseId: { eq: $courseId } }, order: [{ order: ASC }]) {
-      ...LectureFields
+      nodes {
+        ...LectureFields
+      }
     }
   }
   ${SECTION_FIELDS}
@@ -148,8 +152,12 @@ export const DELETE_LECTURE = gql`
 `;
 
 interface CourseCurriculumData {
-  sections: Section[];
-  lectures: Lecture[];
+  sections: {
+    nodes: Section[];
+  } | null;
+  lectures: {
+    nodes: Lecture[];
+  } | null;
 }
 
 export function useCourseCurriculum(courseId: string | undefined) {

@@ -35,7 +35,9 @@ export const REVIEW_FIELDS = gql`
 export const GET_COURSE_REVIEWS = gql`
   query GetCourseReviews($courseId: String!) {
     reviews(where: { courseId: { eq: $courseId } }, order: [{ rating: DESC }]) {
-      ...ReviewFields
+      nodes {
+        ...ReviewFields
+      }
     }
   }
   ${REVIEW_FIELDS}
@@ -69,7 +71,9 @@ export const DELETE_REVIEW = gql`
 `;
 
 interface CourseReviewsData {
-  reviews: Review[];
+  reviews: {
+    nodes: Review[];
+  } | null;
 }
 
 export function useCourseReviews(courseId: string | undefined) {

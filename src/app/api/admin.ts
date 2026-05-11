@@ -33,10 +33,14 @@ const USER_FIELDS = gql`
 export const GET_ADMIN_PANEL_DATA = gql`
   query GetAdminPanelData {
     users(order: [{ name: ASC }]) {
-      ...UserFields
+      nodes {
+        ...UserFields
+      }
     }
     courses(order: [{ title: ASC }]) {
-      ...CourseFields
+      nodes {
+        ...CourseFields
+      }
     }
   }
   ${USER_FIELDS}
@@ -46,7 +50,9 @@ export const GET_ADMIN_PANEL_DATA = gql`
 export const GET_TUTOR_PANEL_DATA = gql`
   query GetTutorPanelData($courseIds: [String!]) {
     courses(where: { id: { in: $courseIds } }, order: [{ title: ASC }]) {
-      ...CourseFields
+      nodes {
+        ...CourseFields
+      }
     }
   }
   ${COURSE_FIELDS}
@@ -55,23 +61,33 @@ export const GET_TUTOR_PANEL_DATA = gql`
 export const GET_TUTOR_USERS = gql`
   query GetTutorUsers {
     users(where: { role: { eq: TUTOR } }, order: [{ name: ASC }]) {
-      ...UserFields
+      nodes {
+        ...UserFields
+      }
     }
   }
   ${USER_FIELDS}
 `;
 
 interface AdminPanelData {
-  users: BackendUser[];
-  courses: Course[];
+  users: {
+    nodes: BackendUser[];
+  } | null;
+  courses: {
+    nodes: Course[];
+  } | null;
 }
 
 interface TutorPanelData {
-  courses: Course[];
+  courses: {
+    nodes: Course[];
+  } | null;
 }
 
 interface TutorUsersData {
-  users: BackendUser[];
+  users: {
+    nodes: BackendUser[];
+  } | null;
 }
 
 export function useAdminPanelData() {

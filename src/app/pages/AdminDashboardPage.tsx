@@ -342,7 +342,7 @@ export default function AdminDashboardPage() {
     name: backendUser.name,
     email: backendUser.email,
     assignedClassNames:
-      adminData?.courses
+      adminData?.courses?.nodes
         .filter((course) => backendUser.teachingCourses.includes(course.id))
         .map((course) => course.title) ?? [],
     assignedClasses: backendUser.teachingCourses.length,
@@ -365,14 +365,17 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (!adminData) return;
 
-    setClasses(adminData.courses.map(mapCourseToManagedClass));
+    const backendCourses = adminData.courses?.nodes ?? [];
+    const backendUsers = adminData.users?.nodes ?? [];
+
+    setClasses(backendCourses.map(mapCourseToManagedClass));
     setStudents(
-      adminData.users
+      backendUsers
         .filter((backendUser) => backendUser.role === "USER")
         .map(mapUserToStudent),
     );
     setTutors(
-      adminData.users
+      backendUsers
         .filter((backendUser) => backendUser.role === "TUTOR")
         .map(mapUserToTutor),
     );

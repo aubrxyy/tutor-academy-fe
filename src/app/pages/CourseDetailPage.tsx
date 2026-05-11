@@ -24,7 +24,7 @@ export default function CourseDetailPage() {
   const { courseId } = useParams();
   const { course, loading, error, refetch } = useCourseDetail(courseId);
   const { data: reviewsData, loading: isReviewsLoading } = useCourseReviews(courseId);
-  const reviews = reviewsData?.reviews ?? [];
+  const reviews = reviewsData?.reviews?.nodes ?? [];
   const reviewCount = reviews.length;
   const averageRating =
     reviewCount > 0
