@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery } from "@apollo/client/react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import {
   ArrowLeft,
   ClipboardCheck,
@@ -20,7 +21,16 @@ import { Label } from "../components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Textarea } from "../components/ui/textarea";
 import { toast } from "sonner";
-import type { CourseStatus } from "../api/courses";
+import { useTutorUsers } from "../api/admin";
+import {
+  CREATE_COURSE,
+  GET_COURSE_BY_ID,
+  UPDATE_COURSE,
+  type Course,
+  type CourseInput,
+  type CourseLevel,
+  type CourseStatus,
+} from "../api/courses";
 
 type EditorTab = "basic" | "curriculum";
 type CurriculumItemType = "video" | "material" | "quiz";
@@ -62,6 +72,28 @@ const courseStatusOptions: Array<{ value: CourseStatus; label: string }> = [
   { value: "ARCHIVED", label: "Archived" },
 ];
 
+const courseLevelOptions: Array<{ value: CourseLevel; label: string }> = [
+  { value: "BEGINNER", label: "Beginner" },
+  { value: "INTERMEDIATE", label: "Intermediate" },
+  { value: "ADVANCED", label: "Advanced" },
+];
+
+type CourseByIdData = {
+  courses: Course[];
+};
+
+type CourseFormState = {
+  title: string;
+  subtitle: string;
+  description: string;
+  totalDuration: string;
+  price: string;
+  isFree: boolean;
+  level: CourseLevel;
+  tutorIds: string[];
+  status: CourseStatus;
+};
+
 const emptySectionDraft: SectionDraft = {
   title: "",
   summary: "",
@@ -100,22 +132,36 @@ function getItemBadge(type: CurriculumItemType) {
 
 export default function CourseEditPage() {
   const { courseId } = useParams();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const isNewClass = courseId === "new";
   const initialTab = searchParams.get("tab");
   const activeTab: EditorTab =
     initialTab === "curriculum" || initialTab === "videos" ? "curriculum" : "basic";
-  const tutorOptions = ["Raka Pratama", "Andi Wijaya", "Denny Kusuma"];
+  const { data: tutorUsersData, loading: isTutorUsersLoading } = useTutorUsers();
+  const { data: courseData, loading: isCourseLoading } = useQuery<CourseByIdData>(
+    GET_COURSE_BY_ID,
+    {
+      variables: { courseId: courseId ?? "" },
+      skip: isNewClass || !courseId,
+      fetchPolicy: "cache-and-network",
+    },
+  );
+  const [createCourse, { loading: isCreatingCourse }] = useMutation(CREATE_COURSE);
+  const [updateCourse, { loading: isUpdatingCourse }] = useMutation(UPDATE_COURSE);
+  const tutorOptions = tutorUsersData?.users ?? [];
+  const isSavingCourse = isCreatingCourse || isUpdatingCourse;
 
-  const [classData, setClassData] = useState({
-    title: isNewClass ? "" : "Data Structures & Algorithms",
-    subtitle: isNewClass ? "" : "Master the fundamentals of DSA",
-    description: isNewClass
-      ? ""
-      : "Kelas intensif untuk mahasiswa BINUS yang ingin memahami struktur data lewat cohort-based learning, on-demand video, dan materi terkurasi.",
-    duration: isNewClass ? "" : "12 weeks",
-    tutor: isNewClass ? tutorOptions[0] : "Raka Pratama",
-    status: "DRAFT" as CourseStatus,
+  const [classData, setClassData] = useState<CourseFormState>({
+    title: "",
+    subtitle: "",
+    description: "",
+    totalDuration: "",
+    price: "",
+    isFree: false,
+    level: "BEGINNER",
+    tutorIds: [],
+    status: "DRAFT",
   });
 
   const [sections, setSections] = useState<CurriculumSection[]>(
@@ -183,6 +229,23 @@ export default function CourseEditPage() {
   const [sectionDraft, setSectionDraft] = useState<SectionDraft>(emptySectionDraft);
   const [itemDraft, setItemDraft] = useState<ItemDraft>(emptyItemDraft);
   const [isUploadDragActive, setIsUploadDragActive] = useState(false);
+
+  useEffect(() => {
+    const course = courseData?.courses?.[0];
+    if (!course || isNewClass) return;
+
+    setClassData({
+      title: course.title,
+      subtitle: course.shortDescription,
+      description: course.description,
+      totalDuration: String(course.totalDuration),
+      price: String(course.price),
+      isFree: course.isFree,
+      level: course.level,
+      tutorIds: course.tutorId,
+      status: course.status,
+    });
+  }, [courseData, isNewClass]);
 
   const selectedSection =
     sections.find((section) => section.id === selectedSectionId) ?? sections[0] ?? null;
@@ -389,12 +452,73 @@ export default function CourseEditPage() {
     toast.success("Curriculum item deleted");
   };
 
-  const handleSaveChanges = () => {
-    toast.success(isNewClass ? "New class created" : "Class changes saved", {
-      description: isNewClass
-        ? `Draft for ${classData.title || "untitled class"} is ready with ${sections.length} curriculum section(s).`
-        : `Konfigurasi class #${courseId ?? "1"} berhasil diperbarui bersama curriculum builder-nya.`,
-    });
+  const buildCourseInput = (): CourseInput | null => {
+    const totalDuration = Number(classData.totalDuration);
+    const price = classData.isFree ? 0 : Number(classData.price);
+
+    if (!classData.title.trim() || !classData.subtitle.trim() || !classData.description.trim()) {
+      toast.error("Please complete the class title, subtitle, and description.");
+      return null;
+    }
+
+    if (!Number.isFinite(totalDuration) || totalDuration < 0) {
+      toast.error("Course duration estimate must be a valid number.");
+      return null;
+    }
+
+    if (!Number.isFinite(price) || price < 0) {
+      toast.error("Price must be a valid number.");
+      return null;
+    }
+
+    if (classData.tutorIds.length === 0) {
+      toast.error("Assign at least one tutor before saving.");
+      return null;
+    }
+
+    return {
+      tutorId: classData.tutorIds,
+      title: classData.title.trim(),
+      description: classData.description.trim(),
+      shortDescription: classData.subtitle.trim(),
+      price,
+      level: classData.level,
+      isFree: classData.isFree,
+      status: classData.status,
+      totalSections: sections.length,
+      totalLectures: curriculumSummary.totalVideos + curriculumSummary.totalMaterials + curriculumSummary.totalQuizzes,
+      totalDuration,
+    };
+  };
+
+  const handleSaveChanges = async () => {
+    const input = buildCourseInput();
+    if (!input) return;
+
+    try {
+      if (isNewClass) {
+        await createCourse({
+          variables: { input },
+          refetchQueries: ["GetAdminPanelData", "GetPublishedCourses"],
+        });
+        toast.success("New class created", {
+          description: `${input.title} has been saved as ${input.status.toLowerCase()}.`,
+        });
+        navigate("/admin-dashboard?view=classes");
+        return;
+      }
+
+      await updateCourse({
+        variables: { id: courseId, input },
+        refetchQueries: ["GetAdminPanelData", "GetPublishedCourses", "GetCourseById"],
+      });
+      toast.success("Class changes saved", {
+        description: `${input.title} has been updated.`,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Please try again.";
+      toast.error("Unable to save class", { description: message });
+    }
   };
 
   return (
@@ -425,9 +549,13 @@ export default function CourseEditPage() {
                 </p>
               </div>
 
-              <Button className="bg-white text-[#0A1B45] hover:bg-white/90" onClick={handleSaveChanges}>
+              <Button
+                className="bg-white text-[#0A1B45] hover:bg-white/90"
+                onClick={handleSaveChanges}
+                disabled={isSavingCourse || isCourseLoading}
+              >
                 <Save className="mr-2 h-4 w-4" />
-                Save Changes
+                {isSavingCourse ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </div>
@@ -452,7 +580,19 @@ export default function CourseEditPage() {
 
             <TabsContent value="basic">
               <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.07)]">
-                <h2 className="mb-6 text-2xl font-bold text-[#0A1B45]">Class Information</h2>
+                <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-[#0A1B45]">Class Information</h2>
+                    <p className="mt-2 text-sm text-[#476074]">
+                      Batch setup is waiting for backend support. This form saves the core class data.
+                    </p>
+                  </div>
+                  {isCourseLoading ? (
+                    <Badge className="w-fit border-0 bg-[#0A1B45]/8 text-[#0A1B45]">
+                      Loading class
+                    </Badge>
+                  ) : null}
+                </div>
                 <form className="space-y-6">
                   <div className="grid gap-6 md:grid-cols-2">
                     <div className="space-y-2">
@@ -485,23 +625,32 @@ export default function CourseEditPage() {
 
                   <div className="grid gap-4 md:grid-cols-3">
                     <div className="space-y-2">
-                      <Label htmlFor="duration">Duration</Label>
+                      <Label htmlFor="totalDuration">Course Duration Estimate</Label>
                       <Input
-                        id="duration"
-                        value={classData.duration}
-                        onChange={(event) => setClassData({ ...classData, duration: event.target.value })}
+                        id="totalDuration"
+                        type="number"
+                        min="0"
+                        value={classData.totalDuration}
+                        onChange={(event) =>
+                          setClassData({ ...classData, totalDuration: event.target.value })
+                        }
+                        placeholder="e.g. 120"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="tutor">Assigned Tutor</Label>
+                      <Label htmlFor="level">Level</Label>
                       <select
-                        id="tutor"
-                        value={classData.tutor}
-                        onChange={(event) => setClassData({ ...classData, tutor: event.target.value })}
+                        id="level"
+                        value={classData.level}
+                        onChange={(event) =>
+                          setClassData({ ...classData, level: event.target.value as CourseLevel })
+                        }
                         className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
                       >
-                        {tutorOptions.map((tutor) => (
-                          <option key={tutor}>{tutor}</option>
+                        {courseLevelOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
                         ))}
                       </select>
                     </div>
@@ -524,6 +673,66 @@ export default function CourseEditPage() {
                           </option>
                         ))}
                       </select>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="price">Harga</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        min="0"
+                        value={classData.price}
+                        onChange={(event) => setClassData({ ...classData, price: event.target.value })}
+                        disabled={classData.isFree}
+                        placeholder="e.g. 499000"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="isFree">Pricing Type</Label>
+                      <select
+                        id="isFree"
+                        value={classData.isFree ? "free" : "paid"}
+                        onChange={(event) =>
+                          setClassData({
+                            ...classData,
+                            isFree: event.target.value === "free",
+                            price: event.target.value === "free" ? "0" : classData.price,
+                          })
+                        }
+                        className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                      >
+                        <option value="paid">Paid</option>
+                        <option value="free">Free</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="tutors">Assigned Tutors</Label>
+                      <select
+                        id="tutors"
+                        multiple
+                        value={classData.tutorIds}
+                        onChange={(event) =>
+                          setClassData({
+                            ...classData,
+                            tutorIds: Array.from(event.target.selectedOptions).map(
+                              (option) => option.value,
+                            ),
+                          })
+                        }
+                        className="min-h-24 w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                        disabled={isTutorUsersLoading}
+                      >
+                        {tutorOptions.map((tutor) => (
+                          <option key={tutor.id} value={tutor.id}>
+                            {tutor.name} ({tutor.username})
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-[#476074]">
+                        Course-level tutor assignment only. Batch assignment will be added when the Batch API is ready.
+                      </p>
                     </div>
                   </div>
                 </form>

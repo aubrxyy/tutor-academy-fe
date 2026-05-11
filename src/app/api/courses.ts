@@ -6,6 +6,7 @@ export type CourseStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 
 export interface Course {
   id: string;
+  tutorId: string[];
   title: string;
   slug: string;
   thumbnailUrl: string;
@@ -13,6 +14,20 @@ export interface Course {
   shortDescription: string;
   level: CourseLevel;
   price: number;
+  isFree: boolean;
+  status: CourseStatus;
+  totalSections: number;
+  totalLectures: number;
+  totalDuration: number;
+}
+
+export interface CourseInput {
+  tutorId: string[];
+  title: string;
+  description: string;
+  shortDescription: string;
+  price: number;
+  level: CourseLevel;
   isFree: boolean;
   status: CourseStatus;
   totalSections: number;
@@ -48,6 +63,7 @@ export interface CourseDetailView extends CourseCardView {
 export const COURSE_FIELDS = gql`
   fragment CourseFields on Course {
     id
+    tutorId
     title
     slug
     thumbnailUrl
@@ -70,6 +86,48 @@ export const GET_PUBLISHED_COURSES = gql`
     }
   }
   ${COURSE_FIELDS}
+`;
+
+export const CREATE_COURSE = gql`
+  mutation CreateCourse($input: CreateCourseInput!) {
+    createCourse(input: $input) {
+      title
+      description
+      shortDescription
+      thumbnailUrl
+      price
+      level
+      isFree
+      status
+      totalSections
+      totalLectures
+      totalDuration
+    }
+  }
+`;
+
+export const UPDATE_COURSE = gql`
+  mutation UpdateCourse($id: String!, $input: UpdateCourseInput!) {
+    updateCourse(id: $id, input: $input) {
+      title
+      description
+      shortDescription
+      thumbnailUrl
+      price
+      level
+      isFree
+      status
+      totalSections
+      totalLectures
+      totalDuration
+    }
+  }
+`;
+
+export const DELETE_COURSE = gql`
+  mutation DeleteCourse($id: String!) {
+    deleteCourse(id: $id)
+  }
 `;
 
 export const GET_COURSE_BY_ID = gql`

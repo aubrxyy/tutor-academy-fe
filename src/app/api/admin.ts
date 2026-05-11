@@ -52,6 +52,15 @@ export const GET_TUTOR_PANEL_DATA = gql`
   ${COURSE_FIELDS}
 `;
 
+export const GET_TUTOR_USERS = gql`
+  query GetTutorUsers {
+    users(where: { role: { eq: TUTOR } }, order: [{ name: ASC }]) {
+      ...UserFields
+    }
+  }
+  ${USER_FIELDS}
+`;
+
 interface AdminPanelData {
   users: BackendUser[];
   courses: Course[];
@@ -59,6 +68,10 @@ interface AdminPanelData {
 
 interface TutorPanelData {
   courses: Course[];
+}
+
+interface TutorUsersData {
+  users: BackendUser[];
 }
 
 export function useAdminPanelData() {
@@ -71,6 +84,12 @@ export function useTutorPanelCourses(courseIds: string[]) {
   return useQuery<TutorPanelData>(GET_TUTOR_PANEL_DATA, {
     variables: { courseIds },
     skip: courseIds.length === 0,
+    fetchPolicy: "cache-and-network",
+  });
+}
+
+export function useTutorUsers() {
+  return useQuery<TutorUsersData>(GET_TUTOR_USERS, {
     fetchPolicy: "cache-and-network",
   });
 }
