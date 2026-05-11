@@ -27,9 +27,12 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      navigate(getDefaultDashboardPath(user.role), { replace: true });
+      navigate(
+        searchParams.get("redirect") || getDefaultDashboardPath(user.role),
+        { replace: true },
+      );
     }
-  }, [isAuthenticated, navigate, user]);
+  }, [isAuthenticated, navigate, searchParams, user]);
 
   const redirectTarget =
     searchParams.get("redirect") ||

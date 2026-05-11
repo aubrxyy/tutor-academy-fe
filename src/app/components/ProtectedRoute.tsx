@@ -7,7 +7,11 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ allowRoles }: ProtectedRouteProps) {
   const location = useLocation();
-  const { isAuthenticated, hasRole } = useAuth();
+  const { isAuthenticated, isAuthReady, session, hasRole } = useAuth();
+
+  if (!isAuthReady && session?.token) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     const redirectTarget = `${location.pathname}${location.search}${location.hash}`;

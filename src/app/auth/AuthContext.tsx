@@ -30,6 +30,7 @@ interface AuthContextValue {
   token: string | null;
   user: AuthUser | null;
   isAuthenticated: boolean;
+  isAuthReady: boolean;
   login: (input: LoginCredentials) => Promise<AuthUser>;
   register: (input: RegisterCredentials) => Promise<AuthUser>;
   updateCurrentUser: (nextUser: Partial<AuthUser>) => void;
@@ -379,13 +380,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       token: session?.token ?? null,
       user,
       isAuthenticated: Boolean(session?.token && user),
+      isAuthReady: !isLoadingUser,
       login,
       register,
       updateCurrentUser,
       logout,
       hasRole,
     };
-  }, [session, user]);
+  }, [isLoadingUser, session, user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -1,7 +1,12 @@
 import type { RouteObject } from "react-router";
 import ProtectedRoute from "../components/ProtectedRoute";
+import ClassroomLayout from "../layouts/ClassroomLayout";
 import StudentPortalLayout from "../layouts/StudentPortalLayout";
 import ClassroomPage from "../pages/ClassroomPage";
+import ClassroomMaterialPage from "../pages/ClassroomMaterialPage";
+import ClassroomMeetingPage from "../pages/ClassroomMeetingPage";
+import ClassroomQuizPage from "../pages/ClassroomQuizPage";
+import ClassroomVideoPage from "../pages/ClassroomVideoPage";
 import CourseQuizPage from "../pages/CourseQuizPage";
 import CourseReviewPage from "../pages/CourseReviewPage";
 import StudentCertificatesPage from "../pages/StudentCertificatesPage";
@@ -36,15 +41,42 @@ export const studentRoutes: RouteObject[] = [
       },
       {
         path: "/classroom/:courseId",
-        Component: ClassroomPage,
+        element: <ClassroomLayout />,
+        children: [
+          {
+            index: true,
+            Component: ClassroomPage,
+          },
+          {
+            path: "videos/:itemId",
+            Component: ClassroomVideoPage,
+          },
+          {
+            path: "materials/:itemId",
+            Component: ClassroomMaterialPage,
+          },
+          {
+            path: "quizzes/:itemId",
+            Component: ClassroomQuizPage,
+          },
+          {
+            path: "meetings/:itemId",
+            Component: ClassroomMeetingPage,
+          },
+        ],
+      },
+      {
+        element: <ClassroomLayout />,
+        children: [
+          {
+            path: "/class/:courseId/quiz/:quizId",
+            Component: CourseQuizPage,
+          },
+        ],
       },
       {
         path: "/class/:courseId/review",
         Component: CourseReviewPage,
-      },
-      {
-        path: "/class/:courseId/quiz/:quizId",
-        Component: CourseQuizPage,
       },
       {
         path: "/course/:courseId/review",
