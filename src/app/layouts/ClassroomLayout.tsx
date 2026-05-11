@@ -21,9 +21,9 @@ export default function ClassroomLayout() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-4">
               <Link to="/student-dashboard">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="hover:cursor-pointer">
                   <ChevronLeft className="mr-1 h-4 w-4" />
-                  Kembali
+
                 </Button>
               </Link>
               <div>
