@@ -25,6 +25,7 @@ import {
   ArrowDownRight,
   FolderKanban,
   Download,
+  Book,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
@@ -61,7 +62,7 @@ type ManagedClass = {
   videos: number;
   sessions: number;
   docs: number;
-  completion: number;
+  quizzes: number;
   status: CourseStatus;
 };
 type ManagedStudent = {
@@ -130,7 +131,7 @@ export default function AdminDashboardPage() {
       videos: 18,
       sessions: 12,
       docs: 15,
-      completion: 85,
+      quizzes: 4,
       status: "PUBLISHED",
     },
     {
@@ -142,7 +143,7 @@ export default function AdminDashboardPage() {
       videos: 14,
       sessions: 10,
       docs: 12,
-      completion: 78,
+      quizzes: 3,
       status: "PUBLISHED",
     },
     {
@@ -154,7 +155,7 @@ export default function AdminDashboardPage() {
       videos: 11,
       sessions: 8,
       docs: 10,
-      completion: 82,
+      quizzes: 2,
       status: "DRAFT",
     },
   ];
@@ -321,7 +322,7 @@ export default function AdminDashboardPage() {
     videos: course.totalLectures,
     sessions: 0,
     docs: course.totalSections,
-    completion: course.status === "PUBLISHED" ? 100 : 35,
+    quizzes: 0,
     status: course.status,
   });
 
@@ -826,45 +827,52 @@ export default function AdminDashboardPage() {
 
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               {classes.map((item) => (
-                <Card key={item.id} className="overflow-hidden border-2 transition-all hover:border-[#308279] hover:shadow-lg">
+                <Card
+                  key={item.id}
+                  className="flex h-full flex-col overflow-hidden border-2 transition-all hover:border-[#308279] hover:shadow-lg"
+                >
                   <div className="bg-gradient-to-br from-[#0A1B45] to-[#308279] p-6 text-white">
-                    <div className="mb-4 flex items-center justify-between">
+                    <div className="mb-4 flex items-start justify-between gap-3">
                       <Badge className={getClassStatusBadgeClassName(item.status)}>
                         {getCourseStatusLabel(item.status)}
                       </Badge>
-                      <div className="text-sm text-white/80">{getCourseLevelLabel(item.level)}</div>
+                      <div className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/75">
+                        class
+                      </div>
                     </div>
-                    <h3 className="text-lg font-bold">{item.title}</h3>
-                    <p className="mt-2 text-sm text-white/80">
-                      {getCourseLevelLabel(item.level)} • Tutor: {item.tutor}
-                    </p>
+                    <div className="min-h-[88px]">
+                      <h3 className="text-lg font-bold leading-snug">{item.title}</h3>
+                      <p className="mt-3 text-sm text-white/80">Tutor: {item.tutor}</p>
+                    </div>
                   </div>
-                  <div className="space-y-4 p-6">
+                  <div className="flex flex-1 flex-col justify-between p-6">
+                    <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div className="rounded-xl bg-[#F3F8FA] p-3">
                         <div className="text-xs uppercase tracking-[0.14em] text-[#476074]">Students</div>
                         <div className="mt-2 text-2xl font-bold text-[#0A1B45]">{item.students}</div>
                       </div>
                       <div className="rounded-xl bg-[#F3F8FA] p-3">
-                        <div className="text-xs uppercase tracking-[0.14em] text-[#476074]">Completion</div>
-                        <div className="mt-2 text-2xl font-bold text-[#308279]">{item.completion}%</div>
+                        <div className="text-xs uppercase tracking-[0.14em] text-[#476074]">Quizzes</div>
+                        <div className="mt-2 text-2xl font-bold text-[#308279]">{item.quizzes}</div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-3 text-center">
-                      <div className="rounded-lg bg-[#F3F8FA] p-3">
-                        <div className="text-lg font-bold text-[#0A1B45]">{item.videos}</div>
-                        <div className="text-xs text-[#476074]">Videos</div>
-                      </div>
-                      <div className="rounded-lg bg-[#F3F8FA] p-3">
-                        <div className="text-lg font-bold text-[#308279]">{item.sessions}</div>
-                        <div className="text-xs text-[#476074]">Sessions</div>
-                      </div>
-                      <div className="rounded-lg bg-[#F3F8FA] p-3">
-                        <div className="text-lg font-bold text-[#0A1B45]">{item.docs}</div>
-                        <div className="text-xs text-[#476074]">Docs</div>
+                      <div className="grid grid-cols-3 gap-3 text-center">
+                        <div className="rounded-lg bg-[#F3F8FA] p-3">
+                          <div className="text-lg font-bold text-[#0A1B45]">{item.videos}</div>
+                          <div className="text-xs text-[#476074]">Videos</div>
+                        </div>
+                        <div className="rounded-lg bg-[#F3F8FA] p-3">
+                          <div className="text-lg font-bold text-[#308279]">{item.sessions}</div>
+                          <div className="text-xs text-[#476074]">Sessions</div>
+                        </div>
+                        <div className="rounded-lg bg-[#F3F8FA] p-3">
+                          <div className="text-lg font-bold text-[#0A1B45]">{item.docs}</div>
+                          <div className="text-xs text-[#476074]">Docs</div>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="mt-6 flex gap-2">
                       <Link to={`/admin/classes/${item.id}/edit`} className="flex-1">
                         <Button className="w-full bg-[#0A1B45] hover:bg-[#0A1B45]/90">
                           <BookOpen className="mr-2 h-4 w-4" />
@@ -876,8 +884,7 @@ export default function AdminDashboardPage() {
                           variant="outline"
                           className="w-full border-[#308279] text-[#308279]"
                         >
-                          <PlayCircle className="mr-2 h-4 w-4" />
-                          Add Video
+                          Add materials
                         </Button>
                       </Link>
                     </div>

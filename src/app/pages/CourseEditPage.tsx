@@ -8,6 +8,7 @@ import {
   ClassicEditor,
   Code,
   CodeBlock,
+  type EditorConfig,
   Essentials,
   FindAndReplace,
   FontBackgroundColor,
@@ -117,12 +118,52 @@ type ItemDraft = {
   sourceValue: string;
 };
 
+type QuizQuestionType = "multiple_answer" | "fill_answer";
+type QuizStatus = "Published" | "Draft";
+
+type QuizQuestionOption = {
+  id: number;
+  text: string;
+  isCorrect: boolean;
+};
+
+type QuizQuestion = {
+  id: number;
+  prompt: string;
+  type: QuizQuestionType;
+  options: QuizQuestionOption[];
+  acceptedAnswers: string[];
+  explanation: string;
+};
+
 type CourseQuiz = {
   id: number;
   title: string;
   description: string;
-  status: "Published" | "Draft";
-  linkedSectionTitle?: string;
+  status: QuizStatus;
+  assignedBatches: string[];
+  opensAt: string;
+  closesAt: string;
+  questions: QuizQuestion[];
+};
+
+type QuizQuestionDraft = {
+  id: number;
+  prompt: string;
+  type: QuizQuestionType;
+  options: QuizQuestionOption[];
+  acceptedAnswersText: string;
+  explanation: string;
+};
+
+type QuizDraft = {
+  title: string;
+  description: string;
+  status: QuizStatus;
+  assignedBatches: string[];
+  opensAt: string;
+  closesAt: string;
+  questions: QuizQuestionDraft[];
 };
 
 const courseStatusOptions: Array<{ value: CourseStatus; label: string }> = [
@@ -171,7 +212,32 @@ const emptyItemDraft: ItemDraft = {
   sourceValue: "",
 };
 
-const materialEditorConfig = {
+const createOptionDraft = (id: number): QuizQuestionOption => ({
+  id,
+  text: "",
+  isCorrect: false,
+});
+
+const createQuestionDraft = (id: number): QuizQuestionDraft => ({
+  id,
+  prompt: "",
+  type: "multiple_answer",
+  options: [createOptionDraft(id + 1), createOptionDraft(id + 2)],
+  acceptedAnswersText: "",
+  explanation: "",
+});
+
+const emptyQuizDraft = (): QuizDraft => ({
+  title: "",
+  description: "",
+  status: "Draft",
+  assignedBatches: [],
+  opensAt: "",
+  closesAt: "",
+  questions: [createQuestionDraft(Date.now())],
+});
+
+const materialEditorConfig: EditorConfig = {
   licenseKey: "GPL",
   plugins: [
     Essentials,
@@ -449,6 +515,8 @@ export default function CourseEditPage() {
     tutorIds: [],
     status: "DRAFT",
   });
+  const batchCount = Math.max(1, Number.parseInt(classData.totalBatches, 10) || 1);
+  const batchOptions = Array.from({ length: batchCount }, (_, index) => `Batch ${index + 1}`);
 
   const [sections, setSections] = useState<CurriculumSection[]>(
     isNewClass
@@ -502,7 +570,7 @@ export default function CourseEditPage() {
           },
         ],
   );
-  const [quizzes] = useState<CourseQuiz[]>(
+  const [quizzes, setQuizzes] = useState<CourseQuiz[]>(
     isNewClass
       ? []
       : [
@@ -511,7 +579,31 @@ export default function CourseEditPage() {
             title: "Array & Linked List Quiz",
             description: "Quiz umum untuk memastikan pemahaman siswa siap lanjut ke section berikutnya.",
             status: "Draft",
-            linkedSectionTitle: "Arrays & Strings",
+            assignedBatches: ["Batch 1"],
+            opensAt: "2026-05-12T09:00",
+            closesAt: "2026-05-15T21:00",
+            questions: [
+              {
+                id: 1,
+                prompt: "Manakah struktur data yang mendukung insert di head dalam O(1)?",
+                type: "multiple_answer",
+                options: [
+                  { id: 11, text: "Linked list", isCorrect: true },
+                  { id: 12, text: "Array statis", isCorrect: false },
+                  { id: 13, text: "Stack", isCorrect: true },
+                ],
+                acceptedAnswers: [],
+                explanation: "Linked list dan stack sama-sama bisa insert di head/top dalam O(1).",
+              },
+              {
+                id: 2,
+                prompt: "Isi istilah untuk kompleksitas binary search.",
+                type: "fill_answer",
+                options: [],
+                acceptedAnswers: ["o(log n)", "log n", "logarithmic"],
+                explanation: "Binary search memiliki kompleksitas waktu logaritmik.",
+              },
+            ],
           },
         ],
   );
@@ -519,10 +611,13 @@ export default function CourseEditPage() {
   const [selectedSectionId, setSelectedSectionId] = useState<number | null>(sections[0]?.id ?? null);
   const [editingSectionId, setEditingSectionId] = useState<number | null>(null);
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
+  const [editingQuizId, setEditingQuizId] = useState<number | null>(null);
   const [isCreatingSection, setIsCreatingSection] = useState(isNewClass);
   const [sectionDraft, setSectionDraft] = useState<SectionDraft>(emptySectionDraft);
   const [itemDraft, setItemDraft] = useState<ItemDraft>(emptyItemDraft);
+  const [quizDraft, setQuizDraft] = useState<QuizDraft>(emptyQuizDraft);
   const [isItemComposerOpen, setIsItemComposerOpen] = useState(false);
+  const [isQuizComposerOpen, setIsQuizComposerOpen] = useState(isNewClass);
   const [isUploadDragActive, setIsUploadDragActive] = useState(false);
 
   useEffect(() => {
@@ -585,6 +680,525 @@ export default function CourseEditPage() {
     setEditingItemId(null);
     setIsItemComposerOpen(false);
   };
+
+  const resetQuizDraft = () => {
+    setQuizDraft(emptyQuizDraft());
+    setEditingQuizId(null);
+    setIsQuizComposerOpen(false);
+  };
+
+  const openNewQuizComposer = () => {
+    setEditingQuizId(null);
+    setQuizDraft(emptyQuizDraft());
+    setIsQuizComposerOpen(true);
+  };
+
+  const mapQuizToDraft = (quiz: CourseQuiz): QuizDraft => ({
+    title: quiz.title,
+    description: quiz.description,
+    status: quiz.status,
+    assignedBatches: quiz.assignedBatches,
+    opensAt: quiz.opensAt,
+    closesAt: quiz.closesAt,
+    questions: quiz.questions.map((question) => ({
+      id: question.id,
+      prompt: question.prompt,
+      type: question.type,
+      options:
+        question.type === "multiple_answer"
+          ? question.options.map((option) => ({ ...option }))
+          : [],
+      acceptedAnswersText: question.acceptedAnswers.join(", "),
+      explanation: question.explanation,
+    })),
+  });
+
+  const handleEditQuiz = (quiz: CourseQuiz) => {
+    setEditingQuizId(quiz.id);
+    setQuizDraft(mapQuizToDraft(quiz));
+    setIsQuizComposerOpen(true);
+  };
+
+  const handleDeleteQuiz = (quizId: number) => {
+    setQuizzes((current) => current.filter((quiz) => quiz.id !== quizId));
+
+    if (editingQuizId === quizId) {
+      resetQuizDraft();
+    }
+
+    toast.success("Quiz deleted");
+  };
+
+  const addDraftQuestion = () => {
+    setQuizDraft((current) => ({
+      ...current,
+      questions: [...current.questions, createQuestionDraft(Date.now())],
+    }));
+  };
+
+  const updateDraftQuestion = (
+    questionId: number,
+    updater: (question: QuizQuestionDraft) => QuizQuestionDraft,
+  ) => {
+    setQuizDraft((current) => ({
+      ...current,
+      questions: current.questions.map((question) =>
+        question.id === questionId ? updater(question) : question,
+      ),
+    }));
+  };
+
+  const removeDraftQuestion = (questionId: number) => {
+    setQuizDraft((current) => ({
+      ...current,
+      questions:
+        current.questions.length === 1
+          ? current.questions
+          : current.questions.filter((question) => question.id !== questionId),
+    }));
+  };
+
+  const addQuestionOption = (questionId: number) => {
+    updateDraftQuestion(questionId, (question) => ({
+      ...question,
+      options: [...question.options, createOptionDraft(Date.now())],
+    }));
+  };
+
+  const removeQuestionOption = (questionId: number, optionId: number) => {
+    updateDraftQuestion(questionId, (question) => ({
+      ...question,
+      options:
+        question.options.length <= 2
+          ? question.options
+          : question.options.filter((option) => option.id !== optionId),
+    }));
+  };
+
+  const handleQuizQuestionTypeChange = (questionId: number, nextType: QuizQuestionType) => {
+    updateDraftQuestion(questionId, (question) => ({
+      ...question,
+      type: nextType,
+      options:
+        nextType === "multiple_answer"
+          ? question.options.length > 0
+            ? question.options
+            : [createOptionDraft(Date.now()), createOptionDraft(Date.now() + 1)]
+          : [],
+      acceptedAnswersText:
+        nextType === "fill_answer" ? question.acceptedAnswersText : "",
+    }));
+  };
+
+  const handleQuizSubmit = () => {
+    if (!quizDraft.title.trim() || !quizDraft.description.trim()) {
+      toast.error("Please complete the quiz title and description.");
+      return;
+    }
+
+    if (quizDraft.assignedBatches.length === 0) {
+      toast.error("Assign at least one batch for this quiz.");
+      return;
+    }
+
+    if (!quizDraft.opensAt || !quizDraft.closesAt) {
+      toast.error("Please complete both opened and closed time.");
+      return;
+    }
+
+    if (new Date(quizDraft.opensAt).getTime() >= new Date(quizDraft.closesAt).getTime()) {
+      toast.error("Closed time must be later than opened time.");
+      return;
+    }
+
+    if (quizDraft.questions.length === 0) {
+      toast.error("Add at least one question.");
+      return;
+    }
+
+    const normalizedQuestions: QuizQuestion[] = [];
+
+    for (const question of quizDraft.questions) {
+      if (!question.prompt.trim()) {
+        toast.error("Each question must have a prompt.");
+        return;
+      }
+
+      if (question.type === "multiple_answer") {
+        const normalizedOptions = question.options
+          .map((option) => ({ ...option, text: option.text.trim() }))
+          .filter((option) => option.text.length > 0);
+
+        if (normalizedOptions.length < 2) {
+          toast.error("Multiple answer questions need at least two filled options.");
+          return;
+        }
+
+        if (!normalizedOptions.some((option) => option.isCorrect)) {
+          toast.error("Mark at least one correct option for each multiple answer question.");
+          return;
+        }
+
+        normalizedQuestions.push({
+          id: question.id,
+          prompt: question.prompt.trim(),
+          type: question.type,
+          options: normalizedOptions,
+          acceptedAnswers: [],
+          explanation: question.explanation.trim(),
+        });
+        continue;
+      }
+
+      const acceptedAnswers = question.acceptedAnswersText
+        .split(",")
+        .map((answer) => answer.trim())
+        .filter(Boolean);
+
+      if (acceptedAnswers.length === 0) {
+        toast.error("Fill answer questions need at least one accepted answer.");
+        return;
+      }
+
+      normalizedQuestions.push({
+        id: question.id,
+        prompt: question.prompt.trim(),
+        type: question.type,
+        options: [],
+        acceptedAnswers,
+        explanation: question.explanation.trim(),
+      });
+    }
+
+    const payload: CourseQuiz = {
+      id: editingQuizId ?? Date.now(),
+      title: quizDraft.title.trim(),
+      description: quizDraft.description.trim(),
+      status: quizDraft.status,
+      assignedBatches: quizDraft.assignedBatches,
+      opensAt: quizDraft.opensAt,
+      closesAt: quizDraft.closesAt,
+      questions: normalizedQuestions,
+    };
+
+    if (editingQuizId) {
+      setQuizzes((current) =>
+        current.map((quiz) => (quiz.id === editingQuizId ? payload : quiz)),
+      );
+      toast.success("Quiz updated");
+    } else {
+      setQuizzes((current) => [...current, payload]);
+      toast.success("Quiz created");
+    }
+
+    resetQuizDraft();
+  };
+
+  const renderQuizComposer = () => (
+    <Card className="rounded-[1.5rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.07)]">
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h3 className="text-2xl font-bold text-[#0A1B45]">
+              {editingQuizId ? "Edit Quiz" : "Create New Quiz"}
+            </h3>
+            <p className="mt-2 text-sm leading-7 text-[#476074]">
+              Compose quiz metadata, then add questions below. Multiple answer
+              questions can have more than one correct option.
+            </p>
+          </div>
+          <Button variant="outline" className="border-[#D8E5E9]" onClick={resetQuizDraft}>
+            Cancel
+          </Button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="quiz-title">Quiz title</Label>
+            <Input
+              id="quiz-title"
+              placeholder="e.g. Arrays checkpoint"
+              value={quizDraft.title}
+              onChange={(event) =>
+                setQuizDraft((current) => ({ ...current, title: event.target.value }))
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="quiz-status">Status</Label>
+            <select
+              id="quiz-status"
+              value={quizDraft.status}
+              onChange={(event) =>
+                setQuizDraft((current) => ({
+                  ...current,
+                  status: event.target.value as QuizStatus,
+                }))
+              }
+              className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+            >
+              <option value="Draft">Draft</option>
+              <option value="Published">Published</option>
+            </select>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="quiz-description">Description</Label>
+            <Textarea
+              id="quiz-description"
+              rows={4}
+              placeholder="Briefly explain what this quiz measures."
+              value={quizDraft.description}
+              onChange={(event) =>
+                setQuizDraft((current) => ({
+                  ...current,
+                  description: event.target.value,
+                }))
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="quiz-batches">Batches assigned for</Label>
+            <select
+              id="quiz-batches"
+              multiple
+              value={quizDraft.assignedBatches}
+              onChange={(event) =>
+                setQuizDraft((current) => ({
+                  ...current,
+                  assignedBatches: Array.from(event.target.selectedOptions).map(
+                    (option) => option.value,
+                  ),
+                }))
+              }
+              className="min-h-24 w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+            >
+              {batchOptions.map((batch) => (
+                <option key={batch} value={batch}>
+                  {batch}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-[#476074]">
+              Batch options follow the current Total Batches value in basic settings.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="quiz-opened-at">Opened time</Label>
+            <Input
+              id="quiz-opened-at"
+              type="datetime-local"
+              value={quizDraft.opensAt}
+              onChange={(event) =>
+                setQuizDraft((current) => ({
+                  ...current,
+                  opensAt: event.target.value,
+                }))
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="quiz-closed-at">Closed time</Label>
+            <Input
+              id="quiz-closed-at"
+              type="datetime-local"
+              value={quizDraft.closesAt}
+              onChange={(event) =>
+                setQuizDraft((current) => ({
+                  ...current,
+                  closesAt: event.target.value,
+                }))
+              }
+            />
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h4 className="text-lg font-semibold text-[#0A1B45]">Questions</h4>
+              <p className="text-sm text-[#476074]">
+                Build each question directly in the quiz editor.
+              </p>
+            </div>
+            <Button variant="outline" className="border-[#D8E5E9]" onClick={addDraftQuestion}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Question
+            </Button>
+          </div>
+
+          {quizDraft.questions.map((question, index) => (
+            <div
+              key={question.id}
+              className="rounded-[1.25rem] border border-[#D8E5E9] bg-[#FAFCFD] p-5"
+            >
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#92A4AE]">
+                      Question {index + 1}
+                    </div>
+                    <h5 className="mt-1 text-lg font-semibold text-[#0A1B45]">
+                      {question.type === "multiple_answer"
+                        ? "Multiple Answer"
+                        : "Fill Answer"}
+                    </h5>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    className="text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]"
+                    onClick={() => removeDraftQuestion(question.id)}
+                    disabled={quizDraft.questions.length === 1}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Remove
+                  </Button>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Prompt</Label>
+                    <Textarea
+                      rows={3}
+                      placeholder="Write the question prompt..."
+                      value={question.prompt}
+                      onChange={(event) =>
+                        updateDraftQuestion(question.id, (current) => ({
+                          ...current,
+                          prompt: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Answer model</Label>
+                    <select
+                      value={question.type}
+                      onChange={(event) =>
+                        handleQuizQuestionTypeChange(
+                          question.id,
+                          event.target.value as QuizQuestionType,
+                        )
+                      }
+                      className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                    >
+                      <option value="multiple_answer">Multiple answer</option>
+                      <option value="fill_answer">Fill answer</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Explanation</Label>
+                    <Input
+                      placeholder="Optional explanation for review mode"
+                      value={question.explanation}
+                      onChange={(event) =>
+                        updateDraftQuestion(question.id, (current) => ({
+                          ...current,
+                          explanation: event.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                {question.type === "multiple_answer" ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label>Options</Label>
+                      <Button
+                        variant="outline"
+                        className="border-[#D8E5E9]"
+                        onClick={() => addQuestionOption(question.id)}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Option
+                      </Button>
+                    </div>
+                    <div className="space-y-3">
+                      {question.options.map((option, optionIndex) => (
+                        <div
+                          key={option.id}
+                          className="grid gap-3 rounded-xl border border-[#E6EEF1] bg-white p-3 md:grid-cols-[minmax(0,1fr)_auto_auto]"
+                        >
+                          <Input
+                            placeholder={`Option ${optionIndex + 1}`}
+                            value={option.text}
+                            onChange={(event) =>
+                              updateDraftQuestion(question.id, (current) => ({
+                                ...current,
+                                options: current.options.map((entry) =>
+                                  entry.id === option.id
+                                    ? { ...entry, text: event.target.value }
+                                    : entry,
+                                ),
+                              }))
+                            }
+                          />
+                          <label className="flex items-center gap-2 text-sm text-[#476074]">
+                            <input
+                              type="checkbox"
+                              checked={option.isCorrect}
+                              onChange={(event) =>
+                                updateDraftQuestion(question.id, (current) => ({
+                                  ...current,
+                                  options: current.options.map((entry) =>
+                                    entry.id === option.id
+                                      ? { ...entry, isCorrect: event.target.checked }
+                                      : entry,
+                                  ),
+                                }))
+                              }
+                              className="h-4 w-4 rounded border-[#C7DCE0] text-[#308279] focus:ring-[#308279]"
+                            />
+                            Correct
+                          </label>
+                          <Button
+                            variant="ghost"
+                            className="text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]"
+                            onClick={() => removeQuestionOption(question.id, option.id)}
+                            disabled={question.options.length <= 2}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label>Accepted answers</Label>
+                    <Textarea
+                      rows={3}
+                      placeholder="Comma-separated answers, e.g. O(log n), log n, logarithmic"
+                      value={question.acceptedAnswersText}
+                      onChange={(event) =>
+                        updateDraftQuestion(question.id, (current) => ({
+                          ...current,
+                          acceptedAnswersText: event.target.value,
+                        }))
+                      }
+                    />
+                    <p className="text-xs text-[#476074]">
+                      Separate equivalent accepted answers with commas.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <Button className="bg-[#308279] hover:bg-[#308279]/90" onClick={handleQuizSubmit}>
+            <Save className="mr-2 h-4 w-4" />
+            {editingQuizId ? "Save Quiz" : "Create Quiz"}
+          </Button>
+          <Button variant="outline" className="border-[#D8E5E9]" onClick={resetQuizDraft}>
+            Cancel
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
 
   const startCreateSection = () => {
     setIsCreatingSection(true);
@@ -1567,62 +2181,98 @@ export default function CourseEditPage() {
 
             <TabsContent value="quizzes">
               <div className="space-y-6">
-                <Card className="rounded-[1.5rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.07)]">
-                  <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="max-w-3xl">
-                      <h2 className="text-2xl font-bold text-[#0A1B45]">Class Quizzes</h2>
-                      <p className="mt-3 text-sm leading-7 text-[#476074]">
-                        WIP
-                      </p>
-                    </div>
-                    <Badge className="w-fit border-0 bg-[#FCEFC7] px-3 py-2 text-[#7A5A00]">
-                      {quizzes.length} quiz{quizzes.length === 1 ? "" : "zes"}
-                    </Badge>
-                  </div>
-                </Card>
+
+                {isQuizComposerOpen && !editingQuizId ? renderQuizComposer() : null}
 
                 {quizzes.map((quiz) => (
-                  <Card
-                    key={quiz.id}
-                    className="rounded-[1.5rem] border-[#D8E5E9] bg-white p-6 shadow-[0_18px_42px_rgba(10,27,69,0.07)]"
-                  >
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="flex items-start gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FCEFC7] text-[#7A5A00]">
-                          <ClipboardCheck className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-lg font-semibold text-[#0A1B45]">{quiz.title}</h3>
-                            <Badge className="border-0 bg-[#FCEFC7] text-[#7A5A00]">Quiz</Badge>
-                            <Badge
-                              className={
-                                quiz.status === "Published"
-                                  ? "border-0 bg-[#308279]/10 text-[#308279]"
-                                  : "border-0 bg-[#FCEFC7] text-[#7A5A00]"
-                              }
-                            >
-                              {quiz.status}
-                            </Badge>
+                  editingQuizId === quiz.id ? (
+                    <div key={quiz.id}>{renderQuizComposer()}</div>
+                  ) : (
+                    <Card
+                      key={quiz.id}
+                      className="rounded-[1.5rem] border-[#D8E5E9] bg-white p-6 shadow-[0_18px_42px_rgba(10,27,69,0.07)]"
+                    >
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="flex items-start gap-4">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FCEFC7] text-[#7A5A00]">
+                            <ClipboardCheck className="h-5 w-5" />
                           </div>
-                          <p className="mt-2 max-w-3xl text-sm leading-6 text-[#476074]">
-                            {quiz.description}
-                          </p>
-                          {quiz.linkedSectionTitle ? (
-                            <div className="mt-3 text-xs font-medium uppercase tracking-[0.14em] text-[#92A4AE]">
-                              Linked section: {quiz.linkedSectionTitle}
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="text-lg font-semibold text-[#0A1B45]">{quiz.title}</h3>
+                              <Badge className="border-0 bg-[#FCEFC7] text-[#7A5A00]">Quiz</Badge>
+                              <Badge
+                                className={
+                                  quiz.status === "Published"
+                                    ? "border-0 bg-[#308279]/10 text-[#308279]"
+                                    : "border-0 bg-[#FCEFC7] text-[#7A5A00]"
+                                }
+                              >
+                                {quiz.status}
+                              </Badge>
                             </div>
-                          ) : null}
+                            <p className="mt-2 max-w-3xl text-sm leading-6 text-[#476074]">
+                              {quiz.description}
+                            </p>
+                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-[0.14em] text-[#92A4AE]">
+                              <span>{quiz.questions.length} question{quiz.questions.length === 1 ? "" : "s"}</span>
+                              <span>•</span>
+                              <span>
+                                {quiz.questions.filter((question) => question.type === "multiple_answer").length} multiple
+                                {" "}answer
+                              </span>
+                              <span>•</span>
+                              <span>
+                                {quiz.questions.filter((question) => question.type === "fill_answer").length} fill
+                                {" "}answer
+                              </span>
+                            </div>
+                            <div className="mt-3 space-y-1 text-xs font-medium uppercase tracking-[0.14em] text-[#92A4AE]">
+                              <div>
+                                Batches assigned for: {quiz.assignedBatches.join(", ")}
+                              </div>
+                              <div>
+                                Opens: {new Date(quiz.opensAt).toLocaleString("id-ID")}
+                              </div>
+                              <div>
+                                Closes: {new Date(quiz.closesAt).toLocaleString("id-ID")}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            variant="outline"
+                            className="border-[#D8E5E9] text-[#0A1B45] hover:bg-[#F3F8FA]"
+                            onClick={() => handleEditQuiz(quiz)}
+                          >
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit Quiz
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]"
+                            onClick={() => handleDeleteQuiz(quiz.id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </Button>
                         </div>
                       </div>
-
-                      <Button variant="outline" className="border-[#D8E5E9] text-[#0A1B45] hover:bg-[#F3F8FA]">
-                        Manage Quiz
-                      </Button>
-                    </div>
-                  </Card>
+                    </Card>
+                  )
                 ))}
-
+                {quizzes.length === 0 && !isQuizComposerOpen ? (
+                  <button
+                    type="button"
+                    onClick={openNewQuizComposer}
+                    className="flex w-full items-center justify-center gap-2 rounded-[1.25rem] border border-dashed border-[#D8E5E9] bg-[#FAFCFD] px-5 py-6 text-sm font-semibold text-[#476074] transition hover:border-[#308279] hover:bg-[#F4FAF8] hover:text-[#0A1B45]"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Create your first quiz
+                  </button>
+                ) : null}
               </div>
             </TabsContent>
           </Tabs>
