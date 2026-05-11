@@ -1,0 +1,135 @@
+.material-editor-shell {
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+.material-editor-shell .ck.ck-editor {
+  border: 0;
+}
+
+.material-editor-shell .ck.ck-editor__main > .ck-editor__editable {
+  min-height: 28rem;
+  padding: 2rem 2.25rem;
+  border: 0;
+  background: linear-gradient(180deg, #ffffff 0%, #fcfefe 100%);
+  color: #102347;
+  font-size: 1rem;
+  line-height: 1.8;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.material-editor-shell .ck.ck-toolbar,
+.material-editor-shell .ck.ck-menu-bar {
+  border: 0;
+  border-bottom: 1px solid #d8e5e9;
+  background: #f7fafb;
+}
+
+.material-editor-shell .ck.ck-toolbar {
+  padding: 0.5rem 0.75rem;
+}
+
+.material-editor-shell .ck.ck-menu-bar {
+  padding: 0 0.5rem;
+}
+
+.material-editor-shell .ck.ck-button:not(.ck-disabled):hover,
+.material-editor-shell .ck.ck-button.ck-on,
+.material-editor-shell .ck.ck-dropdown__button:hover {
+  background: rgba(48, 130, 121, 0.12);
+}
+
+.material-editor-shell .ck.ck-dropdown .ck-button.ck-on,
+.material-editor-shell .ck.ck-dropdown .ck-button:hover {
+  color: #0a1b45;
+}
+
+.material-editor-shell .ck.ck-content h1,
+.material-editor-shell .ck.ck-content h2,
+.material-editor-shell .ck.ck-content h3 {
+  color: #0a1b45;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.material-editor-shell .ck.ck-content h1 {
+  margin: 0 0 1rem;
+  font-size: 2rem;
+}
+
+.material-editor-shell .ck.ck-content h2 {
+  margin: 2rem 0 0.875rem;
+  font-size: 1.5rem;
+}
+
+.material-editor-shell .ck.ck-content h3 {
+  margin: 1.5rem 0 0.75rem;
+  font-size: 1.2rem;
+}
+
+.material-editor-shell .ck.ck-content p,
+.material-editor-shell .ck.ck-content ul,
+.material-editor-shell .ck.ck-content ol,
+.material-editor-shell .ck.ck-content table,
+.material-editor-shell .ck.ck-content blockquote,
+.material-editor-shell .ck.ck-content pre {
+  margin-bottom: 1rem;
+}
+
+.material-editor-shell .ck.ck-content blockquote {
+  border-left: 4px solid #308279;
+  padding: 0.75rem 1rem;
+  background: #f4faf8;
+  color: #21416b;
+}
+
+.material-editor-shell .ck.ck-content pre {
+  border-radius: 1rem;
+  background: #0f1d3d;
+  color: #f5f7fb;
+  padding: 1rem 1.25rem;
+}
+
+.material-editor-shell .ck.ck-content table {
+  border-color: #c7dce0;
+}
+
+.material-editor-shell .ck.ck-content table td,
+.material-editor-shell .ck.ck-content table th {
+  border-color: #c7dce0;
+  padding: 0.75rem 0.9rem;
+}
+
+.material-editor-shell .ck.ck-content .material-lead {
+  font-size: 1.125rem;
+  line-height: 1.9;
+  color: #21416b;
+}
+
+.material-editor-shell .ck.ck-content .material-callout {
+  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  background: #ebf3f1;
+  border: 1px solid #c7dce0;
+  color: #21416b;
+}
+
+.material-editor-shell .ck.ck-content .material-divider {
+  border: 0;
+  border-top: 2px dashed #c7dce0;
+  margin: 2rem 0;
+}
+
+.material-editor-shell .ck.ck-content .material-table {
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.material-editor-wordcount .ck.ck-word-count {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #476074;
+}

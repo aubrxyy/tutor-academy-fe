@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
+import { jsPDF } from "jspdf";
 import {
   Users,
   FileText,
@@ -23,6 +24,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   FolderKanban,
+  Download,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
@@ -117,41 +119,6 @@ export default function AdminDashboardPage() {
     nextParams.set("view", view);
     setSearchParams(nextParams);
   };
-
-  const stats = [
-    {
-      icon: Users,
-      label: "Total Users",
-      value: adminData ? String(adminData.users.length) : "0",
-      change: isAdminDataLoading ? "Syncing" : "Backend",
-      trend: "up",
-      color: "from-[#308279] to-[#92B7B0]",
-    },
-    {
-      icon: FileText,
-      label: "Total Classes",
-      value: adminData ? String(adminData.courses.length) : "0",
-      change: isAdminDataLoading ? "Syncing" : "Backend",
-      trend: "up",
-      color: "from-[#0A1B45] to-[#308279]",
-    },
-    {
-      icon: DollarSign,
-      label: "Revenue (Month)",
-      value: "Rp 45jt",
-      change: "Static",
-      trend: "up",
-      color: "from-[#92B7B0] to-[#476074]",
-    },
-    {
-      icon: Activity,
-      label: "Active Sessions",
-      value: "156",
-      change: "Static",
-      trend: "up",
-      color: "from-[#308279] to-[#0A1B45]",
-    },
-  ];
 
   const initialClasses: ManagedClass[] = [
     {
@@ -290,28 +257,28 @@ export default function AdminDashboardPage() {
       id: 1,
       className: "Data Structures & Algorithms",
       tutor: "Raka Pratama",
-      students: 234,
-      monthlyRevenue: "Rp 15.600.000",
+      totalStudents: 234,
+      totalBatches: 6,
+      revenuePerBatch: "Rp 2.600.000",
       annualRevenue: "Rp 187.200.000",
-      avgSubscription: "Rp 150.000",
     },
     {
       id: 2,
       className: "Database Management & SQL",
       tutor: "Andi Wijaya",
-      students: 178,
-      monthlyRevenue: "Rp 12.200.000",
+      totalStudents: 178,
+      totalBatches: 4,
+      revenuePerBatch: "Rp 3.050.000",
       annualRevenue: "Rp 146.400.000",
-      avgSubscription: "Rp 140.000",
     },
     {
       id: 3,
       className: "HCI Design Principles",
       tutor: "Denny Kusuma",
-      students: 145,
-      monthlyRevenue: "Rp 10.500.000",
+      totalStudents: 145,
+      totalBatches: 3,
+      revenuePerBatch: "Rp 3.500.000",
       annualRevenue: "Rp 126.000.000",
-      avgSubscription: "Rp 145.000",
     },
   ];
 
@@ -531,6 +498,128 @@ export default function AdminDashboardPage() {
     setIsAddTutorOpen(false);
   };
 
+  const downloadBlob = (content: BlobPart, filename: string, type: string) => {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadFinancialSpreadsheet = () => {
+    const rows = [
+      [
+        "Class Name",
+        "Tutor",
+        "Total Students",
+        "Total Batches",
+        "Revenue Per Batch",
+        "Annual Revenue",
+      ],
+      ...classFinancials.map((item) => [
+        item.className,
+        item.tutor,
+        String(item.totalStudents),
+        String(item.totalBatches),
+        item.revenuePerBatch,
+        item.annualRevenue,
+      ]),
+    ];
+
+    const csv = rows
+      .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    downloadBlob(csv, "admin-financial-report.csv", "text/csv;charset=utf-8;");
+    toast.success("Spreadsheet downloaded", {
+      description: "Financial report exported as CSV.",
+    });
+  };
+
+  const handleDownloadFinancialPdf = () => {
+    const pdf = new jsPDF({ unit: "pt", format: "a4" });
+    let y = 48;
+
+    pdf.setFontSize(18);
+    pdf.text("Admin Financial Report", 40, y);
+    y += 24;
+
+    pdf.setFontSize(11);
+    pdf.text("Monthly Revenue: Rp 45jt", 40, y);
+    y += 18;
+    pdf.text("Active Subscriptions: 557", 40, y);
+    y += 28;
+
+    classFinancials.forEach((item) => {
+      pdf.setFontSize(12);
+      pdf.text(item.className, 40, y);
+      y += 16;
+
+      pdf.setFontSize(10);
+      pdf.text(`Tutor: ${item.tutor}`, 52, y);
+      y += 14;
+      pdf.text(`Total Students: ${item.totalStudents}`, 52, y);
+      y += 14;
+      pdf.text(`Total Batches: ${item.totalBatches}`, 52, y);
+      y += 14;
+      pdf.text(`Revenue Per Batch: ${item.revenuePerBatch}`, 52, y);
+      y += 14;
+      pdf.text(`Annual Revenue: ${item.annualRevenue}`, 52, y);
+      y += 22;
+
+      if (y > 760) {
+        pdf.addPage();
+        y = 48;
+      }
+    });
+
+    pdf.save("admin-financial-report.pdf");
+    toast.success("PDF downloaded", {
+      description: "Financial report exported as PDF.",
+    });
+  };
+
+  const stats = [
+    {
+      icon: GraduationCap,
+      label: "Total Students",
+      value: String(students.length),
+      change: isAdminDataLoading ? "Syncing" : "Backend",
+      trend: "up" as const,
+      color: "from-[#308279] to-[#92B7B0]",
+      view: "students" as const,
+    },
+    {
+      icon: Users,
+      label: "Total Tutors",
+      value: String(tutors.length),
+      change: isAdminDataLoading ? "Syncing" : "Backend",
+      trend: "up" as const,
+      color: "from-[#0A1B45] to-[#308279]",
+      view: "tutors" as const,
+    },
+    {
+      icon: FileText,
+      label: "Total Classes",
+      value: String(classes.length),
+      change: isAdminDataLoading ? "Syncing" : "Backend",
+      trend: "up" as const,
+      color: "from-[#92B7B0] to-[#476074]",
+      view: "classes" as const,
+    },
+    {
+      icon: DollarSign,
+      label: "Revenue (Month)",
+      value: "Rp 45jt",
+      change: "Static",
+      trend: "up" as const,
+      color: "from-[#308279] to-[#0A1B45]",
+      view: "financials" as const,
+    },
+  ];
+
   return (
     <div className="flex min-h-screen bg-[#F3F8FA]">
       <aside className="sticky top-0 h-screen w-72 bg-gradient-to-b from-[#081734] to-[#308279] text-white shadow-[18px_0_40px_rgba(10,27,69,0.12)]">
@@ -592,84 +681,41 @@ export default function AdminDashboardPage() {
         {selectedView === "dashboard" && (
           <div className="p-8">
             <div className="mb-8 rounded-[2rem] bg-gradient-to-r from-[#0A1B45] via-[#123061] to-[#308279] p-8 text-white shadow-[0_24px_60px_rgba(10,27,69,0.14)]">
-              <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
-                <div>
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.2em] text-white/75">
-                    Live system status
-                  </div>
-                  <h2 className="mt-5 text-4xl font-bold tracking-[-0.04em]">
-                    Admin controls every class build and video rollout
-                  </h2>
-                  <p className="mt-3 max-w-2xl text-white/75 leading-7">
-                    Tutor sekarang fokus pada live session dan dokumen belajar. Admin memegang
-                    workflow pembuatan class, struktur video, pricing, dan monitoring transaksi.
-                  </p>
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    <Button
-                      className="bg-white text-[#0A1B45] hover:bg-[#F3F8FA]"
-                      onClick={() => {
-                        setAdminView("classes");
-                        toast.success("Class builder opened", {
-                          description: "Lanjutkan dengan membuat class baru dari panel classes.",
-                        });
-                      }}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Create Class
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="border-white/30 bg-white/10 text-white hover:bg-white/15 hover:text-white"
-                      onClick={() => {
-                        setAdminView("classes");
-                        toast.message("Video library", {
-                          description: "Pilih class yang ingin ditambahkan video pembelajarannya.",
-                        });
-                      }}
-                    >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload Video
-                    </Button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-                    <div className="text-xs uppercase tracking-[0.18em] text-white/55">Classes Ready</div>
-                    <div className="mt-2 text-3xl font-bold">145</div>
-                  </div>
-                  <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-                    <div className="text-xs uppercase tracking-[0.18em] text-white/55">Videos Published</div>
-                    <div className="mt-2 text-3xl font-bold">312</div>
-                  </div>
-                  <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-                    <div className="text-xs uppercase tracking-[0.18em] text-white/55">Finance Access</div>
-                    <div className="mt-2 text-lg font-semibold">Restricted</div>
-                  </div>
-                  <div className="rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-                    <div className="text-xs uppercase tracking-[0.18em] text-white/55">Critical Alerts</div>
-                    <div className="mt-2 text-3xl font-bold">0</div>
-                  </div>
-                </div>
+              <div>
+                <h2 className="mt-5 text-4xl font-bold tracking-[-0.04em]">
+                  im craving some chinese and its not food
+                </h2>
+                <p className="mt-3 max-w-2xl text-white/75 leading-7">
+                  Tutor sekarang fokus pada live session dan dokumen belajar. Admin memegang
+                  workflow pembuatan class, struktur video, pricing, dan monitoring transaksi.
+                </p>
               </div>
             </div>
 
             <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
               {stats.map((stat) => (
-                <Card key={stat.label} className="border-2 p-6 transition-all hover:border-[#308279] hover:shadow-lg">
-                  <div className="mb-4 flex items-start justify-between">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br ${stat.color}`}>
-                      <stat.icon className="h-6 w-6 text-white" />
+                <button
+                  key={stat.label}
+                  type="button"
+                  onClick={() => setAdminView(stat.view)}
+                  className="text-left"
+                >
+                  <Card className="border-2 p-6 transition-all hover:border-[#308279] hover:shadow-lg cursor-pointer">
+                    <div className="mb-4 flex items-start justify-between">
+                      <div className={`flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br ${stat.color}`}>
+                        <stat.icon className="h-6 w-6 text-white" />
+                      </div>
+                      {stat.trend === "up" ? (
+                        <ArrowUpRight className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <ArrowDownRight className="h-5 w-5 text-red-500" />
+                      )}
                     </div>
-                    {stat.trend === "up" ? (
-                      <ArrowUpRight className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <ArrowDownRight className="h-5 w-5 text-red-500" />
-                    )}
-                  </div>
-                  <div className="mb-2 text-3xl font-bold text-[#0A1B45]">{stat.value}</div>
-                  <div className="mb-2 text-sm text-[#476074]">{stat.label}</div>
-                  <div className="text-xs font-medium text-green-600">{stat.change} this month</div>
-                </Card>
+                    <div className="mb-2 text-3xl font-bold text-[#0A1B45]">{stat.value}</div>
+                    <div className="mb-2 text-sm text-[#476074]">{stat.label}</div>
+                    <div className="text-xs font-medium text-green-600">{stat.change} data</div>
+                  </Card>
+                </button>
               ))}
             </div>
 
@@ -730,54 +776,30 @@ export default function AdminDashboardPage() {
               </Card>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-              <Card className="p-6">
-                <div className="mb-4 flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-[#0A1B45]">Top Class Performance</h3>
-                  <Badge className="border-0 bg-[#0A1B45]/10 text-[#0A1B45]">Ops overview</Badge>
-                </div>
-                <div className="h-72">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={classPerformanceData}>
-                      <CartesianGrid stroke="#92B7B0" strokeDasharray="3 3" opacity={0.3} />
-                      <XAxis dataKey="className" stroke="#476074" />
-                      <YAxis stroke="#476074" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "#fff",
-                          border: "1px solid #308279",
-                          borderRadius: "8px",
-                        }}
-                      />
-                      <Bar dataKey="completion" fill="#308279" radius={[8, 8, 0, 0]} name="Completion %" />
-                      <Bar dataKey="students" fill="#0A1B45" radius={[8, 8, 0, 0]} name="Students" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </Card>
-
-              <Card className="p-6">
-                <h3 className="mb-4 text-lg font-bold text-[#0A1B45]">Recent Admin Actions</h3>
-                <div className="space-y-3">
-                  <div className="rounded-lg bg-[#F3F8FA] p-4">
-                    <div className="font-medium text-[#0A1B45]">Video pack published to Data Structures & Algorithms</div>
-                    <div className="mt-1 text-sm text-[#476074]">1 hour ago</div>
-                  </div>
-                  <div className="rounded-lg bg-[#F3F8FA] p-4">
-                    <div className="font-medium text-[#0A1B45]">Class pricing updated for Database Management & SQL</div>
-                    <div className="mt-1 text-sm text-[#476074]">Yesterday</div>
-                  </div>
-                  <div className="rounded-lg bg-[#F3F8FA] p-4">
-                    <div className="font-medium text-[#0A1B45]">Tutor assignment confirmed for HCI Design Principles</div>
-                    <div className="mt-1 text-sm text-[#476074]">2 days ago</div>
-                  </div>
-                  <div className="rounded-lg bg-green-50 p-4 border border-green-200">
-                    <div className="font-medium text-green-900">All payment webhooks operational</div>
-                    <div className="mt-1 text-sm text-green-700">No blocked transactions detected</div>
-                  </div>
-                </div>
-              </Card>
-            </div>
+            <Card className="p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-bold text-[#0A1B45]">Top Class Performance</h3>
+                <Badge className="border-0 bg-[#0A1B45]/10 text-[#0A1B45]">Ops overview</Badge>
+              </div>
+              <div className="h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={classPerformanceData}>
+                    <CartesianGrid stroke="#92B7B0" strokeDasharray="3 3" opacity={0.3} />
+                    <XAxis dataKey="className" stroke="#476074" />
+                    <YAxis stroke="#476074" />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#fff",
+                        border: "1px solid #308279",
+                        borderRadius: "8px",
+                      }}
+                    />
+                    <Bar dataKey="completion" fill="#308279" radius={[8, 8, 0, 0]} name="Completion %" />
+                    <Bar dataKey="students" fill="#0A1B45" radius={[8, 8, 0, 0]} name="Students" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
           </div>
         )}
 
@@ -795,18 +817,6 @@ export default function AdminDashboardPage() {
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   New Class
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-[#308279] text-[#308279]"
-                  onClick={() =>
-                    toast.message("Bulk video upload", {
-                      description: "Alur upload batch video akan kita sambungkan ke media library admin.",
-                    })
-                  }
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload Video
                 </Button>
               </div>
             </div>
@@ -1108,28 +1118,39 @@ export default function AdminDashboardPage() {
 
         {selectedView === "financials" && (
           <div className="p-8">
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold text-[#0A1B45]">Financial Reports</h2>
-              <p className="mt-2 text-[#476074]">Revenue, subscriptions, and income per class</p>
+            <div className="mb-8 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-3xl font-bold text-[#0A1B45]">Financial Reports</h2>
+                <p className="mt-2 text-[#476074]">Revenue, subscriptions, and income per class</p>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="border-[#308279] text-[#308279]"
+                  onClick={handleDownloadFinancialSpreadsheet}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Spreadsheet
+                </Button>
+                <Button
+                  className="bg-[#0A1B45] hover:bg-[#0A1B45]/90"
+                  onClick={handleDownloadFinancialPdf}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download PDF
+                </Button>
+              </div>
             </div>
 
             <Card className="mb-6 p-6">
-              <div className="grid gap-6 md:grid-cols-4">
+              <div className="grid gap-6 md:grid-cols-2">
                 <div className="rounded-lg bg-gradient-to-br from-[#308279] to-[#92B7B0] p-4 text-white">
                   <div className="text-sm">Monthly Revenue</div>
                   <div className="mt-2 text-3xl font-bold">Rp 45jt</div>
                 </div>
-                <div className="rounded-lg bg-gradient-to-br from-[#0A1B45] to-[#308279] p-4 text-white">
-                  <div className="text-sm">Annual Projection</div>
-                  <div className="mt-2 text-3xl font-bold">Rp 540jt</div>
-                </div>
                 <div className="rounded-lg bg-gradient-to-br from-[#92B7B0] to-[#476074] p-4 text-white">
                   <div className="text-sm">Active Subscriptions</div>
                   <div className="mt-2 text-3xl font-bold">557</div>
-                </div>
-                <div className="rounded-lg bg-gradient-to-br from-[#476074] to-[#0A1B45] p-4 text-white">
-                  <div className="text-sm">Avg. Revenue/Student</div>
-                  <div className="mt-2 text-3xl font-bold">Rp 145k</div>
                 </div>
               </div>
             </Card>
@@ -1144,10 +1165,10 @@ export default function AdminDashboardPage() {
                     <tr>
                       <th className="p-4 text-left text-[#0A1B45]">Class Name</th>
                       <th className="p-4 text-left text-[#0A1B45]">Tutor</th>
-                      <th className="p-4 text-center text-[#0A1B45]">Students</th>
-                      <th className="p-4 text-right text-[#0A1B45]">Monthly Revenue</th>
+                      <th className="p-4 text-center text-[#0A1B45]">Total Students</th>
+                      <th className="p-4 text-center text-[#0A1B45]">Total Batches</th>
+                      <th className="p-4 text-right text-[#0A1B45]">Revenue Per Batch</th>
                       <th className="p-4 text-right text-[#0A1B45]">Annual Revenue</th>
-                      <th className="p-4 text-right text-[#0A1B45]">Avg/Student</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1157,10 +1178,10 @@ export default function AdminDashboardPage() {
                           <div className="font-medium text-[#0A1B45]">{item.className}</div>
                         </td>
                         <td className="p-4 text-[#476074]">{item.tutor}</td>
-                        <td className="p-4 text-center font-medium text-[#308279]">{item.students}</td>
-                        <td className="p-4 text-right font-medium text-[#0A1B45]">{item.monthlyRevenue}</td>
+                        <td className="p-4 text-center font-medium text-[#308279]">{item.totalStudents}</td>
+                        <td className="p-4 text-center font-medium text-[#0A1B45]">{item.totalBatches}</td>
+                        <td className="p-4 text-right font-medium text-[#0A1B45]">{item.revenuePerBatch}</td>
                         <td className="p-4 text-right font-medium text-[#0A1B45]">{item.annualRevenue}</td>
-                        <td className="p-4 text-right text-[#476074]">{item.avgSubscription}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1168,9 +1189,9 @@ export default function AdminDashboardPage() {
                     <tr>
                       <td colSpan={2} className="p-4 text-[#0A1B45]">Total</td>
                       <td className="p-4 text-center text-[#308279]">557</td>
-                      <td className="p-4 text-right text-[#0A1B45]">Rp 38.300.000</td>
+                      <td className="p-4 text-center text-[#0A1B45]">13</td>
+                      <td className="p-4 text-right text-[#0A1B45]">Rp 9.150.000</td>
                       <td className="p-4 text-right text-[#0A1B45]">Rp 459.600.000</td>
-                      <td className="p-4 text-right text-[#0A1B45]">Rp 145.000</td>
                     </tr>
                   </tfoot>
                 </table>
