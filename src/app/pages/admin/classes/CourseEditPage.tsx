@@ -689,6 +689,7 @@ export default function CourseEditPage() {
         ],
   );
 
+  const [sections, setSections] = useState<CurriculumSection[]>([]);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(sections[0]?.id ?? null);
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
