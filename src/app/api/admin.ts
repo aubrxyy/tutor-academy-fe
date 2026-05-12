@@ -1,6 +1,7 @@
 import { gql } from "@apollo/client";
 import { useQuery } from "@apollo/client/react";
 import { COURSE_FIELDS, type Course } from "./courses";
+import type { Batch } from "./batches";
 
 export type BackendUserRole = "ADMIN" | "USER" | "TUTOR";
 
@@ -29,6 +30,18 @@ const USER_FIELDS = gql`
   }
 `;
 
+const ADMIN_BATCH_FIELDS = gql`
+  fragment AdminBatchFields on Batch {
+    id
+    courseId
+    tutorId
+    startDate
+    endDate
+    capacity
+    status
+  }
+`;
+
 export const GET_ADMIN_PANEL_DATA = gql`
   query GetAdminPanelData {
     users(order: [{ name: ASC }]) {
@@ -41,9 +54,15 @@ export const GET_ADMIN_PANEL_DATA = gql`
         ...CourseFields
       }
     }
+    batches(order: [{ startDate: ASC }]) {
+      nodes {
+        ...AdminBatchFields
+      }
+    }
   }
   ${USER_FIELDS}
   ${COURSE_FIELDS}
+  ${ADMIN_BATCH_FIELDS}
 `;
 
 export const GET_TUTOR_PANEL_DATA = gql`
@@ -74,6 +93,9 @@ interface AdminPanelData {
   } | null;
   courses: {
     nodes: Course[];
+  } | null;
+  batches: {
+    nodes: Batch[];
   } | null;
 }
 
