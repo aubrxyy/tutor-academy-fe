@@ -10,7 +10,7 @@ export interface Batch {
   startDate: string;
   endDate: string;
   capacity: number;
-  status?: BatchStatus | null;
+  status: BatchStatus;
 }
 
 export interface CreateBatchInput {
@@ -29,6 +29,7 @@ const BATCH_FIELDS = gql`
     startDate
     endDate
     capacity
+    status
   }
 `;
 
@@ -46,9 +47,10 @@ export const GET_COURSE_BATCHES = gql`
 export const CREATE_BATCH = gql`
   mutation CreateBatch($input: CreateBatchInput!) {
     createBatch(input: $input) {
-      __typename
+      ...BatchFields
     }
   }
+  ${BATCH_FIELDS}
 `;
 
 interface CourseBatchesData {

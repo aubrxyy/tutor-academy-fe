@@ -6,10 +6,10 @@ export type CourseStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 
 export interface Course {
   id: string;
-  tutorId?: string[] | null;
+  tutorId: string[];
   title: string;
   slug: string;
-  thumbnailUrl: string;
+  thumbnailUrl?: string | null;
   description: string;
   shortDescription: string;
   level: CourseLevel;
@@ -63,9 +63,9 @@ export interface CourseDetailView extends CourseCardView {
 export const COURSE_FIELDS = gql`
   fragment CourseFields on Course {
     id
+    tutorId
     title
     slug
-    thumbnailUrl
     description
     shortDescription
     level
@@ -92,37 +92,19 @@ export const GET_PUBLISHED_COURSES = gql`
 export const CREATE_COURSE = gql`
   mutation CreateCourse($input: CreateCourseInput!) {
     createCourse(input: $input) {
-      title
-      description
-      shortDescription
-      thumbnailUrl
-      price
-      level
-      isFree
-      status
-      totalSections
-      totalLectures
-      totalDuration
+      ...CourseFields
     }
   }
+  ${COURSE_FIELDS}
 `;
 
 export const UPDATE_COURSE = gql`
   mutation UpdateCourse($id: String!, $input: UpdateCourseInput!) {
     updateCourse(id: $id, input: $input) {
-      title
-      description
-      shortDescription
-      thumbnailUrl
-      price
-      level
-      isFree
-      status
-      totalSections
-      totalLectures
-      totalDuration
+      ...CourseFields
     }
   }
+  ${COURSE_FIELDS}
 `;
 
 export const DELETE_COURSE = gql`
@@ -191,7 +173,7 @@ export function mapCourseToCard(course: Course): CourseCardView {
     reviews: 0,
     students: 0,
     tutor: "Tutoring Academy",
-    image: course.thumbnailUrl,
+    image: course.thumbnailUrl ?? "",
     featured: course.level === "ADVANCED",
     duration: formatDuration(course.totalDuration),
   };

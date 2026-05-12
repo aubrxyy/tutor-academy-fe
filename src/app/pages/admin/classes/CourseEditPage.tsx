@@ -73,7 +73,8 @@ import { Label } from "../../../components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import { Textarea } from "../../../components/ui/textarea";
 import { toast } from "sonner";
-import { useTutorUsers } from "../../../api/admin";
+import { GET_ADMIN_PANEL_DATA, useTutorUsers } from "../../../api/admin";
+import { CREATE_BATCH, GET_COURSE_BATCHES, useCourseBatches, type Batch } from "../../../api/batches";
 import {
   CREATE_COURSE,
   GET_COURSE_BY_ID,
@@ -83,31 +84,43 @@ import {
   type CourseLevel,
   type CourseStatus,
 } from "../../../api/courses";
+import {
+  CREATE_LECTURE,
+  CREATE_SECTION,
+  DELETE_LECTURE,
+  DELETE_SECTION,
+  GET_COURSE_CURRICULUM,
+  UPDATE_LECTURE,
+  UPDATE_SECTION,
+  useCourseCurriculum,
+  type Lecture,
+  type Section,
+} from "../../../api/curriculum";
 
 type EditorTab = "basic" | "curriculum" | "quizzes";
 type CurriculumItemType = "video" | "material";
 type CurriculumSourceType = "upload" | "link" | "editor";
 
 type CurriculumItem = {
-  id: number;
+  id: string;
   title: string;
   type: CurriculumItemType;
   description: string;
   sourceType: CurriculumSourceType;
   sourceValue: string;
+  duration: string;
   status: "Published" | "Draft";
 };
 
 type CurriculumSection = {
-  id: number;
+  id: string;
   title: string;
-  summary: string;
+  backendType: "VIDEO" | "ARTICLE";
   items: CurriculumItem[];
 };
 
 type SectionDraft = {
   title: string;
-  summary: string;
 };
 
 type ItemDraft = {
@@ -116,6 +129,7 @@ type ItemDraft = {
   description: string;
   sourceType: CurriculumSourceType;
   sourceValue: string;
+  duration: string;
 };
 
 type QuizQuestionType = "multiple_answer" | "fill_answer";
@@ -188,20 +202,26 @@ type CourseFormState = {
   title: string;
   subtitle: string;
   description: string;
-  durationValue: string;
-  durationUnit: "week" | "month";
-  totalBatches: string;
   totalDuration: string;
   price: string;
   isFree: boolean;
   level: CourseLevel;
-  tutorIds: string[];
   status: CourseStatus;
+};
+
+type BatchDurationUnit = "day" | "week" | "month";
+
+type BatchDraft = {
+  id: string;
+  tutorId: string;
+  startDate: string;
+  durationValue: string;
+  durationUnit: BatchDurationUnit;
+  capacity: string;
 };
 
 const emptySectionDraft: SectionDraft = {
   title: "",
-  summary: "",
 };
 
 const emptyItemDraft: ItemDraft = {
@@ -210,6 +230,7 @@ const emptyItemDraft: ItemDraft = {
   description: "",
   sourceType: "link",
   sourceValue: "",
+  duration: "15",
 };
 
 const createOptionDraft = (id: number): QuizQuestionOption => ({
@@ -441,20 +462,58 @@ function buildYouTubeUrl(videoId: string) {
   return `https://www.youtube.com/watch?v=${videoId}`;
 }
 
-function parseDurationParts(value: string) {
-  const match = value.trim().match(/^(\d+)\s*(week|weeks|month|months)$/i);
+function durationToIso8601(minutes: number): string {
+  if (minutes <= 0) return "PT1M";
+  return `PT${Math.round(minutes)}M`;
+}
 
-  if (!match) {
+function iso8601ToDurationMinutes(iso: string): string {
+  if (!iso) return "15";
+  const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return "15";
+  const hours = match[1] ? parseInt(match[1], 10) : 0;
+  const mins = match[2] ? parseInt(match[2], 10) : 0;
+  const secs = match[3] ? parseInt(match[3], 10) : 0;
+  const totalMinutes = hours * 60 + mins + (secs > 0 ? 1 : 0);
+  return String(totalMinutes);
+}
+
+function itemTypeToSectionType(type: CurriculumItemType) {
+  return type === "video" ? ("VIDEO" as const) : ("ARTICLE" as const);
+}
+
+function sectionTypeToItemType(type: Section["type"]): CurriculumItemType {
+  return type === "VIDEO" ? "video" : "material";
+}
+
+function mapBackendCurriculum(sections: Section[], lectures: Lecture[]): CurriculumSection[] {
+  return sections.map((section) => {
+    const sectionItemType = sectionTypeToItemType(section.type);
+    const items = lectures
+      .filter((lecture) => lecture.sectionId === section.id)
+      .sort((first, second) => first.order - second.order)
+      .map<CurriculumItem>((lecture) => {
+        const itemType: CurriculumItemType = lecture.youtubeEmbedId ? "video" : sectionItemType;
+
+        return {
+          id: lecture.id,
+          title: lecture.title,
+          type: itemType,
+          description: lecture.content,
+          sourceType: itemType === "material" ? "editor" : "link",
+          sourceValue: itemType === "material" ? lecture.content : lecture.youtubeEmbedId,
+          duration: iso8601ToDurationMinutes(lecture.duration),
+          status: "Published",
+        };
+      });
+
     return {
-      durationValue: value.trim(),
-      durationUnit: "week" as "week" | "month",
+      id: section.id,
+      title: section.title,
+      backendType: section.type === "VIDEO" ? "VIDEO" : "ARTICLE",
+      items,
     };
-  }
-
-  return {
-    durationValue: match[1],
-    durationUnit: match[2].toLowerCase().startsWith("month") ? ("month" as const) : ("week" as const),
-  };
+  });
 }
 
 function getItemBadge(type: CurriculumItemType) {
@@ -474,11 +533,71 @@ function getItemBadge(type: CurriculumItemType) {
   }
 }
 
+function createEmptyBatchDraft(index = 0): BatchDraft {
+  return {
+    id: `local-batch-${Date.now()}-${index}`,
+    tutorId: "",
+    startDate: "",
+    durationValue: "1",
+    durationUnit: "week",
+    capacity: "20",
+  };
+}
+
+function addDurationToDate(startDate: string, value: number, unit: BatchDurationUnit) {
+  const date = new Date(`${startDate}T00:00:00`);
+
+  if (unit === "day") {
+    date.setDate(date.getDate() + value);
+  } else if (unit === "week") {
+    date.setDate(date.getDate() + value * 7);
+  } else {
+    date.setMonth(date.getMonth() + value);
+  }
+
+  return date.toISOString();
+}
+
+function formatDateInputValue(value: string) {
+  if (!value) return "";
+  return new Date(value).toISOString().slice(0, 10);
+}
+
+function mapBatchToDraft(batch: Batch): BatchDraft {
+  const startDate = formatDateInputValue(batch.startDate);
+  const start = new Date(batch.startDate);
+  const end = new Date(batch.endDate);
+  const durationInDays = Math.max(1, Math.round((end.getTime() - start.getTime()) / 86_400_000));
+
+  return {
+    id: batch.id,
+    tutorId: batch.tutorId,
+    startDate,
+    durationValue: String(durationInDays),
+    durationUnit: "day",
+    capacity: String(batch.capacity),
+  };
+}
+
+function getDerivedCourseTutorIds(batchDrafts: BatchDraft[]): string[] {
+  return Array.from(new Set(batchDrafts.map((batch) => batch.tutorId).filter(Boolean)));
+}
+
+function formatCourseTutors(tutorIds: string[], tutorOptions: Array<{ id: string; name: string; username: string }>): string {
+  if (tutorIds.length === 0) return "No tutors assigned";
+  
+  const tutorNames = tutorIds
+    .map((id) => tutorOptions.find((t) => t.id === id)?.name || "Unknown")
+    .filter(Boolean);
+  
+  return tutorNames.join(", ");
+}
+
 export default function CourseEditPage() {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const wordCountContainersRef = useRef<Record<number, HTMLDivElement | null>>({});
+  const wordCountContainersRef = useRef<Record<string, HTMLDivElement | null>>({});
   const isNewClass = courseId === "new";
   const initialTab = searchParams.get("tab");
   const activeTab: EditorTab =
@@ -496,80 +615,42 @@ export default function CourseEditPage() {
       fetchPolicy: "cache-and-network",
     },
   );
+  const {
+    data: curriculumData,
+    loading: isCurriculumLoading,
+    refetch: refetchCurriculum,
+  } = useCourseCurriculum(isNewClass ? undefined : courseId);
+  const { data: batchData, loading: isBatchesLoading } = useCourseBatches(isNewClass ? undefined : courseId);
   const [createCourse, { loading: isCreatingCourse }] = useMutation(CREATE_COURSE);
   const [updateCourse, { loading: isUpdatingCourse }] = useMutation(UPDATE_COURSE);
+  const [createBatch, { loading: isCreatingBatch }] = useMutation(CREATE_BATCH);
+  const [createSection, { loading: isCreatingSectionRequest }] = useMutation(CREATE_SECTION);
+  const [updateSection, { loading: isUpdatingSectionRequest }] = useMutation(UPDATE_SECTION);
+  const [deleteSection, { loading: isDeletingSectionRequest }] = useMutation(DELETE_SECTION);
+  const [createLecture, { loading: isCreatingLectureRequest }] = useMutation(CREATE_LECTURE);
+  const [updateLecture, { loading: isUpdatingLectureRequest }] = useMutation(UPDATE_LECTURE);
+  const [deleteLecture, { loading: isDeletingLectureRequest }] = useMutation(DELETE_LECTURE);
   const tutorOptions = tutorUsersData?.users?.nodes ?? [];
-  const isSavingCourse = isCreatingCourse || isUpdatingCourse;
+  const isSavingCourse = isCreatingCourse || isUpdatingCourse || isCreatingBatch;
+  const isSavingSection =
+    isCreatingSectionRequest || isUpdatingSectionRequest || isDeletingSectionRequest;
+  const isSavingLecture =
+    isCreatingLectureRequest || isUpdatingLectureRequest || isDeletingLectureRequest;
 
   const [classData, setClassData] = useState<CourseFormState>({
     title: "",
     subtitle: "",
     description: "",
-    durationValue: "",
-    durationUnit: "week",
-    totalBatches: "1",
     totalDuration: "",
     price: "",
     isFree: false,
     level: "BEGINNER",
-    tutorIds: [],
     status: "DRAFT",
   });
-  const batchCount = Math.max(1, Number.parseInt(classData.totalBatches, 10) || 1);
-  const batchOptions = Array.from({ length: batchCount }, (_, index) => `Batch ${index + 1}`);
+  const [batchDrafts, setBatchDrafts] = useState<BatchDraft[]>([createEmptyBatchDraft()]);
+  const batchOptions = batchDrafts.map((batch, index) => `Batch ${index + 1}`);
 
-  const [sections, setSections] = useState<CurriculumSection[]>(
-    isNewClass
-      ? []
-      : [
-          {
-            id: 1,
-            title: "Introduction & Fundamentals",
-            summary:
-              "Pondasi course, learning path, dan konsep dasar complexity yang dibutuhkan sebelum masuk ke latihan cohort.",
-            items: [
-              {
-                id: 1,
-                title: "Class Overview & Learning Path",
-                type: "video",
-                description:
-                  "Video pembuka untuk menjelaskan struktur pembelajaran, target capaian, dan ritme cohort.",
-                sourceType: "link",
-                sourceValue: "https://example.com/class-overview",
-                status: "Published",
-              },
-              {
-                id: 2,
-                title: "Big O Notation Cheat Sheet",
-                type: "material",
-                description: "PDF reference untuk notasi kompleksitas yang dipakai di seluruh class.",
-                sourceType: "editor",
-                sourceValue:
-                  "<h2>Big O Notation Cheat Sheet</h2><p>Ringkasan kompleksitas waktu dan ruang untuk operasi array, linked list, stack, queue, dan tree yang dipakai sepanjang class.</p><ul><li>Access array: O(1)</li><li>Insert linked list head: O(1)</li><li>Binary search: O(log n)</li></ul>",
-                status: "Published",
-              },
-            ],
-          },
-          {
-            id: 2,
-            title: "Arrays & Strings",
-            summary:
-              "Section yang menampung video core arrays, materi pendukung, dan quiz class-level untuk checkpoint awal.",
-            items: [
-              {
-                id: 3,
-                title: "Array Fundamentals",
-                type: "video",
-                description:
-                  "Konsep dasar array, operasi umum, dan problem framing sebelum live cohort dimulai.",
-                sourceType: "link",
-                sourceValue: "dQw4w9WgXcQ",
-                status: "Published",
-              },
-            ],
-          },
-        ],
-  );
+
   const [quizzes, setQuizzes] = useState<CourseQuiz[]>(
     isNewClass
       ? []
@@ -608,9 +689,9 @@ export default function CourseEditPage() {
         ],
   );
 
-  const [selectedSectionId, setSelectedSectionId] = useState<number | null>(sections[0]?.id ?? null);
-  const [editingSectionId, setEditingSectionId] = useState<number | null>(null);
-  const [editingItemId, setEditingItemId] = useState<number | null>(null);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(sections[0]?.id ?? null);
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingQuizId, setEditingQuizId] = useState<number | null>(null);
   const [isCreatingSection, setIsCreatingSection] = useState(isNewClass);
   const [sectionDraft, setSectionDraft] = useState<SectionDraft>(emptySectionDraft);
@@ -623,23 +704,39 @@ export default function CourseEditPage() {
   useEffect(() => {
     const course = courseData?.courses?.nodes?.[0];
     if (!course || isNewClass) return;
-    const parsedDuration = parseDurationParts(`${course.totalDuration} weeks`);
 
     setClassData({
       title: course.title,
       subtitle: course.shortDescription,
       description: course.description,
-      durationValue: parsedDuration.durationValue,
-      durationUnit: parsedDuration.durationUnit,
-      totalBatches: "1",
       totalDuration: String(course.totalDuration),
       price: String(course.price),
       isFree: course.isFree,
       level: course.level,
-      tutorIds: course.tutorId,
       status: course.status,
     });
   }, [courseData, isNewClass]);
+
+  useEffect(() => {
+    if (isNewClass || isBatchesLoading || !batchData) return;
+
+    const backendBatches = batchData.batches?.nodes ?? [];
+    setBatchDrafts(backendBatches.length > 0 ? backendBatches.map(mapBatchToDraft) : [createEmptyBatchDraft()]);
+  }, [batchData, isBatchesLoading, isNewClass]);
+
+  useEffect(() => {
+    if (isNewClass || isCurriculumLoading || !curriculumData) return;
+
+    const backendSections = curriculumData.sections?.nodes ?? [];
+    const backendLectures = curriculumData.lectures?.nodes ?? [];
+    const mappedSections = mapBackendCurriculum(backendSections, backendLectures);
+
+    setSections(mappedSections);
+    setSelectedSectionId(mappedSections[0]?.id ?? null);
+    setIsCreatingSection(mappedSections.length === 0);
+    resetItemDraft();
+    resetSectionDraft();
+  }, [curriculumData, isCurriculumLoading, isNewClass]);
 
   const selectedSection =
     sections.find((section) => section.id === selectedSectionId) ?? sections[0] ?? null;
@@ -1207,41 +1304,57 @@ export default function CourseEditPage() {
     resetItemDraft();
   };
 
-  const handleSectionSubmit = () => {
-    if (!sectionDraft.title.trim() || !sectionDraft.summary.trim()) {
-      toast.error("Please complete the section title and summary.");
+  const handleSectionSubmit = async () => {
+    if (!sectionDraft.title.trim()) {
+      toast.error("Please complete the section title.");
       return;
     }
 
-    if (editingSectionId) {
-      setSections((current) =>
-        current.map((section) =>
-          section.id === editingSectionId
-            ? {
-                ...section,
-                title: sectionDraft.title.trim(),
-                summary: sectionDraft.summary.trim(),
-              }
-            : section,
-        ),
-      );
-      toast.success("Section updated");
-    } else {
-      const nextId = Date.now();
-      setSections((current) => [
-        ...current,
-        {
-          id: nextId,
-          title: sectionDraft.title.trim(),
-          summary: sectionDraft.summary.trim(),
-          items: [],
-        },
-      ]);
-      setSelectedSectionId(nextId);
-      toast.success("Section created");
+    if (isNewClass || !courseId) {
+      toast.error("Save the class before editing backend curriculum.");
+      return;
     }
 
-    resetSectionDraft();
+    try {
+      if (editingSectionId) {
+        const currentSection = sections.find((section) => section.id === editingSectionId);
+
+        await updateSection({
+          variables: {
+            input: {
+              id: editingSectionId,
+              courseId,
+              title: sectionDraft.title.trim(),
+              type: currentSection?.backendType ?? "ARTICLE",
+              order: Math.max(1, sections.findIndex((section) => section.id === editingSectionId) + 1),
+            },
+          },
+          refetchQueries: [GET_COURSE_CURRICULUM],
+          awaitRefetchQueries: true,
+        });
+        toast.success("Section updated");
+      } else {
+        await createSection({
+          variables: {
+            input: {
+              courseId,
+              title: sectionDraft.title.trim(),
+              type: "ARTICLE",
+              order: sections.length + 1,
+            },
+          },
+          refetchQueries: [GET_COURSE_CURRICULUM],
+          awaitRefetchQueries: true,
+        });
+        toast.success("Section created");
+      }
+
+      await refetchCurriculum();
+      resetSectionDraft();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Please try again.";
+      toast.error("Unable to save section", { description: message });
+    }
   };
 
   const handleEditSection = (section: CurriculumSection) => {
@@ -1250,7 +1363,6 @@ export default function CourseEditPage() {
     setIsCreatingSection(false);
     setSectionDraft({
       title: section.title,
-      summary: section.summary,
     });
   };
 
@@ -1258,21 +1370,24 @@ export default function CourseEditPage() {
     resetSectionDraft();
   };
 
-  const handleDeleteSection = (sectionId: number) => {
-    const remaining = sections.filter((section) => section.id !== sectionId);
-    setSections(remaining);
-
-    if (selectedSectionId === sectionId) {
-      setSelectedSectionId(remaining[0]?.id ?? null);
-    }
-    if (editingSectionId === sectionId) {
-      resetSectionDraft();
-    }
-    if (remaining.length === 0) {
-      setIsCreatingSection(true);
+  const handleDeleteSection = async (sectionId: string) => {
+    if (isNewClass) {
+      toast.error("Save the class before editing backend curriculum.");
+      return;
     }
 
-    toast.success("Section deleted");
+    try {
+      await deleteSection({
+        variables: { sectionId },
+        refetchQueries: [GET_COURSE_CURRICULUM],
+        awaitRefetchQueries: true,
+      });
+      await refetchCurriculum();
+      toast.success("Section deleted");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Please try again.";
+      toast.error("Unable to delete section", { description: message });
+    }
   };
 
   const handleItemTypeChange = (type: CurriculumItemType) => {
@@ -1284,9 +1399,14 @@ export default function CourseEditPage() {
     }));
   };
 
-  const handleItemSubmit = () => {
+  const handleItemSubmit = async () => {
     if (!selectedSectionId) {
       toast.error("Create or select a section first.");
+      return;
+    }
+
+    if (isNewClass || !courseId) {
+      toast.error("Save the class before editing backend curriculum.");
       return;
     }
 
@@ -1300,6 +1420,12 @@ export default function CourseEditPage() {
       return;
     }
 
+    const durationMinutes = Number(itemDraft.duration);
+    if (!Number.isFinite(durationMinutes) || durationMinutes <= 0) {
+      toast.error("Lecture duration must be greater than zero.");
+      return;
+    }
+
     const normalizedVideoId =
       itemDraft.type === "video" ? extractYouTubeVideoId(itemDraft.sourceValue) : null;
 
@@ -1308,65 +1434,75 @@ export default function CourseEditPage() {
       return;
     }
 
-    if (editingItemId) {
-      setSections((current) =>
-        current.map((section) =>
-          section.id !== selectedSectionId
-            ? section
-            : {
-                ...section,
-                items: section.items.map((item) =>
-                  item.id === editingItemId
-                    ? {
-                        ...item,
-                        title: itemDraft.title.trim(),
-                        type: itemDraft.type,
-                        description: itemDraft.description.trim(),
-                        sourceType: itemDraft.type === "material" ? "editor" : "link",
-                        sourceValue:
-                          itemDraft.type === "material"
-                            ? itemDraft.sourceValue.trim()
-                            : normalizedVideoId ?? itemDraft.sourceValue.trim(),
-                      }
-                    : item,
-                ),
-              },
-        ),
-      );
-      toast.success("Curriculum item updated");
-    } else {
-      const nextId = Date.now();
-      setSections((current) =>
-        current.map((section) =>
-          section.id !== selectedSectionId
-            ? section
-            : {
-                ...section,
-                items: [
-                  ...section.items,
-                  {
-                    id: nextId,
-                    title: itemDraft.title.trim(),
-                    type: itemDraft.type,
-                    description: itemDraft.description.trim(),
-                    sourceType: itemDraft.type === "material" ? "editor" : "link",
-                    sourceValue:
-                      itemDraft.type === "material"
-                        ? itemDraft.sourceValue.trim()
-                        : normalizedVideoId ?? itemDraft.sourceValue.trim(),
-                    status: "Draft",
-                  },
-                ],
-              },
-        ),
-      );
-      toast.success("Curriculum item created");
-    }
+    const targetSection = sections.find((section) => section.id === selectedSectionId);
+    const nextSectionType = itemTypeToSectionType(itemDraft.type);
+    const lectureContent =
+      itemDraft.type === "material" ? itemDraft.sourceValue.trim() : itemDraft.description.trim();
+    const lectureYoutubeId = itemDraft.type === "video" ? normalizedVideoId ?? "" : "";
+    const existingItemIndex = targetSection?.items.findIndex((item) => item.id === editingItemId) ?? -1;
+    const isoDuration = durationToIso8601(durationMinutes);
 
-    resetItemDraft();
+    try {
+      if (targetSection?.backendType !== nextSectionType && targetSection?.items.length === 0) {
+        await updateSection({
+          variables: {
+            input: {
+              id: targetSection.id,
+              courseId,
+              title: targetSection.title,
+              type: nextSectionType,
+              order: Math.max(1, sections.findIndex((section) => section.id === targetSection.id) + 1),
+            },
+          },
+        });
+      }
+
+      if (editingItemId) {
+        await updateLecture({
+          variables: {
+            input: {
+              id: editingItemId,
+              courseId,
+              sectionId: selectedSectionId,
+              title: itemDraft.title.trim(),
+              youtubeEmbedId: lectureYoutubeId,
+              duration: isoDuration,
+              content: lectureContent,
+              order: Math.max(1, existingItemIndex + 1),
+            },
+          },
+          refetchQueries: [GET_COURSE_CURRICULUM],
+          awaitRefetchQueries: true,
+        });
+        toast.success("Curriculum item updated");
+      } else {
+        await createLecture({
+          variables: {
+            input: {
+              courseId,
+              sectionId: selectedSectionId,
+              title: itemDraft.title.trim(),
+              youtubeEmbedId: lectureYoutubeId,
+              duration: isoDuration,
+              content: lectureContent,
+              order: (targetSection?.items.length ?? 0) + 1,
+            },
+          },
+          refetchQueries: [GET_COURSE_CURRICULUM],
+          awaitRefetchQueries: true,
+        });
+        toast.success("Curriculum item created");
+      }
+
+      await refetchCurriculum();
+      resetItemDraft();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Please try again.";
+      toast.error("Unable to save curriculum item", { description: message });
+    }
   };
 
-  const handleEditItem = (sectionId: number, item: CurriculumItem) => {
+  const handleEditItem = (sectionId: string, item: CurriculumItem) => {
     setSelectedSectionId(sectionId);
     setEditingItemId(item.id);
     setIsCreatingSection(false);
@@ -1377,32 +1513,42 @@ export default function CourseEditPage() {
         description: item.description,
         sourceType: item.type === "material" ? "editor" : item.sourceType,
         sourceValue: item.type === "video" ? buildYouTubeUrl(item.sourceValue) : item.sourceValue,
+        duration: item.duration,
       });
   };
 
-  const handleDeleteItem = (sectionId: number, itemId: number) => {
-    setSections((current) =>
-      current.map((section) =>
-        section.id !== sectionId
-          ? section
-          : {
-              ...section,
-              items: section.items.filter((item) => item.id !== itemId),
-            },
-      ),
-    );
-
-    if (editingItemId === itemId) {
-      resetItemDraft();
+  const handleDeleteItem = async (_sectionId: string, itemId: string) => {
+    if (isNewClass) {
+      toast.error("Save the class before editing backend curriculum.");
+      return;
     }
 
-    toast.success("Curriculum item deleted");
+    try {
+      await deleteLecture({
+        variables: { lectureId: itemId },
+        refetchQueries: [GET_COURSE_CURRICULUM],
+        awaitRefetchQueries: true,
+      });
+      await refetchCurriculum();
+
+      if (editingItemId === itemId) {
+        resetItemDraft();
+      }
+
+      toast.success("Curriculum item deleted");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Please try again.";
+      toast.error("Unable to delete curriculum item", { description: message });
+    }
   };
 
   const buildCourseInput = (): CourseInput | null => {
-    const totalDurationValue = classData.totalDuration.trim() || classData.durationValue.trim();
+    const totalDurationValue = classData.totalDuration.trim() || "0";
     const totalDuration = Number(totalDurationValue);
     const price = classData.isFree ? 0 : Number(classData.price);
+    const tutorIds = Array.from(
+      new Set(batchDrafts.map((batch) => batch.tutorId).filter(Boolean)),
+    );
 
     if (!classData.title.trim() || !classData.subtitle.trim() || !classData.description.trim()) {
       toast.error("Please complete the class title, subtitle, and description.");
@@ -1419,13 +1565,13 @@ export default function CourseEditPage() {
       return null;
     }
 
-    if (classData.tutorIds.length === 0) {
-      toast.error("Assign at least one tutor before saving.");
+    if (tutorIds.length === 0) {
+      toast.error("Assign at least one tutor to each batch.");
       return null;
     }
 
     return {
-      tutorId: classData.tutorIds,
+      tutorId: tutorIds,
       title: classData.title.trim(),
       description: classData.description.trim(),
       shortDescription: classData.subtitle.trim(),
@@ -1434,9 +1580,42 @@ export default function CourseEditPage() {
       isFree: classData.isFree,
       status: classData.status,
       totalSections: sections.length,
-      totalLectures: curriculumSummary.totalVideos + curriculumSummary.totalMaterials + curriculumSummary.totalQuizzes,
+      totalLectures: curriculumSummary.totalVideos + curriculumSummary.totalMaterials,
       totalDuration,
     };
+  };
+
+  const buildBatchInputs = () => {
+    if (isNewClass || !courseId) return [];
+
+    return batchDrafts.map((batch, index) => {
+      const durationValue = Number(batch.durationValue);
+      const capacity = Number(batch.capacity);
+
+      if (!batch.tutorId) {
+        throw new Error(`Assign a tutor for Batch ${index + 1}.`);
+      }
+
+      if (!batch.startDate) {
+        throw new Error(`Set a start date for Batch ${index + 1}.`);
+      }
+
+      if (!Number.isFinite(durationValue) || durationValue <= 0) {
+        throw new Error(`Set a valid duration for Batch ${index + 1}.`);
+      }
+
+      if (!Number.isFinite(capacity) || capacity <= 0) {
+        throw new Error(`Set a valid capacity for Batch ${index + 1}.`);
+      }
+
+      return {
+        courseId,
+        tutorId: batch.tutorId,
+        startDate: new Date(`${batch.startDate}T00:00:00`).toISOString(),
+        endDate: addDurationToDate(batch.startDate, durationValue, batch.durationUnit),
+        capacity,
+      };
+    });
   };
 
   const handleSaveChanges = async () => {
@@ -1444,10 +1623,13 @@ export default function CourseEditPage() {
     if (!input) return;
 
     try {
+      const batchInputs = buildBatchInputs();
+
       if (isNewClass) {
         await createCourse({
           variables: { input },
-          refetchQueries: ["GetAdminPanelData", "GetPublishedCourses"],
+          refetchQueries: [GET_ADMIN_PANEL_DATA, "GetPublishedCourses"],
+          awaitRefetchQueries: false,
         });
         toast.success("New class created", {
           description: `${input.title} has been saved as ${input.status.toLowerCase()}.`,
@@ -1458,8 +1640,23 @@ export default function CourseEditPage() {
 
       await updateCourse({
         variables: { id: courseId, input },
-        refetchQueries: ["GetAdminPanelData", "GetPublishedCourses", "GetCourseById"],
+        refetchQueries: [GET_ADMIN_PANEL_DATA, "GetPublishedCourses", "GetCourseById"],
+        awaitRefetchQueries: false,
       });
+
+      const existingBatchIds = new Set((batchData?.batches?.nodes ?? []).map((batch) => batch.id));
+      const newBatchInputs = batchInputs.filter((_, index) => !existingBatchIds.has(batchDrafts[index]?.id));
+
+      await Promise.all(
+        newBatchInputs.map((batchInput) =>
+          createBatch({
+            variables: { input: batchInput },
+            refetchQueries: [{ query: GET_COURSE_BATCHES, variables: { courseId } }],
+            awaitRefetchQueries: false,
+          }),
+        ),
+      );
+
       toast.success("Class changes saved", {
         description: `${input.title} has been updated.`,
       });
@@ -1469,7 +1666,7 @@ export default function CourseEditPage() {
     }
   };
 
-  const openNewItemComposer = (sectionId: number) => {
+  const openNewItemComposer = (sectionId: string) => {
     setSelectedSectionId(sectionId);
     setEditingItemId(null);
     setItemDraft(emptyItemDraft);
@@ -1522,14 +1719,16 @@ export default function CourseEditPage() {
                     </div>
                   </div>
                 ) : null}
-                <Button
-                  className="bg-white text-[#0A1B45] hover:bg-white/90"
-                  onClick={handleSaveChanges}
-                  disabled={isSavingCourse || isCourseLoading}
-                >
-                  <Save className="mr-2 h-4 w-4" />
-                  {isSavingCourse ? "Saving..." : "Save Changes"}
-                </Button>
+                {activeTab === "basic" ? (
+                  <Button
+                    className="bg-white text-[#0A1B45] hover:bg-white/90"
+                    onClick={handleSaveChanges}
+                    disabled={isSavingCourse || isCourseLoading}
+                  >
+                    <Save className="mr-2 h-4 w-4" />
+                    {isSavingCourse ? "Saving..." : "Save Class"}
+                  </Button>
+                ) : null}
               </div>
             </div>
           </div>
@@ -1564,7 +1763,7 @@ export default function CourseEditPage() {
                   <div>
                     <h2 className="text-2xl font-bold text-[#0A1B45]">Class Information</h2>
                     <p className="mt-2 text-sm text-[#476074]">
-                      Batch setup is waiting for backend support. This form saves the core class data.
+                      Isi detail class, batch, harga, dan status publikasi sesuai data backend.
                     </p>
                   </div>
                   {isCourseLoading ? (
@@ -1603,9 +1802,165 @@ export default function CourseEditPage() {
                     />
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-5">
+                  <div className="rounded-[1.5rem] border border-[#D8E5E9] bg-[#F9FCFD] p-5">
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <div>
+                        <h3 className="text-lg font-bold text-[#0A1B45]">Batches</h3>
+                        <p className="mt-1 text-sm text-[#476074]">
+                          Backend membutuhkan tutor, tanggal mulai, tanggal selesai, dan kapasitas.
+                          Durasi dipakai untuk menghitung tanggal selesai.
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        className="bg-[#308279] hover:bg-[#308279]/90"
+                        onClick={() =>
+                          setBatchDrafts((current) => [...current, createEmptyBatchDraft(current.length)])
+                        }
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add batch
+                      </Button>
+                    </div>
+
+                    <div className="space-y-4">
+                      {batchDrafts.map((batch, index) => {
+                        const isPersistedBatch = !batch.id.startsWith("local-batch-");
+
+                        return (
+                          <div
+                            key={batch.id}
+                            className="grid gap-4 rounded-2xl border border-[#D8E5E9] bg-white p-4 lg:grid-cols-[1.2fr_1fr_1fr_1fr_auto]"
+                          >
+                          <div className="space-y-2">
+                            <Label htmlFor={`batch-tutor-${batch.id}`}>
+                              Batch {index + 1} tutor
+                              {isPersistedBatch ? " (saved)" : ""}
+                            </Label>
+                            <select
+                              id={`batch-tutor-${batch.id}`}
+                              value={batch.tutorId}
+                              onChange={(event) =>
+                                setBatchDrafts((current) =>
+                                  current.map((item) =>
+                                    item.id === batch.id ? { ...item, tutorId: event.target.value } : item,
+                                  ),
+                                )
+                              }
+                              className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                              disabled={isTutorUsersLoading || isPersistedBatch}
+                            >
+                              <option value="">Select tutor</option>
+                              {tutorOptions.map((tutor) => (
+                                <option key={tutor.id} value={tutor.id}>
+                                  {tutor.name} ({tutor.username})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor={`batch-start-${batch.id}`}>Start date</Label>
+                            <Input
+                              id={`batch-start-${batch.id}`}
+                              type="date"
+                              value={batch.startDate}
+                              disabled={isPersistedBatch}
+                              onChange={(event) =>
+                                setBatchDrafts((current) =>
+                                  current.map((item) =>
+                                    item.id === batch.id ? { ...item, startDate: event.target.value } : item,
+                                  ),
+                                )
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor={`batch-duration-${batch.id}`}>Batch duration</Label>
+                            <div className="grid grid-cols-[minmax(0,1fr)_112px] gap-2">
+                              <Input
+                                id={`batch-duration-${batch.id}`}
+                                type="number"
+                                min="1"
+                                value={batch.durationValue}
+                                disabled={isPersistedBatch}
+                                onChange={(event) =>
+                                  setBatchDrafts((current) =>
+                                    current.map((item) =>
+                                      item.id === batch.id
+                                        ? { ...item, durationValue: event.target.value }
+                                        : item,
+                                    ),
+                                  )
+                                }
+                              />
+                              <select
+                                aria-label="Batch duration unit"
+                                value={batch.durationUnit}
+                                disabled={isPersistedBatch}
+                                onChange={(event) =>
+                                  setBatchDrafts((current) =>
+                                    current.map((item) =>
+                                      item.id === batch.id
+                                        ? {
+                                            ...item,
+                                            durationUnit: event.target.value as BatchDurationUnit,
+                                          }
+                                        : item,
+                                    ),
+                                  )
+                                }
+                                className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                              >
+                                <option value="day">Hari</option>
+                                <option value="week">Minggu</option>
+                                <option value="month">Bulan</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor={`batch-capacity-${batch.id}`}>Capacity</Label>
+                            <Input
+                              id={`batch-capacity-${batch.id}`}
+                              type="number"
+                              min="1"
+                              value={batch.capacity}
+                              disabled={isPersistedBatch}
+                              onChange={(event) =>
+                                setBatchDrafts((current) =>
+                                  current.map((item) =>
+                                    item.id === batch.id ? { ...item, capacity: event.target.value } : item,
+                                  ),
+                                )
+                              }
+                            />
+                          </div>
+                          <div className="flex items-end">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              className="text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]"
+                              disabled={batchDrafts.length === 1 || isPersistedBatch}
+                              onClick={() =>
+                                setBatchDrafts((current) => current.filter((item) => item.id !== batch.id))
+                              }
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {isPersistedBatch ? (
+                            <div className="lg:col-span-5 text-xs text-[#476074]">
+                              Backend currently supports creating batches only; saved batch edits are disabled.
+                            </div>
+                          ) : null}
+                        </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-4">
                     <div className="space-y-2">
-                      <Label htmlFor="price">Price (Rp)</Label>
+                      <Label htmlFor="price">Harga (Rp)</Label>
                       <Input
                         id="price"
                         type="number"
@@ -1614,48 +1969,6 @@ export default function CourseEditPage() {
                         onChange={(event) => setClassData({ ...classData, price: event.target.value })}
                         disabled={classData.isFree}
                         placeholder="499000"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="duration">Duration</Label>
-                      <div className="grid grid-cols-[minmax(0,1fr)_120px] gap-3">
-                        <Input
-                          id="duration"
-                          type="number"
-                          min="1"
-                          value={classData.durationValue}
-                          onChange={(event) =>
-                            setClassData({ ...classData, durationValue: event.target.value })
-                          }
-                          placeholder="12"
-                        />
-                        <select
-                          aria-label="Duration unit"
-                          value={classData.durationUnit}
-                          onChange={(event) =>
-                            setClassData({
-                              ...classData,
-                              durationUnit: event.target.value as "week" | "month",
-                            })
-                          }
-                          className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
-                        >
-                          <option value="week">Week</option>
-                          <option value="month">Month</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="total-batches">Total Batches</Label>
-                      <Input
-                        id="total-batches"
-                        type="number"
-                        min="1"
-                        value={classData.totalBatches}
-                        onChange={(event) =>
-                          setClassData({ ...classData, totalBatches: event.target.value })
-                        }
-                        placeholder="3"
                       />
                     </div>
                     <div className="space-y-2">
@@ -1729,33 +2042,6 @@ export default function CourseEditPage() {
                         <option value="free">Free</option>
                       </select>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="tutors">Assigned Tutors</Label>
-                      <select
-                        id="tutors"
-                        multiple
-                        value={classData.tutorIds}
-                        onChange={(event) =>
-                          setClassData({
-                            ...classData,
-                            tutorIds: Array.from(event.target.selectedOptions).map(
-                              (option) => option.value,
-                            ),
-                          })
-                        }
-                        className="min-h-24 w-full rounded-md border border-[#D8E5E9] bg-white p-2"
-                        disabled={isTutorUsersLoading}
-                      >
-                        {tutorOptions.map((tutor) => (
-                          <option key={tutor.id} value={tutor.id}>
-                            {tutor.name} ({tutor.username})
-                          </option>
-                        ))}
-                      </select>
-                      <p className="text-xs text-[#476074]">
-                        Course-level tutor assignment only. Batch assignment will be added when the Batch API is ready.
-                      </p>
-                    </div>
                   </div>
                 </form>
               </Card>
@@ -1786,14 +2072,6 @@ export default function CourseEditPage() {
                                     setSectionDraft({ ...sectionDraft, title: event.target.value })
                                   }
                                   placeholder="Section title"
-                                />
-                                <Textarea
-                                  rows={3}
-                                  value={sectionDraft.summary}
-                                  onChange={(event) =>
-                                    setSectionDraft({ ...sectionDraft, summary: event.target.value })
-                                  }
-                                  placeholder="Section summary"
                                 />
                               </div>
                             ) : (
@@ -1827,35 +2105,6 @@ export default function CourseEditPage() {
                                     </span>
                                   </div>
                                 </button>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedSectionId(section.id);
-                                    setIsCreatingSection(false);
-                                  }}
-                                  className="block w-full max-w-3xl text-left"
-                                >
-                                  <div className="inline-flex items-start gap-2 border-b border-dashed border-[#C7DCE0] pb-1">
-                                    <p className="text-sm leading-6 text-[#476074]">{section.summary}</p>
-                                    <span
-                                      role="button"
-                                      tabIndex={0}
-                                      onClick={(event) => {
-                                        event.stopPropagation();
-                                        handleEditSection(section);
-                                      }}
-                                      onKeyDown={(event) => {
-                                        if (event.key === "Enter" || event.key === " ") {
-                                          event.preventDefault();
-                                          handleEditSection(section);
-                                        }
-                                      }}
-                                      className="mt-1 inline-flex shrink-0 cursor-pointer text-[#92A4AE] transition hover:text-[#0A1B45]"
-                                    >
-                                      <Pencil className="h-4 w-4" />
-                                    </span>
-                                  </div>
-                                </button>
                               </div>
                             )}
                           </div>
@@ -1863,7 +2112,11 @@ export default function CourseEditPage() {
                           <div className="flex items-center gap-2">
                             {isEditingSection ? (
                               <>
-                                <Button className="bg-[#0A1B45] hover:bg-[#308279]" onClick={handleSectionSubmit}>
+                                <Button
+                                  className="bg-[#0A1B45] hover:bg-[#308279]"
+                                  onClick={handleSectionSubmit}
+                                  disabled={isSavingSection}
+                                >
                                   Save
                                 </Button>
                                 <Button variant="outline" className="border-[#D8E5E9]" onClick={handleCancelSectionEdit}>
@@ -1875,6 +2128,7 @@ export default function CourseEditPage() {
                               variant="ghost"
                               className="text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]"
                               onClick={() => handleDeleteSection(section.id)}
+                              disabled={isSavingSection}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Delete
@@ -1941,6 +2195,7 @@ export default function CourseEditPage() {
                                       variant="ghost"
                                       className="text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]"
                                       onClick={() => handleDeleteItem(section.id, item.id)}
+                                      disabled={isSavingLecture}
                                     >
                                       <Trash2 className="mr-2 h-4 w-4" />
                                       Delete
@@ -2037,6 +2292,19 @@ export default function CourseEditPage() {
                                     />
                                   </div>
 
+                                  <div className="space-y-2">
+                                    <Label htmlFor={`item-duration-${section.id}`}>Duration (minutes)</Label>
+                                    <Input
+                                      id={`item-duration-${section.id}`}
+                                      type="number"
+                                      min="1"
+                                      placeholder="e.g. 15"
+                                      value={itemDraft.duration}
+                                      onChange={(event) =>
+                                        setItemDraft({ ...itemDraft, duration: event.target.value })
+                                      }
+                                    />
+                                  </div>
 
                                   {itemDraft.type === "material" ? (
                                     <div className="space-y-2">
@@ -2097,7 +2365,11 @@ export default function CourseEditPage() {
                                   )}
 
                                   <div className="flex gap-3">
-                                    <Button className="flex-1 bg-[#308279] hover:bg-[#308279]/90" onClick={handleItemSubmit}>
+                                    <Button
+                                      className="flex-1 bg-[#308279] hover:bg-[#308279]/90"
+                                      onClick={handleItemSubmit}
+                                      disabled={isSavingLecture}
+                                    >
                                       <Plus className="mr-2 h-4 w-4" />
                                       {editingItemId ? "Save Item" : "Add Item"}
                                     </Button>
@@ -2121,9 +2393,8 @@ export default function CourseEditPage() {
                           {sections.length === 0 ? "Create first section" : "Create another section"}
                         </h3>
                         <p className="mt-3 text-sm leading-7 text-[#476074]">
-                          Section menjadi wadah utama untuk video dan material. Mulai dari
-                          judul dan ringkasan dulu, nanti setelah section dibuat kamu bisa langsung
-                          menambahkan item pembelajaran di card yang sama.
+                          Section menjadi wadah utama untuk video dan material. Setelah section
+                          dibuat, kamu bisa langsung menambahkan item pembelajaran di card yang sama.
                         </p>
                       </div>
 
@@ -2140,24 +2411,16 @@ export default function CourseEditPage() {
                               }
                             />
                           </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="section-summary">Summary</Label>
-                            <Textarea
-                              id="section-summary"
-                              rows={5}
-                              placeholder="Summarize the purpose of this section..."
-                              value={sectionDraft.summary}
-                              onChange={(event) =>
-                                setSectionDraft({ ...sectionDraft, summary: event.target.value })
-                              }
-                            />
-                          </div>
                           <div className="flex gap-3">
-                            <Button className="bg-[#0A1B45] hover:bg-[#308279]" onClick={handleSectionSubmit}>
+                            <Button
+                              className="bg-[#0A1B45] hover:bg-[#308279]"
+                              onClick={handleSectionSubmit}
+                              disabled={isSavingSection}
+                            >
                               <Plus className="mr-2 h-4 w-4" />
                               Add Section
                             </Button>
-                            {(sectionDraft.title || sectionDraft.summary || sections.length > 0) && (
+                            {(sectionDraft.title || sections.length > 0) && (
                               <Button variant="outline" className="border-[#D8E5E9]" onClick={resetSectionDraft}>
                                 Reset
                               </Button>

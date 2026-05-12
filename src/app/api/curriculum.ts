@@ -1,12 +1,13 @@
 import { gql } from "@apollo/client";
 import { useQuery } from "@apollo/client/react";
 
-export type LectureType = "VIDEO" | "QUIZ" | "ARTICLE";
+export type SectionType = "VIDEO" | "QUIZ" | "ARTICLE";
 
 export interface Section {
   id: string;
   courseId: string;
   title: string;
+  type: SectionType;
   order: number;
 }
 
@@ -15,16 +16,16 @@ export interface Lecture {
   courseId: string;
   sectionId: string;
   title: string;
-  type: LectureType;
   youtubeEmbedId: string;
   duration: string;
-  content?: string | null;
+  content: string;
   order: number;
 }
 
 export interface SectionInput {
   courseId: string;
   title: string;
+  type: SectionType;
   order: number;
 }
 
@@ -36,7 +37,6 @@ export interface LectureInput {
   courseId: string;
   sectionId: string;
   title: string;
-  type: LectureType;
   youtubeEmbedId: string;
   duration: string;
   content: string;
@@ -52,6 +52,7 @@ export const SECTION_FIELDS = gql`
     id
     courseId
     title
+    type
     order
   }
 `;
@@ -62,7 +63,6 @@ export const LECTURE_FIELDS = gql`
     courseId
     sectionId
     title
-    type
     youtubeEmbedId
     duration
     content
@@ -92,6 +92,7 @@ export const CREATE_SECTION = gql`
     createSection(input: $input) {
       courseId
       title
+      type
       order
     }
   }
@@ -102,6 +103,7 @@ export const UPDATE_SECTION = gql`
     updateSection(input: $input) {
       id
       title
+      type
       order
     }
   }
@@ -116,19 +118,14 @@ export const DELETE_SECTION = gql`
 export const CREATE_LECTURE = gql`
   mutation CreateLecture($input: CreateLectureInput!) {
     createLecture(input: $input) {
-<<<<<<< HEAD
       id
       courseId
       sectionId
       title
-      type
       youtubeEmbedId
       duration
       content
       order
-=======
-      __typename
->>>>>>> b1e043c (fix: align curriculum and course backend integration)
     }
   }
 `;
@@ -136,19 +133,14 @@ export const CREATE_LECTURE = gql`
 export const UPDATE_LECTURE = gql`
   mutation UpdateLecture($input: UpdateLectureInput!) {
     updateLecture(input: $input) {
-<<<<<<< HEAD
       id
       courseId
       sectionId
       title
-      type
       youtubeEmbedId
       duration
       content
       order
-=======
-      __typename
->>>>>>> b1e043c (fix: align curriculum and course backend integration)
     }
   }
 `;
