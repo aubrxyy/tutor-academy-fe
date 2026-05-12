@@ -6,10 +6,15 @@ export type CourseStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 
 export interface Course {
   id: string;
-  tutorId: string[];
+  tutorId?: string[] | null;
   title: string;
+<<<<<<< HEAD
   slug: string;
   thumbnailUrl: string;
+=======
+  slug?: string | null;
+  thumbnailUrl?: string | null;
+>>>>>>> b1e043c (fix: align curriculum and course backend integration)
   description: string;
   shortDescription: string;
   level: CourseLevel;
@@ -63,10 +68,12 @@ export interface CourseDetailView extends CourseCardView {
 export const COURSE_FIELDS = gql`
   fragment CourseFields on Course {
     id
-    tutorId
     title
+<<<<<<< HEAD
     slug
     thumbnailUrl
+=======
+>>>>>>> b1e043c (fix: align curriculum and course backend integration)
     description
     shortDescription
     level
@@ -93,6 +100,7 @@ export const GET_PUBLISHED_COURSES = gql`
 export const CREATE_COURSE = gql`
   mutation CreateCourse($input: CreateCourseInput!) {
     createCourse(input: $input) {
+<<<<<<< HEAD
       title
       description
       shortDescription
@@ -104,6 +112,9 @@ export const CREATE_COURSE = gql`
       totalSections
       totalLectures
       totalDuration
+=======
+      __typename
+>>>>>>> b1e043c (fix: align curriculum and course backend integration)
     }
   }
 `;
@@ -111,6 +122,7 @@ export const CREATE_COURSE = gql`
 export const UPDATE_COURSE = gql`
   mutation UpdateCourse($id: String!, $input: UpdateCourseInput!) {
     updateCourse(id: $id, input: $input) {
+<<<<<<< HEAD
       title
       description
       shortDescription
@@ -122,6 +134,9 @@ export const UPDATE_COURSE = gql`
       totalSections
       totalLectures
       totalDuration
+=======
+      __typename
+>>>>>>> b1e043c (fix: align curriculum and course backend integration)
     }
   }
 `;

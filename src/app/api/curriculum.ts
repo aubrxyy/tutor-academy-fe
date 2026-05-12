@@ -15,10 +15,14 @@ export interface Lecture {
   courseId: string;
   sectionId: string;
   title: string;
+<<<<<<< HEAD
   type: LectureType;
   youtubeEmbedId: string;
+=======
+  youtubeEmbedId?: string | null;
+>>>>>>> b1e043c (fix: align curriculum and course backend integration)
   duration: string;
-  content: string;
+  content?: string | null;
   order: number;
 }
 
@@ -116,6 +120,7 @@ export const DELETE_SECTION = gql`
 export const CREATE_LECTURE = gql`
   mutation CreateLecture($input: CreateLectureInput!) {
     createLecture(input: $input) {
+<<<<<<< HEAD
       id
       courseId
       sectionId
@@ -125,6 +130,9 @@ export const CREATE_LECTURE = gql`
       duration
       content
       order
+=======
+      __typename
+>>>>>>> b1e043c (fix: align curriculum and course backend integration)
     }
   }
 `;
@@ -132,6 +140,7 @@ export const CREATE_LECTURE = gql`
 export const UPDATE_LECTURE = gql`
   mutation UpdateLecture($input: UpdateLectureInput!) {
     updateLecture(input: $input) {
+<<<<<<< HEAD
       id
       courseId
       sectionId
@@ -141,6 +150,9 @@ export const UPDATE_LECTURE = gql`
       duration
       content
       order
+=======
+      __typename
+>>>>>>> b1e043c (fix: align curriculum and course backend integration)
     }
   }
 `;

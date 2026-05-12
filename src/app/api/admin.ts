@@ -8,7 +8,7 @@ export interface BackendUser {
   id: string;
   name: string;
   username: string;
-  avatarUrl: string | null;
+  avatarUrl?: string | null;
   email: string;
   role: BackendUserRole;
   contact: string | null;
@@ -21,7 +21,6 @@ const USER_FIELDS = gql`
     id
     name
     username
-    avatarUrl
     email
     role
     contact
@@ -30,6 +29,20 @@ const USER_FIELDS = gql`
   }
 `;
 
+<<<<<<< HEAD
+=======
+const ADMIN_BATCH_FIELDS = gql`
+  fragment AdminBatchFields on Batch {
+    id
+    courseId
+    tutorId
+    startDate
+    endDate
+    capacity
+  }
+`;
+
+>>>>>>> b1e043c (fix: align curriculum and course backend integration)
 export const GET_ADMIN_PANEL_DATA = gql`
   query GetAdminPanelData {
     users(order: [{ name: ASC }]) {
