@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { BookOpen, Plus, Trash2 } from "lucide-react";
+import { BookOpen, Plus } from "lucide-react";
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
@@ -8,8 +8,6 @@ import type { ManagedClass } from "../shared/types";
 type AdminClassesPageProps = {
   classes: ManagedClass[];
   onCreateClass: () => void;
-  onDeleteClass: (courseId: string) => void;
-  isDeletingClass: boolean;
   getClassStatusBadgeClassName: (status: ManagedClass["status"]) => string;
   getCourseStatusLabel: (status: ManagedClass["status"]) => string;
 };
@@ -17,8 +15,6 @@ type AdminClassesPageProps = {
 export default function AdminClassesPage({
   classes,
   onCreateClass,
-  onDeleteClass,
-  isDeletingClass,
   getClassStatusBadgeClassName,
   getCourseStatusLabel,
 }: AdminClassesPageProps) {
@@ -98,14 +94,6 @@ export default function AdminClassesPage({
                     Add materials
                   </Button>
                 </Link>
-                <Button
-                  variant="ghost"
-                  className="text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]"
-                  disabled={isDeletingClass}
-                  onClick={() => onDeleteClass(item.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
               </div>
             </div>
           </Card>

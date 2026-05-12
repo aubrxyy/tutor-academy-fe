@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
-import { ArrowRight, LockKeyhole, ShieldCheck, UserRound, CalendarDays } from "lucide-react";
+import { ArrowRight, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
 import Navbar from "../../components/navigation/Navbar";
 import Footer from "../../components/layout/Footer";
 import { Button } from "../../components/ui/button";
@@ -76,58 +76,52 @@ export default function RegisterPage() {
 
       <main className="px-4 pb-20 pt-32 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.05fr_0.95fr]">
-<section className="rounded-[2rem] bg-gradient-to-br from-[#0A1B45] via-[#153063] to-[#308279] p-8 text-white shadow-[0_30px_80px_rgba(10,27,69,0.18)] sm:p-10">
+          <section className="rounded-[2rem] bg-gradient-to-br from-[#0A1B45] via-[#153063] to-[#308279] p-8 text-white shadow-[0_30px_80px_rgba(10,27,69,0.18)] sm:p-10">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-sm">
               <ShieldCheck className="h-4 w-4 text-[#92B7B0]" />
-              Belajar Bareng Mahasiswa BINUS
+              GraphQL backend connected
             </div>
 
             <h1 className="mt-8 max-w-[12ch] text-4xl font-bold leading-tight tracking-[-0.04em] sm:text-5xl">
-              Masuk ke Tutoring Academy.
+              Daftar ke Tutoring Academy.
             </h1>
 
             <p className="mt-5 max-w-xl text-base leading-7 text-white/75 sm:text-lg">
-              Platform peer-to-peer tutoring untuk mahasiswa BINUS.
-              Cari tutor, jadwalkan sesi belajar, dan tingkatkan pemahaman
-              mata kuliah bersama mahasiswa lain yang sudah berpengalaman.
+              Buat akun baru melalui backend GraphQL. Setelah pendaftaran berhasil,
+              frontend akan memuat profil dan role akun untuk menentukan dashboard
+              student, tutor, atau admin.
             </p>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-2">
-              {/* CARD 1 */}
+              <div className="rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
+                    <LockKeyhole className="h-5 w-5 text-[#92B7B0]" />
+                  </div>
+                  <div>
+                    <div className="text-lg font-semibold">Token session</div>
+                    <div className="text-sm text-white/60">Stored locally</div>
+                  </div>
+                </div>
+                <p className="mt-4 text-sm leading-6 text-white/75">
+                  Authenticated requests send the backend token as a bearer
+                  authorization header through Apollo Client.
+                </p>
+              </div>
+
               <div className="rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
                     <UserRound className="h-5 w-5 text-[#92B7B0]" />
                   </div>
-
                   <div>
-                    <div className="text-lg font-semibold">
-                      Cari Tutor
-                    </div>
+                    <div className="text-lg font-semibold">Role routing</div>
+                    <div className="text-sm text-white/60">Backend driven</div>
                   </div>
                 </div>
-
                 <p className="mt-4 text-sm leading-6 text-white/75">
-                  Temukan tutor yang sesuai dengan kebutuhan belajar kamu.
-                </p>
-              </div>
-
-              {/* CARD 2 */}
-              <div className="rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10">
-                    <CalendarDays className="h-5 w-5 text-[#92B7B0]" />
-                  </div>
-
-                  <div>
-                    <div className="text-lg font-semibold">
-                      Jadwal Fleksibel
-                    </div>
-                  </div>
-                </div>
-
-                <p className="mt-4 text-sm leading-6 text-white/75">
-                  Atur sesi belajar sesuai waktu luangmu secara online.
+                  Backend roles are mapped into the existing student, tutor, and
+                  admin route guards.
                 </p>
               </div>
             </div>

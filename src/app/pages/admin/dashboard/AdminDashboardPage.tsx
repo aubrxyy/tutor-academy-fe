@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import { useMutation } from "@apollo/client/react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { jsPDF } from "jspdf";
-import Swal from "sweetalert2";
 import {
   DollarSign,
   FileText,
@@ -14,9 +12,8 @@ import {
   Users,
 } from "lucide-react";
 import { toast } from "sonner";
-import { GET_ADMIN_PANEL_DATA, useAdminPanelData, type BackendUser } from "../../../api/admin";
-import type { Batch } from "../../../api/batches";
-import { DELETE_COURSE, type Course, type CourseStatus } from "../../../api/courses";
+import { useAdminPanelData, type BackendUser } from "../../../api/admin";
+import type { Course, CourseStatus } from "../../../api/courses";
 import { useAuth } from "../../../auth/AuthContext";
 import { confirmLogout } from "../../../components/feedback/confirmLogout";
 import { Badge } from "../../../components/ui/badge";
@@ -252,37 +249,12 @@ const navItems = [
   { id: "financials", label: "Financials", icon: DollarSign },
 ] as const;
 
-function getUniqueTutorIds(course: Course, batches: Batch[]) {
-  const tutorIds = batches
-    .filter((batch) => batch.courseId === course.id)
-    .map((batch) => batch.tutorId)
-    .filter(Boolean);
-
-  const fallbackTutorIds = course.tutorId ?? [];
-  return Array.from(new Set(tutorIds.length > 0 ? tutorIds : fallbackTutorIds));
-}
-
-function formatTutorNames(tutorIds: string[], users: BackendUser[]) {
-  if (tutorIds.length === 0) return "Unassigned";
-
-  const usersById = new Map(users.map((backendUser) => [backendUser.id, backendUser]));
-  const tutorNames = tutorIds.map((tutorId) => usersById.get(tutorId)?.name ?? tutorId);
-
-  return tutorNames.join(", ");
-}
-
-function mapCourseToManagedClass(
-  course: Course,
-  users: BackendUser[],
-  batches: Batch[],
-): ManagedClass {
-  const tutorIds = getUniqueTutorIds(course, batches);
-
+function mapCourseToManagedClass(course: Course): ManagedClass {
   return {
     id: course.id,
     title: course.title,
     level: course.level,
-    tutor: formatTutorNames(tutorIds, users),
+    tutor: "Unassigned",
     students: 0,
     videos: course.totalLectures,
     sessions: 0,
@@ -306,29 +278,11 @@ function mapUserToStudent(backendUser: BackendUser): ManagedStudent {
   };
 }
 
-function getAssignedClassNames(
-  backendUser: BackendUser,
-  courses: Course[],
-  batches: Batch[],
-) {
-  const assignedCourseIds = new Set([
-    ...backendUser.teachingCourses,
-    ...batches
-      .filter((batch) => batch.tutorId === backendUser.id)
-      .map((batch) => batch.courseId),
-  ]);
-
-  return courses
-    .filter((course) => assignedCourseIds.has(course.id))
-    .map((course) => course.title);
-}
-
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { logout, user } = useAuth();
   const { data: adminData, loading: isAdminDataLoading } = useAdminPanelData();
-  const [deleteCourse, { loading: isDeletingClass }] = useMutation(DELETE_COURSE);
   const [searchQuery, setSearchQuery] = useState("");
   const [classes, setClasses] = useState(initialClasses);
   const [students, setStudents] = useState(initialStudents);
@@ -356,55 +310,6 @@ export default function AdminDashboardPage() {
     navigate("/login");
   };
 
-  const confirmDeleteClass = async (classTitle: string) => {
-    const result = await Swal.fire({
-      title: "Delete class?",
-      text: `${classTitle} will be removed from the course catalog.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Delete class",
-      cancelButtonText: "Cancel",
-      confirmButtonColor: "#B42318",
-      cancelButtonColor: "#308279",
-      reverseButtons: true,
-      background: "#FFFFFF",
-      color: "#0A1B45",
-      iconColor: "#B42318",
-      customClass: {
-        popup:
-          "rounded-[1.5rem] border border-[#D8E5E9] shadow-[0_24px_64px_rgba(10,27,69,0.18)]",
-        title: "text-[#0A1B45]",
-        htmlContainer: "text-[#476074]",
-        confirmButton: "rounded-xl px-5 py-2.5 font-semibold",
-        cancelButton: "rounded-xl px-5 py-2.5 font-semibold text-white",
-      },
-    });
-
-    return result.isConfirmed;
-  };
-
-  const handleDeleteClass = async (courseId: string) => {
-    const targetClass = classes.find((item) => item.id === courseId);
-    if (!targetClass) return;
-
-    const confirmed = await confirmDeleteClass(targetClass.title);
-    if (!confirmed) return;
-
-    try {
-      await deleteCourse({
-        variables: { id: courseId },
-        refetchQueries: [GET_ADMIN_PANEL_DATA, "GetPublishedCourses"],
-        awaitRefetchQueries: true,
-      });
-      toast.success("Class deleted", {
-        description: `${targetClass.title} has been removed.`,
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Please try again.";
-      toast.error("Unable to delete class", { description: message });
-    }
-  };
-
   const selectedView = (() => {
     const view = searchParams.get("view");
     if (view === "tutor-applications") return "tutors" as AdminView;
@@ -428,13 +333,8 @@ export default function AdminDashboardPage() {
 
     const backendCourses = adminData.courses?.nodes ?? [];
     const backendUsers = adminData.users?.nodes ?? [];
-    const backendBatches = adminData.batches?.nodes ?? [];
 
-    setClasses(
-      backendCourses.map((course) =>
-        mapCourseToManagedClass(course, backendUsers, backendBatches),
-      ),
-    );
+    setClasses(backendCourses.map(mapCourseToManagedClass));
     setStudents(
       backendUsers
         .filter((backendUser) => backendUser.role === "USER")
@@ -443,27 +343,22 @@ export default function AdminDashboardPage() {
     setTutors(
       backendUsers
         .filter((backendUser) => backendUser.role === "TUTOR")
-        .map((backendUser) => {
-          const assignedClassNames = getAssignedClassNames(
-            backendUser,
-            backendCourses,
-            backendBatches,
-          );
-
-          return {
-            id: backendUser.id,
-            name: backendUser.name,
-            email: backendUser.email,
-            contact: backendUser.contact ?? "-",
-            username: backendUser.username,
-            assignedClassNames,
-            assignedClasses: assignedClassNames.length,
-            students: 0,
-            rating: 0,
-            responsibility: "Live sessions & PDF materials",
-            status: "Active",
-          };
-        }),
+        .map((backendUser) => ({
+          id: backendUser.id,
+          name: backendUser.name,
+          email: backendUser.email,
+          contact: backendUser.contact ?? "-",
+          username: backendUser.username,
+          assignedClassNames:
+            adminData?.courses?.nodes
+              .filter((course) => backendUser.teachingCourses.includes(course.id))
+              .map((course) => course.title) ?? [],
+          assignedClasses: backendUser.teachingCourses.length,
+          students: 0,
+          rating: 0,
+          responsibility: "Live sessions & PDF materials",
+          status: "Active",
+        })),
     );
   }, [adminData]);
 
@@ -813,8 +708,6 @@ export default function AdminDashboardPage() {
           <AdminClassesPage
             classes={classes}
             onCreateClass={() => navigate("/admin/classes/new/edit")}
-            onDeleteClass={handleDeleteClass}
-            isDeletingClass={isDeletingClass}
             getClassStatusBadgeClassName={getClassStatusBadgeClassName}
             getCourseStatusLabel={getCourseStatusLabel}
           />
