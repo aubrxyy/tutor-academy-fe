@@ -53,6 +53,7 @@ import {
 import "ckeditor5/ckeditor5.css";
 import "./course-edit-ckeditor.css";
 import { useMutation, useQuery } from "@apollo/client/react";
+import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import {
   ArrowLeft,
@@ -73,8 +74,8 @@ import { Label } from "../../../components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import { Textarea } from "../../../components/ui/textarea";
 import { toast } from "sonner";
-import { GET_ADMIN_PANEL_DATA, useTutorUsers } from "../../../api/admin";
-import { CREATE_BATCH, GET_COURSE_BATCHES, useCourseBatches, type Batch } from "../../../api/batches";
+import { useTutorUsers } from "../../../api/admin";
+import { CREATE_BATCH, useCourseBatches, type Batch } from "../../../api/batches";
 import {
   CREATE_COURSE,
   GET_COURSE_BY_ID,
@@ -563,7 +564,7 @@ function formatDateInputValue(value: string) {
   return new Date(value).toISOString().slice(0, 10);
 }
 
-function mapBatchToDraft(batch: Batch): BatchDraft {
+function mapBatchToDraft(batch: Batch, fallbackTutorId = ""): BatchDraft {
   const startDate = formatDateInputValue(batch.startDate);
   const start = new Date(batch.startDate);
   const end = new Date(batch.endDate);
@@ -571,7 +572,7 @@ function mapBatchToDraft(batch: Batch): BatchDraft {
 
   return {
     id: batch.id,
-    tutorId: batch.tutorId,
+    tutorId: batch.tutorId ?? fallbackTutorId,
     startDate,
     durationValue: String(durationInDays),
     durationUnit: "day",
@@ -591,6 +592,65 @@ function formatCourseTutors(tutorIds: string[], tutorOptions: Array<{ id: string
     .filter(Boolean);
   
   return tutorNames.join(", ");
+}
+
+function formatSaveError(error: unknown) {
+  const formatGraphQLError = (entry: {
+    message?: string;
+    extensions?: Record<string, unknown> | null;
+    path?: readonly (string | number)[] | null;
+  }) => {
+    const code = typeof entry.extensions?.code === "string" ? entry.extensions.code : "NO_CODE";
+    const path = entry.path?.length ? ` path: ${entry.path.join(".")}` : "";
+    return `[${code}] ${entry.message ?? "GraphQL error"}${path}`;
+  };
+
+  if (CombinedGraphQLErrors.is(error)) {
+    return error.errors.map(formatGraphQLError).join("; ");
+  }
+
+  if (error && typeof error === "object") {
+    const maybeApolloError = error as {
+      graphQLErrors?: Array<{
+        message?: string;
+        extensions?: Record<string, unknown> | null;
+        path?: readonly (string | number)[] | null;
+      }>;
+      networkError?: {
+        message?: string;
+        result?: {
+          errors?: Array<{
+            message?: string;
+            extensions?: Record<string, unknown> | null;
+            path?: readonly (string | number)[] | null;
+          }>;
+        };
+      };
+      cause?: unknown;
+    };
+
+    if (maybeApolloError.graphQLErrors?.length) {
+      return maybeApolloError.graphQLErrors.map(formatGraphQLError).join("; ");
+    }
+
+    if (maybeApolloError.networkError?.result?.errors?.length) {
+      return maybeApolloError.networkError.result.errors.map(formatGraphQLError).join("; ");
+    }
+
+    if (maybeApolloError.networkError?.message) {
+      return maybeApolloError.networkError.message;
+    }
+
+    if (maybeApolloError.cause && maybeApolloError.cause !== error) {
+      return formatSaveError(maybeApolloError.cause);
+    }
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Please try again.";
 }
 
 export default function CourseEditPage() {
@@ -689,7 +749,8 @@ export default function CourseEditPage() {
         ],
   );
 
-  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(sections[0]?.id ?? null);
+  const [sections, setSections] = useState<CurriculumSection[]>([]);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingQuizId, setEditingQuizId] = useState<number | null>(null);
@@ -721,8 +782,13 @@ export default function CourseEditPage() {
     if (isNewClass || isBatchesLoading || !batchData) return;
 
     const backendBatches = batchData.batches?.nodes ?? [];
-    setBatchDrafts(backendBatches.length > 0 ? backendBatches.map(mapBatchToDraft) : [createEmptyBatchDraft()]);
-  }, [batchData, isBatchesLoading, isNewClass]);
+    const fallbackTutorId = courseData?.courses?.nodes?.[0]?.tutorId?.[0] ?? "";
+    setBatchDrafts(
+      backendBatches.length > 0
+        ? backendBatches.map((batch) => mapBatchToDraft(batch, fallbackTutorId))
+        : [createEmptyBatchDraft()],
+    );
+  }, [batchData, courseData, isBatchesLoading, isNewClass]);
 
   useEffect(() => {
     if (isNewClass || isCurriculumLoading || !curriculumData) return;
@@ -1622,14 +1688,17 @@ export default function CourseEditPage() {
     const input = buildCourseInput();
     if (!input) return;
 
+    if (!isNewClass && !courseId) {
+      toast.error("Course ID is missing - check your route configuration.");
+      return;
+    }
+
     try {
       const batchInputs = buildBatchInputs();
 
       if (isNewClass) {
         await createCourse({
           variables: { input },
-          refetchQueries: [GET_ADMIN_PANEL_DATA, "GetPublishedCourses"],
-          awaitRefetchQueries: false,
         });
         toast.success("New class created", {
           description: `${input.title} has been saved as ${input.status.toLowerCase()}.`,
@@ -1640,8 +1709,6 @@ export default function CourseEditPage() {
 
       await updateCourse({
         variables: { id: courseId, input },
-        refetchQueries: [GET_ADMIN_PANEL_DATA, "GetPublishedCourses", "GetCourseById"],
-        awaitRefetchQueries: false,
       });
 
       const existingBatchIds = new Set((batchData?.batches?.nodes ?? []).map((batch) => batch.id));
@@ -1651,8 +1718,6 @@ export default function CourseEditPage() {
         newBatchInputs.map((batchInput) =>
           createBatch({
             variables: { input: batchInput },
-            refetchQueries: [{ query: GET_COURSE_BATCHES, variables: { courseId } }],
-            awaitRefetchQueries: false,
           }),
         ),
       );
@@ -1661,7 +1726,8 @@ export default function CourseEditPage() {
         description: `${input.title} has been updated.`,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Please try again.";
+      console.error("Unable to save class", error);
+      const message = formatSaveError(error);
       toast.error("Unable to save class", { description: message });
     }
   };
@@ -1778,6 +1844,7 @@ export default function CourseEditPage() {
                       <Label htmlFor="title">Class Title</Label>
                       <Input
                         id="title"
+                        placeholder="e.g. Data Structures Intensive"
                         value={classData.title}
                         onChange={(event) => setClassData({ ...classData, title: event.target.value })}
                       />
@@ -1786,6 +1853,7 @@ export default function CourseEditPage() {
                       <Label htmlFor="subtitle">Subtitle</Label>
                       <Input
                         id="subtitle"
+                        placeholder="Short summary shown on the class card"
                         value={classData.subtitle}
                         onChange={(event) => setClassData({ ...classData, subtitle: event.target.value })}
                       />
@@ -1796,6 +1864,7 @@ export default function CourseEditPage() {
                     <Label htmlFor="description">Description</Label>
                     <Textarea
                       id="description"
+                      placeholder="Describe what students will learn, prerequisites, and class outcomes."
                       value={classData.description}
                       onChange={(event) => setClassData({ ...classData, description: event.target.value })}
                       rows={6}
@@ -1865,6 +1934,7 @@ export default function CourseEditPage() {
                               type="date"
                               value={batch.startDate}
                               disabled={isPersistedBatch}
+                              placeholder="Select start date"
                               onChange={(event) =>
                                 setBatchDrafts((current) =>
                                   current.map((item) =>
@@ -1881,6 +1951,7 @@ export default function CourseEditPage() {
                                 id={`batch-duration-${batch.id}`}
                                 type="number"
                                 min="1"
+                                placeholder="1"
                                 value={batch.durationValue}
                                 disabled={isPersistedBatch}
                                 onChange={(event) =>
@@ -1923,6 +1994,7 @@ export default function CourseEditPage() {
                               id={`batch-capacity-${batch.id}`}
                               type="number"
                               min="1"
+                              placeholder="20"
                               value={batch.capacity}
                               disabled={isPersistedBatch}
                               onChange={(event) =>

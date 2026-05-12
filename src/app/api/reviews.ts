@@ -46,10 +46,7 @@ export const GET_COURSE_REVIEWS = gql`
 export const CREATE_REVIEW = gql`
   mutation CreateReview($input: CreateReviewInput!) {
     createReview(input: $input) {
-      courseId
-      userId
-      rating
-      comment
+      __typename
     }
   }
 `;
@@ -57,9 +54,7 @@ export const CREATE_REVIEW = gql`
 export const UPDATE_REVIEW = gql`
   mutation UpdateReview($input: UpdateReviewInput!) {
     updateReview(input: $input) {
-      id
-      rating
-      comment
+      __typename
     }
   }
 `;

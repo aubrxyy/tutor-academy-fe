@@ -92,19 +92,17 @@ export const GET_PUBLISHED_COURSES = gql`
 export const CREATE_COURSE = gql`
   mutation CreateCourse($input: CreateCourseInput!) {
     createCourse(input: $input) {
-      ...CourseFields
+      __typename
     }
   }
-  ${COURSE_FIELDS}
 `;
 
 export const UPDATE_COURSE = gql`
   mutation UpdateCourse($id: String!, $input: UpdateCourseInput!) {
     updateCourse(id: $id, input: $input) {
-      ...CourseFields
+      __typename
     }
   }
-  ${COURSE_FIELDS}
 `;
 
 export const DELETE_COURSE = gql`

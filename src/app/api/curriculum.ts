@@ -90,10 +90,7 @@ export const GET_COURSE_CURRICULUM = gql`
 export const CREATE_SECTION = gql`
   mutation CreateSection($input: CreateSectionInput!) {
     createSection(input: $input) {
-      courseId
-      title
-      type
-      order
+      __typename
     }
   }
 `;
@@ -101,10 +98,7 @@ export const CREATE_SECTION = gql`
 export const UPDATE_SECTION = gql`
   mutation UpdateSection($input: UpdateSectionInput!) {
     updateSection(input: $input) {
-      id
-      title
-      type
-      order
+      __typename
     }
   }
 `;
@@ -118,14 +112,7 @@ export const DELETE_SECTION = gql`
 export const CREATE_LECTURE = gql`
   mutation CreateLecture($input: CreateLectureInput!) {
     createLecture(input: $input) {
-      id
-      courseId
-      sectionId
-      title
-      youtubeEmbedId
-      duration
-      content
-      order
+      __typename
     }
   }
 `;
@@ -133,14 +120,7 @@ export const CREATE_LECTURE = gql`
 export const UPDATE_LECTURE = gql`
   mutation UpdateLecture($input: UpdateLectureInput!) {
     updateLecture(input: $input) {
-      id
-      courseId
-      sectionId
-      title
-      youtubeEmbedId
-      duration
-      content
-      order
+      __typename
     }
   }
 `;
