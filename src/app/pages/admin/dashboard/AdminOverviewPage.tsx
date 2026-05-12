@@ -64,7 +64,7 @@ export default function AdminOverviewPage({
       <div className="mb-8 rounded-[2rem] bg-gradient-to-r from-[#0A1B45] via-[#123061] to-[#308279] p-8 text-white shadow-[0_24px_60px_rgba(10,27,69,0.14)]">
         <div>
           <h2 className="mt-5 text-4xl font-bold tracking-[-0.04em]">
-            im craving some chinese and its not food
+            Lorem ipsum dolor sit amet.
           </h2>
           <p className="mt-3 max-w-2xl leading-7 text-white/75">
             Tutor sekarang fokus pada live session dan dokumen belajar. Admin memegang
