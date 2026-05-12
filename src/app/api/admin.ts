@@ -29,20 +29,6 @@ const USER_FIELDS = gql`
   }
 `;
 
-<<<<<<< HEAD
-=======
-const ADMIN_BATCH_FIELDS = gql`
-  fragment AdminBatchFields on Batch {
-    id
-    courseId
-    tutorId
-    startDate
-    endDate
-    capacity
-  }
-`;
-
->>>>>>> b1e043c (fix: align curriculum and course backend integration)
 export const GET_ADMIN_PANEL_DATA = gql`
   query GetAdminPanelData {
     users(order: [{ name: ASC }]) {

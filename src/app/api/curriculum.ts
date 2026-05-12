@@ -15,12 +15,8 @@ export interface Lecture {
   courseId: string;
   sectionId: string;
   title: string;
-<<<<<<< HEAD
   type: LectureType;
   youtubeEmbedId: string;
-=======
-  youtubeEmbedId?: string | null;
->>>>>>> b1e043c (fix: align curriculum and course backend integration)
   duration: string;
   content?: string | null;
   order: number;
