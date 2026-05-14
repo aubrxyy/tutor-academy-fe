@@ -17,7 +17,7 @@ export async function confirmLogout() {
     iconColor: "#308279",
     customClass: {
       popup:
-        "rounded-[1.5rem] border border-[#D8E5E9] shadow-[0_24px_64px_rgba(10,27,69,0.18)]",
+        "rounded-2xl border border-[#D8E5E9] shadow-[0_24px_64px_rgba(10,27,69,0.18)]",
       title: "text-[#0A1B45]",
       htmlContainer: "text-[#476074]",
       confirmButton: "rounded-xl px-5 py-2.5 font-semibold",

@@ -8,6 +8,7 @@ import { ImageWithFallback } from "../../components/media/ImageWithFallback";
 import { motion, useScroll, useTransform, Variants } from "motion/react";
 import { useState } from "react";
 import { useCourses } from "../../api/courses";
+import imagebinus from "@/assets/imagebinus.png";
 
 export default function HomePage() {
   const { courses, loading, error, refetch } = useCourses();
@@ -79,8 +80,6 @@ export default function HomePage() {
     { value: "500+", label: "Materi Premium" },
   ];
 
-  const heroImage =
-    "https://www.figma.com/api/mcp/asset/d62191c8-7d46-41e8-8d68-545086956c3e";
 
   return (
     <div className="min-h-screen bg-[#F3F8FA] overflow-hidden selection:bg-[#308279] selection:text-white font-sans">
@@ -179,7 +178,7 @@ export default function HomePage() {
             >
               <div className="rounded-2xl border-8 border-white bg-transparent p-2 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
                 <img
-                  src={heroImage}
+                  src={imagebinus}
                   alt="Mahasiswa BINUS belajar bersama"
                   className="h-[20rem] w-full rounded-xl object-cover sm:h-[26rem] lg:h-[31.25rem]"
                 />

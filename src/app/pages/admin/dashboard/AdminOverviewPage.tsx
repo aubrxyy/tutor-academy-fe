@@ -14,6 +14,7 @@ import {
   YAxis,
 } from "recharts";
 import { Badge } from "../../../components/ui/badge";
+import { useAuth } from "../../../auth/AuthContext";
 import { Card } from "../../../components/ui/card";
 import type { AdminView } from "../shared/types";
 
@@ -53,18 +54,21 @@ type AdminOverviewPageProps = {
 };
 
 export default function AdminOverviewPage({
+  
   stats,
   revenueData,
   userGrowthData,
   classPerformanceData,
   setAdminView,
+  
 }: AdminOverviewPageProps) {
+  const { logout, user } = useAuth();
   return (
     <div className="p-8">
       <div className="mb-8 rounded-[2rem] bg-gradient-to-r from-[#0A1B45] via-[#123061] to-[#308279] p-8 text-white shadow-[0_24px_60px_rgba(10,27,69,0.14)]">
         <div>
           <h2 className="mt-5 text-4xl font-bold tracking-[-0.04em]">
-            Lorem ipsum dolor sit amet.
+            Welcome, {user?.name ?? "Ops Admin"}!
           </h2>
           <p className="mt-3 max-w-2xl leading-7 text-white/75">
             Tutor sekarang fokus pada live session dan dokumen belajar. Admin memegang
