@@ -58,6 +58,8 @@ export interface CourseDetailView extends CourseCardView {
   pricing: {
     monthly: number;
     discount: number;
+    alaCarte: number;
+    tutorPackage: number;
   };
   features: string[];
 }
@@ -95,6 +97,7 @@ export const GET_PUBLISHED_COURSES = gql`
 export const CREATE_COURSE = gql`
   mutation CreateCourse($input: CreateCourseInput!) {
     createCourse(input: $input) {
+      id
       __typename
     }
   }
@@ -132,6 +135,58 @@ interface CoursesData {
 }
 
 const COURSES_CACHE_KEY = "tutoring-academy.published-courses";
+const COURSE_PACKAGE_PRICING_KEY = "tutoring-academy.course-package-pricing";
+
+export interface CoursePackagePricing {
+  alaCartePrice: number;
+  tutorPackagePrice: number;
+}
+
+function getDefaultCoursePackagePricing(course: Pick<Course, "price" | "isFree">): CoursePackagePricing {
+  if (course.isFree || course.price <= 0) {
+    return {
+      alaCartePrice: 0,
+      tutorPackagePrice: 0,
+    };
+  }
+
+  return {
+    alaCartePrice: Math.round(course.price * 0.75),
+    tutorPackagePrice: course.price,
+  };
+}
+
+function getStoredCoursePackagePricingMap() {
+  if (typeof window === "undefined") {
+    return {} as Record<string, CoursePackagePricing>;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(COURSE_PACKAGE_PRICING_KEY);
+    if (!raw) return {};
+
+    const parsed = JSON.parse(raw) as Record<string, CoursePackagePricing>;
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    window.localStorage.removeItem(COURSE_PACKAGE_PRICING_KEY);
+    return {};
+  }
+}
+
+export function getCoursePackagePricing(courseId: string, course: Pick<Course, "price" | "isFree">) {
+  const storedMap = getStoredCoursePackagePricingMap();
+  return storedMap[courseId] ?? getDefaultCoursePackagePricing(course);
+}
+
+export function setCoursePackagePricing(courseId: string, pricing: CoursePackagePricing) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const storedMap = getStoredCoursePackagePricingMap();
+  storedMap[courseId] = pricing;
+  window.localStorage.setItem(COURSE_PACKAGE_PRICING_KEY, JSON.stringify(storedMap));
+}
 
 function formatPrice(course: Course) {
   if (course.isFree || course.price <= 0) {
@@ -183,6 +238,8 @@ export function mapCourseToCard(course: Course): CourseCardView {
 }
 
 export function mapCourseToDetail(course: Course): CourseDetailView {
+  const packagePricing = getCoursePackagePricing(course.id, course);
+
   return {
     ...mapCourseToCard(course),
     tutorIds: course.tutorId,
@@ -191,6 +248,8 @@ export function mapCourseToDetail(course: Course): CourseDetailView {
     pricing: {
       monthly: course.price,
       discount: 0,
+      alaCarte: packagePricing.alaCartePrice,
+      tutorPackage: packagePricing.tutorPackagePrice,
     },
     features: [
       `${course.totalSections} sections`,

@@ -85,8 +85,6 @@ export default function CourseDetailPage() {
     );
   }
 
-  const discountedMonthly =
-    course.pricing.monthly * (1 - course.pricing.discount / 100);
   const resolvedTutorNames =
     tutorUsersData?.users?.nodes
       ?.map((tutor) => tutor.name)
@@ -103,7 +101,8 @@ export default function CourseDetailPage() {
   const packages = getCoursePackagesForDetail({
     courseId,
     tutorName: tutor.name,
-    basePrice: discountedMonthly,
+    alaCartePrice: course.pricing.alaCarte,
+    tutorPackagePrice: course.pricing.tutorPackage,
     isFree: course.pricing.monthly <= 0,
   });
 
@@ -168,11 +167,11 @@ export default function CourseDetailPage() {
                   Enrollment packages
                 </div>
                 <div className="mt-2 text-2xl font-black text-[#0A1B45]">
-                  Pilih package dan batch enrollment
+                  Pilih package enrollment
                 </div>
                 <p className="mt-3 text-sm leading-5 text-[#476074]">
-                  Setiap class dibagi jadi dua package. Batch hanya menentukan minggu enrollment
-                  student.
+                  Ala carte memberi akses ke semua video dan written materials tanpa batch. Paket
+                  tutor menambahkan live sessions dan tetap memilih batch.
                 </p>
               </div>
 
@@ -180,7 +179,8 @@ export default function CourseDetailPage() {
                 {packages.map((pkg) => {
                   const selectedBatch =
                     pkg.batches.find((batch) => batch.id === selectedBatchByPackage[pkg.id]) ??
-                    pkg.batches[0];
+                    pkg.batches[0] ??
+                    null;
 
                   return (
                     <div
@@ -211,7 +211,40 @@ export default function CourseDetailPage() {
                         ))}
                       </div>
 
-                      {selectedBatch ? (
+                      {!pkg.requiresBatch ? (
+                        <div className="mt-5 border-t border-[#E5EEF1] pt-5">
+                          <div className="rounded-[1rem] border border-[#D8E5E9] bg-[#FCFEFE] p-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="text-base font-bold text-[#0A1B45]">
+                                  Self-paced access
+                                </div>
+                                <div className="mt-1 text-sm text-[#476074]">
+                                  No batch needed. Students can start learning materials right after
+                                  enrollment.
+                                </div>
+                              </div>
+                            </div>
+                            <div className="mt-4 space-y-2 text-sm text-[#476074]">
+                              <div className="flex items-center gap-2">
+                                <Video className="h-4 w-4 text-[#308279]" />
+                                <span>Videos and written materials only</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-[#308279]" />
+                                <span>Learn on your own schedule</span>
+                              </div>
+                            </div>
+                            <div className="mt-5 flex items-center justify-between gap-3">
+                              <Link to={`/classroom/${courseId}`}>
+                                <Button className="bg-[#0A1B45] text-white hover:bg-[#308279]">
+                                  Choose Package
+                                </Button>
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      ) : selectedBatch ? (
                         <div className="mt-5 border-t border-[#E5EEF1] pt-5">
                           <div className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-[#476074]">
                             Choose batch

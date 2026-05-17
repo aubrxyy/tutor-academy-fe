@@ -80,6 +80,8 @@ import {
   CREATE_COURSE,
   GET_COURSE_BY_ID,
   UPDATE_COURSE,
+  getCoursePackagePricing,
+  setCoursePackagePricing,
   type Course,
   type CourseInput,
   type CourseLevel,
@@ -205,6 +207,7 @@ type CourseFormState = {
   description: string;
   totalDuration: string;
   price: string;
+  alaCartePrice: string;
   isFree: boolean;
   level: CourseLevel;
   status: CourseStatus;
@@ -426,6 +429,17 @@ const materialEditorConfig: EditorConfig = {
 
 function getPlainTextFromHtml(value: string) {
   return value.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function sanitizePriceInput(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+function formatPriceInput(value: string) {
+  const digits = sanitizePriceInput(value);
+  if (!digits) return "";
+
+  return Number(digits).toLocaleString("id-ID");
 }
 
 function extractYouTubeVideoId(value: string) {
@@ -703,6 +717,7 @@ export default function CourseEditPage() {
     description: "",
     totalDuration: "",
     price: "",
+    alaCartePrice: "",
     isFree: false,
     level: "BEGINNER",
     status: "DRAFT",
@@ -761,17 +776,21 @@ export default function CourseEditPage() {
   const [isItemComposerOpen, setIsItemComposerOpen] = useState(false);
   const [isQuizComposerOpen, setIsQuizComposerOpen] = useState(isNewClass);
   const [isUploadDragActive, setIsUploadDragActive] = useState(false);
+  const tutorPackagePrice = classData.isFree ? 0 : Number(sanitizePriceInput(classData.price)) || 0;
+  const alaCartePrice = classData.isFree ? 0 : Number(sanitizePriceInput(classData.alaCartePrice)) || 0;
 
   useEffect(() => {
     const course = courseData?.courses?.nodes?.[0];
     if (!course || isNewClass) return;
+    const packagePricing = getCoursePackagePricing(course.id, course);
 
     setClassData({
       title: course.title,
       subtitle: course.shortDescription,
       description: course.description,
       totalDuration: String(course.totalDuration),
-      price: String(course.price),
+      price: String(packagePricing.tutorPackagePrice),
+      alaCartePrice: String(packagePricing.alaCartePrice),
       isFree: course.isFree,
       level: course.level,
       status: course.status,
@@ -1611,7 +1630,8 @@ export default function CourseEditPage() {
   const buildCourseInput = (): CourseInput | null => {
     const totalDurationValue = classData.totalDuration.trim() || "0";
     const totalDuration = Number(totalDurationValue);
-    const price = classData.isFree ? 0 : Number(classData.price);
+    const price = classData.isFree ? 0 : Number(sanitizePriceInput(classData.price));
+    const alaCartePrice = classData.isFree ? 0 : Number(sanitizePriceInput(classData.alaCartePrice));
     const tutorIds = Array.from(
       new Set(batchDrafts.map((batch) => batch.tutorId).filter(Boolean)),
     );
@@ -1628,6 +1648,16 @@ export default function CourseEditPage() {
 
     if (!Number.isFinite(price) || price < 0) {
       toast.error("Price must be a valid number.");
+      return null;
+    }
+
+    if (!Number.isFinite(alaCartePrice) || alaCartePrice < 0) {
+      toast.error("Ala carte price must be a valid number.");
+      return null;
+    }
+
+    if (!classData.isFree && alaCartePrice > price) {
+      toast.error("Ala carte price cannot be higher than Tutor package price.");
       return null;
     }
 
@@ -1697,9 +1727,21 @@ export default function CourseEditPage() {
       const batchInputs = buildBatchInputs();
 
       if (isNewClass) {
-        await createCourse({
+        const result = await createCourse({
           variables: { input },
         });
+        const createdCourseId =
+          "data" in result && result.data && typeof result.data === "object"
+            ? (result.data as { createCourse?: { id?: string } | null }).createCourse?.id
+            : undefined;
+
+        if (createdCourseId) {
+          setCoursePackagePricing(createdCourseId, {
+            alaCartePrice:
+              classData.isFree ? 0 : Number(sanitizePriceInput(classData.alaCartePrice)),
+            tutorPackagePrice: classData.isFree ? 0 : Number(sanitizePriceInput(classData.price)),
+          });
+        }
         toast.success("New class created", {
           description: `${input.title} has been saved as ${input.status.toLowerCase()}.`,
         });
@@ -1709,6 +1751,13 @@ export default function CourseEditPage() {
 
       await updateCourse({
         variables: { id: courseId, input },
+      });
+
+      setCoursePackagePricing(courseId, {
+        alaCartePrice:
+          classData.isFree ? 0 : Number(sanitizePriceInput(classData.alaCartePrice)),
+        tutorPackagePrice:
+          classData.isFree ? 0 : Number(sanitizePriceInput(classData.price)),
       });
 
       const existingBatchIds = new Set((batchData?.batches?.nodes ?? []).map((batch) => batch.id));
@@ -1874,10 +1923,10 @@ export default function CourseEditPage() {
                   <div className="rounded-[1.5rem] border border-[#D8E5E9] bg-[#F9FCFD] p-5">
                     <div className="mb-4 flex items-center justify-between gap-3">
                       <div>
-                        <h3 className="text-lg font-bold text-[#0A1B45]">Batches</h3>
+                        <h3 className="text-lg font-bold text-[#0A1B45]">Tutor package batches</h3>
                         <p className="mt-1 text-sm text-[#476074]">
-                          Backend membutuhkan tutor, tanggal mulai, tanggal selesai, dan kapasitas.
-                          Durasi dipakai untuk menghitung tanggal selesai.
+                          Batch hanya dipakai untuk Tutor package. Ala carte tidak memakai batch dan
+                          langsung memberi akses ke learning materials.
                         </p>
                       </div>
                       <Button
@@ -2032,15 +2081,37 @@ export default function CourseEditPage() {
 
                   <div className="grid gap-4 md:grid-cols-4">
                     <div className="space-y-2">
-                      <Label htmlFor="price">Harga (Rp)</Label>
+                      <Label htmlFor="price">Tutor Package Price (Rp)</Label>
                       <Input
                         id="price"
-                        type="number"
-                        min="0"
-                        value={classData.price}
-                        onChange={(event) => setClassData({ ...classData, price: event.target.value })}
+                        type="text"
+                        inputMode="numeric"
+                        value={formatPriceInput(classData.price)}
+                        onChange={(event) =>
+                          setClassData({
+                            ...classData,
+                            price: sanitizePriceInput(event.target.value),
+                          })
+                        }
                         disabled={classData.isFree}
-                        placeholder="499000"
+                        placeholder="499.000"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="alaCartePrice">Ala Carte Price (Rp)</Label>
+                      <Input
+                        id="alaCartePrice"
+                        type="text"
+                        inputMode="numeric"
+                        value={formatPriceInput(classData.alaCartePrice)}
+                        onChange={(event) =>
+                          setClassData({
+                            ...classData,
+                            alaCartePrice: sanitizePriceInput(event.target.value),
+                          })
+                        }
+                        disabled={classData.isFree}
+                        placeholder="349.000"
                       />
                     </div>
                     <div className="space-y-2">
@@ -2095,26 +2166,6 @@ export default function CourseEditPage() {
                     </div>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="isFree">Pricing Type</Label>
-                      <select
-                        id="isFree"
-                        value={classData.isFree ? "free" : "paid"}
-                        onChange={(event) =>
-                          setClassData({
-                            ...classData,
-                            isFree: event.target.value === "free",
-                            price: event.target.value === "free" ? "0" : classData.price,
-                          })
-                        }
-                        className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
-                      >
-                        <option value="paid">Paid</option>
-                        <option value="free">Free</option>
-                      </select>
-                    </div>
-                  </div>
                 </form>
               </Card>
             </TabsContent>

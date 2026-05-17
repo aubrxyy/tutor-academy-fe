@@ -50,9 +50,6 @@ export default function AdminClassesPage({
                 <Badge className={getClassStatusBadgeClassName(item.status)}>
                   {getCourseStatusLabel(item.status)}
                 </Badge>
-                <div className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.16em] text-white/75">
-                  class
-                </div>
               </div>
               <div className="min-h-[88px]">
                 <h3 className="text-lg font-bold leading-snug">{item.title}</h3>
@@ -82,7 +79,7 @@ export default function AdminClassesPage({
                   </div>
                   <div className="rounded-lg bg-[#F3F8FA] p-3">
                     <div className="text-lg font-bold text-[#0A1B45]">{item.docs}</div>
-                    <div className="text-xs text-[#476074]">Docs</div>
+                    <div className="text-xs text-[#476074]">Materials</div>
                   </div>
                 </div>
               </div>

@@ -32,6 +32,7 @@ export interface CoursePackageDetailView {
   description: string;
   priceLabel: string;
   features: string[];
+  requiresBatch: boolean;
   batches: CoursePackageBatchView[];
 }
 
@@ -148,16 +149,17 @@ export function getMockBatchesForCourse(
 export function getCoursePackagesForDetail(args: {
   courseId: string | undefined;
   tutorName: string;
-  basePrice: number;
+  alaCartePrice: number;
+  tutorPackagePrice: number;
   isFree?: boolean;
 }): CoursePackageDetailView[] {
-  const alaCartePrice = args.isFree ? 0 : Math.round(args.basePrice * 0.75);
-  const tutorPackagePrice = args.isFree ? 0 : args.basePrice;
+  const alaCartePrice = args.isFree ? 0 : args.alaCartePrice;
+  const tutorPackagePrice = args.isFree ? 0 : args.tutorPackagePrice;
 
   return [
     {
       id: "ala-carte",
-      name: "Ala carte",
+      name: "Ala Carte",
       description: "Access learning videos and written materials only.",
       priceLabel: formatPrice(alaCartePrice),
       features: [
@@ -165,18 +167,12 @@ export function getCoursePackagesForDetail(args: {
         "Written materials and references",
         "Self-paced access to core class content",
       ],
-      batches: buildWeeklyBatches({
-        courseId: args.courseId,
-        tutorName: args.tutorName,
-        packagePrefix: "A",
-        packageName: "Ala carte",
-        seats: 40,
-        baseOffsetDays: 0,
-      }),
+      requiresBatch: false,
+      batches: [],
     },
     {
       id: "paket-tutor",
-      name: "Paket tutor",
+      name: "Tutor Package",
       description: "Includes Ala carte content plus tutor live sessions.",
       priceLabel: formatPrice(tutorPackagePrice),
       features: [
@@ -184,6 +180,7 @@ export function getCoursePackagesForDetail(args: {
         "Tutor-led live sessions",
         "Structured cohort support during the selected batch window",
       ],
+      requiresBatch: true,
       batches: buildWeeklyBatches({
         courseId: args.courseId,
         tutorName: args.tutorName,
