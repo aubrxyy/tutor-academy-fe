@@ -80,20 +80,6 @@ export default function ClassroomMaterialPage() {
         <h2 className="text-3xl font-bold text-[#0A1B45]">{item.title}</h2>
         <p className="text-sm text-[#476074]">{item.meta}</p>
         <p className="max-w-3xl text-sm leading-7 text-[#476074]">{item.description}</p>
-
-        {item.downloadable ? (
-          <div className="mt-2">
-            <Button
-              variant="outline"
-              className="border-[#308279] text-[#308279] hover:bg-[#308279]/5"
-              disabled={!item.htmlContent || isExportingPdf}
-              onClick={handleDownloadPdf}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              {isExportingPdf ? "Preparing PDF..." : "Download as PDF"}
-            </Button>
-          </div>
-        ) : null}
       </Card>
 
       <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
