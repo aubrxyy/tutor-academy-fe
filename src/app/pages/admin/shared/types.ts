@@ -40,6 +40,8 @@ export type ManagedTutor = {
   name: string;
   email: string;
   contact: string;
+  major: string;
+  angkatan: string;
   username: string;
   assignedClassNames: string[];
   assignedClasses: number;
@@ -56,6 +58,8 @@ export type TutorApplication = {
   name: string;
   email: string;
   contact: string;
+  major: string;
+  angkatan: string;
   expertise: string;
   motivation: string;
   requestedClassNames: string[];
@@ -66,6 +70,8 @@ export type NewTutorDraft = {
   name: string;
   email: string;
   contact: string;
+  major: string;
+  angkatan: string;
   username: string;
   password: string;
   assignedClassNames: string[];

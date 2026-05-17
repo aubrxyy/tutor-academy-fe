@@ -1,8 +1,7 @@
 import { Link } from "react-router";
 import { 
-  BookOpen, TrendingUp, Clock, Target, PlayCircle, 
-  Award, Calendar, Eye, ChevronRight, Download, 
-  Sparkles, ArrowRight
+  BookOpen, TrendingUp, Clock, Target, PlayCircle,
+  Award, Calendar, Eye, ChevronRight, Download, ArrowRight
 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
@@ -101,51 +100,18 @@ export default function StudentDashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
           <div className="flex flex-col gap-8">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/85 backdrop-blur-sm">
-                <Sparkles className="h-4 w-4 text-[#92B7B0]" />
-                Student workspace for {firstName}
-              </div>
               <div className="mt-5 max-w-3xl">
                 <div>
                   <h1 className="text-3xl font-bold tracking-[-0.03em] mb-2 sm:text-4xl">
                     Welcome back, {firstName}
                   </h1>
-                  <p className="max-w-2xl text-white/80 text-base leading-7">
+                  <p className="max-w-4xl text-white/80 text-base leading-7">
                     Fokus kamu lagi bagus minggu ini. Tinggal lanjutkan class aktif,
                     review progress, dan kejar sertifikat berikutnya.
                   </p>
                 </div>
               </div>
-
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <Link to="/classroom/1">
-                  <Button className="rounded-xl bg-white text-[#0A1B45] hover:bg-[#F3F8FA]">
-                    Continue Learning
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-                <Link to="/marketplace">
-                  <Button
-                    variant="outline"
-                    className="rounded-xl border-white/30 bg-white/10 text-white hover:bg-white/15 hover:text-white"
-                  >
-                    Explore New Classes
-                  </Button>
-                </Link>
-              </div>
             </div>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-            {stats.map((stat, index) => (
-              <Card key={index} className="bg-white/10 backdrop-blur-md border-white/15 p-5 shadow-lg hover:-translate-y-1 transition-all">
-                <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-4 shadow-lg`}>
-                  <stat.icon className="w-5 h-5 text-white" />
-                </div>
-                <div className="text-3xl font-bold mb-1 tracking-[-0.03em] text-white">{stat.value}</div>
-                <div className="text-sm text-white/75">{stat.label}</div>
-              </Card>
-            ))}
           </div>
         </div>
       </header>
@@ -339,66 +305,6 @@ export default function StudentDashboardPage() {
                 {[...Array(7)].map((_, i) => (
                   <div key={i} className="flex-1 h-2 rounded-full bg-[#308279]"></div>
                 ))}
-              </div>
-            </Card>
-
-            {/* Recent Purchases */}
-            <Card className="p-6">
-              <h3 className="font-bold text-[#0A1B45] mb-4 flex items-center gap-2">
-                <Download className="w-5 h-5" />
-                Pembelian Terakhir
-              </h3>
-              <div className="space-y-3">
-                {recentPurchases.map((item) => (
-                  <div key={item.id} className="p-3 bg-[#F3F8FA] rounded-lg hover:bg-[#308279]/5 transition-colors">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#308279] to-[#0A1B45] flex items-center justify-center flex-shrink-0">
-                        <Download className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-[#0A1B45] text-sm mb-1">{item.title}</h4>
-                        <div className="flex items-center gap-2 text-xs text-[#476074]">
-                          <Badge variant="outline" className="text-xs">{item.type}</Badge>
-                          <span>•</span>
-                          <span>{item.date}</span>
-                        </div>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-[#308279] hover:bg-[#308279]/10"
-                        onClick={() =>
-                          toast.success(`Membuka ${item.title}`, {
-                            description: "Nanti bisa dihubungkan ke file download atau preview materi.",
-                          })
-                        }
-                      >
-                        Open
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Link to="/marketplace">
-                <Button variant="outline" className="w-full mt-4 border-[#308279] text-[#308279]">
-                  Browse Marketplace
-                </Button>
-              </Link>
-            </Card>
-
-            <Card className="overflow-hidden border-[#D9E6EA]">
-              <div className="bg-gradient-to-r from-[#0A1B45] to-[#308279] p-5 text-white">
-                <h3 className="text-lg font-bold">Need a quick reset?</h3>
-                <p className="mt-2 text-sm text-white/80">
-                  Review kelas aktif atau kunjungi pusat bantuan dari sidebar kiri kapan saja.
-                </p>
-              </div>
-              <div className="p-5">
-                <Link to="/classroom/1">
-                  <Button className="w-full rounded-xl bg-[#0A1B45] text-white hover:bg-[#308279]">
-                    Continue current class
-                  </Button>
-                </Link>
               </div>
             </Card>
           </div>

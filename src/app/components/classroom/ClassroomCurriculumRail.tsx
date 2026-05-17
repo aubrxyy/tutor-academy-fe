@@ -113,41 +113,51 @@ export default function ClassroomCurriculumRail() {
   const location = useLocation();
   const batchId = searchParams.get("batch") ?? `${courseId ?? "course"}-batch-a`;
   const { selectedBatch, sections, course } = getMockClassroomData(courseId, batchId);
+  const activeKind =
+    location.pathname.includes("/videos/")
+      ? "section"
+      : location.pathname.includes("/materials/")
+        ? "section"
+        : location.pathname.includes("/quizzes/")
+          ? "quiz"
+          : location.pathname.includes("/meetings/")
+            ? "meeting"
+            : null;
+  const visibleSections = activeKind
+    ? sections
+        .map((section) => ({
+          ...section,
+          items: section.items.filter((item) =>
+            activeKind === "section"
+              ? item.kind === "video" || item.kind === "material"
+              : item.kind === activeKind,
+          ),
+        }))
+        .filter((section) => section.items.length > 0)
+    : sections;
 
   return (
     <aside className="space-y-4">
-      <Card className="rounded-[1.5rem] border-[#D8E5E9] bg-white p-5 shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="text-sm font-bold text-[#0A1B45]">{course.title}</div>
-          <Badge className="border-0 bg-[#0A1B45]/8 text-[#0A1B45]">
-            {selectedBatch.batchCode}
-          </Badge>
-        </div>
-        <div className="mt-2 flex items-center gap-2 text-xs text-[#476074]">
-          <Calendar className="h-3.5 w-3.5" />
-          <span>{selectedBatch.periodLabel}</span>
-        </div>
-        <div className="mt-3 rounded-xl bg-[#F3F8FA] px-3 py-3 text-xs leading-5 text-[#476074]">
-          <span className="font-semibold text-[#0A1B45]">Status:</span>{" "}
-          {selectedBatch.admissionStatus}. Admin masih memantau peserta batch ini secara manual.
-        </div>
-      </Card>
 
       <Card className="rounded-[1.5rem] border-[#D8E5E9] bg-white p-4 shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
         <div className="mb-4 flex items-center justify-between gap-3 px-2">
           <div>
             <h2 className="text-lg font-bold text-[#0A1B45]">Curriculum Rail</h2>
             <p className="text-xs text-[#476074]">
-              Compact list visible across all learning pages.
+              {activeKind
+                ? activeKind === "section"
+                  ? "Showing section items for the active tab."
+                  : `Showing ${activeKind === "meeting" ? "meetings" : `${activeKind}s`} for the active tab.`
+                : "Compact list visible across all learning pages."}
             </p>
           </div>
           <Badge className="border-0 bg-[#308279]/10 text-[#308279]">
-            {sections.reduce((total, section) => total + section.items.length, 0)} items
+            {visibleSections.reduce((total, section) => total + section.items.length, 0)} items
           </Badge>
         </div>
 
         <div className="space-y-4">
-          {sections.map((section) => (
+          {visibleSections.map((section) => (
             <section key={section.id}>
               <div className="mb-2 px-2 text-xs font-bold uppercase tracking-[0.14em] text-[#92A4AE]">
                 {section.title}

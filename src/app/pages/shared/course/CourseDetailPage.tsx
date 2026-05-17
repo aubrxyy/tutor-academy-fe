@@ -10,6 +10,7 @@ import {
   MessageSquare,
   TrendingUp,
 } from "lucide-react";
+import { useState } from "react";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Badge } from "../../../components/ui/badge";
@@ -18,12 +19,15 @@ import Navbar from "../../../components/navigation/Navbar";
 import Footer from "../../../components/layout/Footer";
 import { useCourseDetail } from "../../../api/courses";
 import { useCourseReviews } from "../../../api/reviews";
-import { getMockBatchesForCourse } from "../../../data/batches";
+import { useTutorsByIds } from "../../../api/admin";
+import { getCoursePackagesForDetail } from "../../../data/batches";
 
 export default function CourseDetailPage() {
   const { courseId } = useParams();
   const { course, loading, error, refetch } = useCourseDetail(courseId);
   const { data: reviewsData, loading: isReviewsLoading } = useCourseReviews(courseId);
+  const { data: tutorUsersData } = useTutorsByIds(course?.tutorIds ?? []);
+  const [selectedBatchByPackage, setSelectedBatchByPackage] = useState<Record<string, string>>({});
   const reviews = reviewsData?.reviews?.nodes ?? [];
   const reviewCount = reviews.length;
   const averageRating =
@@ -83,15 +87,25 @@ export default function CourseDetailPage() {
 
   const discountedMonthly =
     course.pricing.monthly * (1 - course.pricing.discount / 100);
+  const resolvedTutorNames =
+    tutorUsersData?.users?.nodes
+      ?.map((tutor) => tutor.name)
+      .filter(Boolean) ?? [];
+  const primaryTutorName = resolvedTutorNames[0] ?? course.tutor;
   const tutor = {
-    name: course.tutor,
+    name: primaryTutorName,
     title: `${course.major} mentor`,
     avatar: "TA",
     rating: displayRating,
     description:
-      "Tutor assignment details are not exposed by the current course schema yet.",
+      "Beliau adalah seorang tutor yang berpengalaman dalam bidang ini, dengan rekam jejak yang terbukti membantu memperkuat nilai rupiah. Dengan pendekatan pengajaran yang personal dan mendalam, beliau siap membimbing Anda melalui setiap konsep sulit dan memastikan program MBG tetap berjalan dengan lancar.",
   };
-  const batches = getMockBatchesForCourse(courseId, tutor.name, discountedMonthly);
+  const packages = getCoursePackagesForDetail({
+    courseId,
+    tutorName: tutor.name,
+    basePrice: discountedMonthly,
+    isFree: course.pricing.monthly <= 0,
+  });
 
   return (
     <div className="min-h-screen bg-[#F3F8FA] font-sans selection:bg-[#308279] selection:text-white">
@@ -110,7 +124,7 @@ export default function CourseDetailPage() {
             </Button>
           </Link>
 
-          <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+          <div className="space-y-8">
             <div>
               <div className="mb-6 flex items-center gap-3">
                 <div className="flex items-center gap-1 rounded-full bg-[#F3F8FA] px-3 py-1 font-bold text-[#0A1B45]">
@@ -128,7 +142,7 @@ export default function CourseDetailPage() {
               <h1 className="mb-6 text-5xl font-black leading-tight text-[#0A1B45] md:text-6xl">
                 {course.title}
               </h1>
-              <p className="mb-8 max-w-2xl text-xl font-medium leading-relaxed text-[#476074]">
+              <p className="mb-8 max-w-3xl text-xl font-medium leading-relaxed text-[#476074]">
                 {course.subtitle}
               </p>
 
@@ -146,7 +160,129 @@ export default function CourseDetailPage() {
                   <span>{course.major}</span>
                 </div>
               </div>
+            </div>
 
+            <div className="rounded-[1.75rem] border border-[#D8E5E9] bg-white p-8 shadow-[0_24px_54px_rgba(10,27,69,0.08)]">
+              <div className="mb-6 rounded-[1.25rem] border border-[#D8E5E9] bg-[#F7FAFB] p-5">
+                <div className="text-xs font-bold uppercase tracking-[0.18em] text-[#476074]">
+                  Enrollment packages
+                </div>
+                <div className="mt-2 text-2xl font-black text-[#0A1B45]">
+                  Pilih package dan batch enrollment
+                </div>
+                <p className="mt-3 text-sm leading-5 text-[#476074]">
+                  Setiap class dibagi jadi dua package. Batch hanya menentukan minggu enrollment
+                  student.
+                </p>
+              </div>
+
+              <div className="grid gap-5 xl:grid-cols-2">
+                {packages.map((pkg) => {
+                  const selectedBatch =
+                    pkg.batches.find((batch) => batch.id === selectedBatchByPackage[pkg.id]) ??
+                    pkg.batches[0];
+
+                  return (
+                    <div
+                      key={pkg.id}
+                      className="rounded-[1.25rem] border border-[#D8E5E9] bg-white p-5 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <div className="text-lg font-bold text-[#0A1B45]">{pkg.name}</div>
+                          <div className="mt-1 text-sm text-[#476074]">{pkg.description}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#476074]">
+                            Package fee
+                          </div>
+                          <div className="text-2xl font-black text-[#0A1B45]">{pkg.priceLabel}</div>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 space-y-3">
+                        {pkg.features.map((feature, idx) => (
+                          <div key={idx} className="flex items-start gap-3 text-sm font-medium text-[#0A1B45]">
+                            <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-[#308279]/10">
+                              <CheckCircle className="h-3 w-3 text-[#308279]" />
+                            </div>
+                            <span>{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {selectedBatch ? (
+                        <div className="mt-5 border-t border-[#E5EEF1] pt-5">
+                          <div className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-[#476074]">
+                            Choose batch
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            {pkg.batches.map((batch) => {
+                              const isActive = batch.id === selectedBatch.id;
+
+                              return (
+                                <button
+                                  key={batch.id}
+                                  type="button"
+                                  onClick={() =>
+                                    setSelectedBatchByPackage((current) => ({
+                                      ...current,
+                                      [pkg.id]: batch.id,
+                                    }))
+                                  }
+                                  className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                                    isActive
+                                      ? "border-[#308279] bg-[#308279] text-white"
+                                      : "border-[#D8E5E9] bg-[#F9FCFD] text-[#476074] hover:border-[#A8C6C0] hover:bg-white hover:text-[#0A1B45]"
+                                  }`}
+                                >
+                                  {batch.batchCode}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          <div className="mt-4 rounded-[1rem] border border-[#D8E5E9] bg-[#FCFEFE] p-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="text-base font-bold text-[#0A1B45]">{selectedBatch.name}</div>
+                                <div className="mt-1 text-sm text-[#476074]">{selectedBatch.periodLabel}</div>
+                              </div>
+                              <Badge className="border-0 bg-[#308279]/10 text-[#1F6D66]">
+                                {selectedBatch.seatsLeft}/{selectedBatch.totalSeats} seats
+                              </Badge>
+                            </div>
+                            <div className="mt-4 space-y-2 text-sm text-[#476074]">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-[#308279]" />
+                                <span>Enroll before {selectedBatch.enrollmentDeadline}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Users className="h-4 w-4 text-[#308279]" />
+                                <span>Tutor: {selectedBatch.tutorName}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-[#308279]" />
+                                <span>{selectedBatch.intakeWindow}</span>
+                              </div>
+                            </div>
+                            <div className="mt-5 flex items-center justify-between gap-3">
+                              <Link to={`/classroom/${courseId}?batch=${selectedBatch.id}`}>
+                                <Button className="bg-[#0A1B45] text-white hover:bg-[#308279]">
+                                  Choose Batch
+                                </Button>
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
               <div className="space-y-6">
                 <div className="rounded-[1.75rem] border border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.08)]">
                   <h2 className="mb-6 text-3xl font-black uppercase tracking-tight text-[#0A1B45]">
@@ -160,7 +296,41 @@ export default function CourseDetailPage() {
                     ))}
                   </div>
                 </div>
-                <div className="flex items-start gap-5 rounded-[1.75rem] border border-[#D8E5E9] bg-[#FCFEFE] p-6 shadow-[0_16px_36px_rgba(10,27,69,0.06)]">
+
+                <div className="rounded-[1.75rem] border border-[#D8E5E9] bg-[linear-gradient(180deg,#FFFFFF_0%,#FBFDFD_100%)] p-8 shadow-[0_18px_42px_rgba(10,27,69,0.08)]">
+                  <div className="flex flex-col gap-3 border-b border-[#E5EEF1] pb-5 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <div className="text-xs font-black uppercase tracking-widest text-[#476074]">
+                        Included In This Course
+                      </div>
+                      <h3 className="mt-2 text-2xl font-black text-[#0A1B45]">
+                        What you get when you enroll
+                      </h3>
+                    </div>
+                    <p className="max-w-md text-sm leading-6 text-[#476074]">
+                      Everything below is included in the package structure for this class, arranged
+                      to support both self-paced study and tutor-guided learning.
+                    </p>
+                  </div>
+
+                  <div className="mt-6 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+                    {course.features.map((feature, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-start gap-3 border-b border-[#EEF4F6] pb-4 text-sm font-medium text-[#0A1B45] last:border-b-0"
+                      >
+                        <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[#308279]/10">
+                          <CheckCircle className="h-3.5 w-3.5 text-[#308279]" />
+                        </div>
+                        <span className="leading-6">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-[1.75rem] border border-[#D8E5E9] bg-[#FCFEFE] p-6 shadow-[0_16px_36px_rgba(10,27,69,0.06)]">
+                <div className="flex items-start gap-5">
                   <Avatar className="h-16 w-16 border border-[#D8E5E9]">
                     <AvatarFallback className="bg-[#92B7B0] text-2xl font-black text-[#0A1B45]">
                       {tutor.avatar}
@@ -174,7 +344,7 @@ export default function CourseDetailPage() {
                     <p className="text-sm font-medium leading-relaxed text-[#476074]">
                       {tutor.description}
                     </p>
-                    <div className="mt-4 flex items-center gap-4 text-xs font-bold uppercase tracking-wide text-[#0A1B45]">
+                    <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-wide text-[#0A1B45]">
                       <span className="flex items-center gap-1 rounded-full bg-[#F3F8FA] px-2.5 py-1">
                         <Star className="h-3 w-3 fill-[#0A1B45] text-[#0A1B45]" />
                         {tutor.rating}
@@ -182,83 +352,6 @@ export default function CourseDetailPage() {
                       <span>Verified tutor</span>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <div className="sticky top-24 rounded-[1.75rem] border border-[#D8E5E9] bg-white p-8 shadow-[0_24px_54px_rgba(10,27,69,0.08)]">
-                <div className="mb-6 rounded-[1.25rem] border border-[#D8E5E9] bg-[#F7FAFB] p-5">
-                  <div className="text-xs font-bold uppercase tracking-[0.18em] text-[#476074]">
-                    Cohort-based enrollment
-                  </div>
-                  <div className="mt-2 text-2xl font-black text-[#0A1B45]">
-                    Pilih batch untuk ikut course ini
-                  </div>
-                  <p className="mt-3 text-sm leading-5 text-[#476074]">
-                    Setiap course dibuka dalam beberapa batch. Kamu akan belajar bersama cohort
-                    yang sama dari awal sampai akhir periode.
-                  </p>
-                </div>
-
-                <div className="mb-6 space-y-4">
-                  {batches.map((batch) => (
-                    <div
-                      key={batch.id}
-                      className="rounded-[1.25rem] border border-[#D8E5E9] bg-white p-5 shadow-sm"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="text-lg font-bold text-[#0A1B45]">{batch.name}</div>
-                          <div className="mt-1 text-sm text-[#476074]">{batch.periodLabel}</div>
-                        </div>
-                        <Badge className="border-0 bg-[#308279]/10 text-[#1F6D66]">
-                          {batch.seatsLeft}/{batch.totalSeats} seats
-                        </Badge>
-                      </div>
-                      <div className="mt-4 space-y-2 text-sm text-[#476074]">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-[#308279]" />
-                          <span>Daftar sebelum {batch.enrollmentDeadline}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-[#308279]" />
-                          <span>{batch.sessionPattern}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-[#308279]" />
-                          <span>Tutor batch: {batch.tutorName}</span>
-                        </div>
-                      </div>
-                      <div className="mt-5 flex items-center justify-between gap-3">
-                        <div>
-                          <div className="text-xs font-bold uppercase tracking-[0.16em] text-[#476074]">
-                            Batch fee
-                          </div>
-                          <div className="text-xl font-black text-[#0A1B45]">{batch.priceLabel}</div>
-                        </div>
-                        <Link to={`/classroom/${courseId}?batch=${batch.id}`}>
-                          <Button className="bg-[#0A1B45] text-white hover:bg-[#308279]">
-                            Pilih Batch
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="space-y-3 border-t border-gray-100 pt-6">
-                  <div className="mb-4 text-xs font-black uppercase tracking-widest text-[#476074]">
-                    Included In This Course
-                  </div>
-                  {course.features.map((feature, idx) => (
-                    <div key={idx} className="flex items-start gap-3 text-sm font-medium text-[#0A1B45]">
-                      <div className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-[#308279]/10">
-                        <CheckCircle className="h-3 w-3 text-[#308279]" />
-                      </div>
-                      <span>{feature}</span>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>
@@ -284,12 +377,6 @@ export default function CourseDetailPage() {
                   </span>
                 </div>
               </div>
-              <Link to={`/class/${courseId}/review`}>
-                <Button className="h-12 bg-[#308279] hover:bg-[#308279]/90">
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                  Write a Review
-                </Button>
-              </Link>
             </div>
 
             {reviewCount === 0 ? (

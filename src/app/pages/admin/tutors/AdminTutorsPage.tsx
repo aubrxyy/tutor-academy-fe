@@ -163,7 +163,15 @@ export default function AdminTutorsPage({
                       </div>
 
                       <div className="space-y-4 p-6">
-                        <div className="grid gap-4 md:grid-cols-3">
+                        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+                          <div>
+                            <div className="text-xs uppercase tracking-[0.14em] text-[#476074]">Major</div>
+                            <p className="mt-2 text-sm text-[#0A1B45]">{application.major}</p>
+                          </div>
+                          <div>
+                            <div className="text-xs uppercase tracking-[0.14em] text-[#476074]">Angkatan</div>
+                            <p className="mt-2 text-sm text-[#0A1B45]">{application.angkatan}</p>
+                          </div>
                           <div>
                             <div className="text-xs uppercase tracking-[0.14em] text-[#476074]">Expertise</div>
                             <p className="mt-2 text-sm text-[#0A1B45]">{application.expertise}</p>
@@ -305,6 +313,26 @@ export default function AdminTutorsPage({
 
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
+              <label className="text-sm font-medium text-[#0A1B45]">Major</label>
+              <Input
+                placeholder="e.g. Computer Science"
+                value={newTutor.major}
+                onChange={(event) =>
+                  setNewTutor((current) => ({ ...current, major: event.target.value }))
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[#0A1B45]">Angkatan</label>
+              <Input
+                placeholder="e.g. 2020"
+                value={newTutor.angkatan}
+                onChange={(event) =>
+                  setNewTutor((current) => ({ ...current, angkatan: event.target.value }))
+                }
+              />
+            </div>
+            <div className="space-y-2">
               <label className="text-sm font-medium text-[#0A1B45]">Username</label>
               <Input
                 placeholder="maya.prasetyo"
@@ -325,6 +353,9 @@ export default function AdminTutorsPage({
                 }
               />
             </div>
+          </div>
+
+          <div className="mt-4 grid gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-[#0A1B45]">Assigned classes</label>
               <div className="rounded-2xl border border-[#D8E5E9] bg-[#F9FCFD] p-3">
@@ -412,6 +443,14 @@ export default function AdminTutorsPage({
               <div className="flex items-center justify-between text-sm">
                 <span className="text-[#476074]">Contact:</span>
                 <span className="font-medium text-[#0A1B45]">{tutor.contact}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-[#476074]">Major:</span>
+                <span className="font-medium text-[#0A1B45]">{tutor.major}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-[#476074]">Angkatan:</span>
+                <span className="font-medium text-[#0A1B45]">{tutor.angkatan}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-[#476074]">Assigned classes:</span>

@@ -110,7 +110,7 @@ export default function HomePage() {
                 variants={fadeUpVariants}
                 className="inline-flex items-center justify-center rounded-full bg-[#308279]/10 px-3 py-1 text-xs font-medium text-[#308279]"
               >
-                Platform Belajar Peer-to-Peer BINUS
+                Platform Belajar Peer-to-Peer
               </motion.span>
 
               <motion.h1
@@ -120,8 +120,6 @@ export default function HomePage() {
                 Belajar Bareng,
                 <br />
                 <span className="text-[#0A8F89]">Sukses Bareng</span>
-                <br />
-                di BINUS.
               </motion.h1>
 
               <motion.p
@@ -130,7 +128,7 @@ export default function HomePage() {
               >
                 Platform belajar inklusif dimana kamu bisa jadi murid atau tutor.
                 Akses ribuan materi, video kelas, dan cheat notes dari
-                sesama mahasiswa BINUS.
+                sesama mahasiswa.
               </motion.p>
 
               <motion.div
@@ -179,7 +177,7 @@ export default function HomePage() {
               <div className="rounded-2xl border-8 border-white bg-transparent p-2 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
                 <img
                   src={imagebinus}
-                  alt="Mahasiswa BINUS belajar bersama"
+                  alt="Mahasiswa belajar bersama"
                   className="h-[20rem] w-full rounded-xl object-cover sm:h-[26rem] lg:h-[31.25rem]"
                 />
               </div>
@@ -302,7 +300,7 @@ export default function HomePage() {
                 Popular Classes
               </h2>
               <p className="text-lg text-[#476074]">
-                The most sought-after classes taught by BINUS top-performers.
+                The most sought-after classes taught by top-performers.
               </p>
             </motion.div>
             <motion.div variants={fadeUpVariants}>
@@ -555,7 +553,7 @@ export default function HomePage() {
             Ready to upgrade your GPA?
           </motion.h2>
           <motion.p variants={fadeUpVariants} className="text-xl text-white/70 font-light mb-12 max-w-2xl mx-auto">
-            Join thousands of BINUS students who have proven that collaborative peer learning is the key to academic success.
+            Join thousands of students who have proven that collaborative peer learning is the key to academic success.
           </motion.p>
 
           <motion.div variants={fadeUpVariants} className="flex flex-col sm:flex-row gap-4 justify-center items-center">

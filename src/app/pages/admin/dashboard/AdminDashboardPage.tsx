@@ -120,6 +120,8 @@ const initialTutors: ManagedTutor[] = [
     name: "Raka Pratama",
     email: "raka.pratama@binus.ac.id",
     contact: "+62 812-1111-1111",
+    major: "Computer Science",
+    angkatan: "2019",
     username: "raka.pratama",
     assignedClassNames: [
       "Data Structures & Algorithms",
@@ -137,6 +139,8 @@ const initialTutors: ManagedTutor[] = [
     name: "Andi Wijaya",
     email: "andi.wijaya@binus.ac.id",
     contact: "+62 813-2222-2222",
+    major: "Information Systems",
+    angkatan: "2018",
     username: "andi.wijaya",
     assignedClassNames: ["Database Management & SQL", "UI/UX Design Fundamentals"],
     assignedClasses: 2,
@@ -150,6 +154,8 @@ const initialTutors: ManagedTutor[] = [
     name: "Denny Kusuma",
     email: "denny.kusuma@binus.ac.id",
     contact: "+62 814-3333-3333",
+    major: "Visual Communication Design",
+    angkatan: "2017",
     username: "denny.kusuma",
     assignedClassNames: ["HCI Design Principles", "Design Systems Essentials"],
     assignedClasses: 2,
@@ -166,6 +172,8 @@ const initialTutorApplications: TutorApplication[] = [
     name: "Maya Prasetyo",
     email: "maya.prasetyo@gmail.com",
     contact: "+62 812-4444-4444",
+    major: "Computer Science",
+    angkatan: "2020",
     expertise: "Frontend engineering and UI systems",
     motivation: "Ingin bantu live class React dan review project student berbasis frontend.",
     requestedClassNames: ["UI/UX Design Fundamentals", "Design Systems Essentials"],
@@ -176,6 +184,8 @@ const initialTutorApplications: TutorApplication[] = [
     name: "Bagas Aditya",
     email: "bagas.aditya@gmail.com",
     contact: "+62 811-5555-5555",
+    major: "Information Systems",
+    angkatan: "2019",
     expertise: "SQL and database optimization",
     motivation: "Tertarik jadi tutor guest untuk kelas database intensive batch akhir pekan.",
     requestedClassNames: ["Database Management & SQL"],
@@ -187,6 +197,8 @@ const initialNewTutorDraft: NewTutorDraft = {
   name: "",
   email: "",
   contact: "",
+  major: "",
+  angkatan: "",
   username: "",
   password: "",
   assignedClassNames: [],
@@ -238,10 +250,14 @@ const userGrowthData = [
   { week: "Week 4", students: 2847, tutors: 48 },
 ];
 
-const classPerformanceData = [
-  { className: "DSA", completion: 85, students: 234 },
-  { className: "Database", completion: 78, students: 178 },
-  { className: "HCI", completion: 82, students: 145 },
+const registrationStatsData = [
+  { day: "12 Feb", registrants: 6 },
+  { day: "13 Feb", registrants: 9 },
+  { day: "14 Feb", registrants: 7 },
+  { day: "15 Feb", registrants: 11 },
+  { day: "16 Feb", registrants: 14 },
+  { day: "17 Feb", registrants: 18 },
+  { day: "18 Feb", registrants: 22 },
 ];
 
 const navItems = [
@@ -455,6 +471,8 @@ export default function AdminDashboardPage() {
             name: backendUser.name,
             email: backendUser.email,
             contact: backendUser.contact ?? "-",
+            major: "-",
+            angkatan: "-",
             username: backendUser.username,
             assignedClassNames,
             assignedClasses: assignedClassNames.length,
@@ -558,12 +576,14 @@ export default function AdminDashboardPage() {
       !newTutor.name.trim() ||
       !newTutor.email.trim() ||
       !newTutor.contact.trim() ||
+      !newTutor.major.trim() ||
+      !newTutor.angkatan.trim() ||
       !newTutor.username.trim() ||
       !newTutor.password.trim() ||
       newTutor.assignedClassNames.length === 0
     ) {
       toast.error(
-        "Please complete tutor name, contact, username, password, and assign at least one class.",
+        "Please complete tutor name, contact, major, angkatan, username, password, and assign at least one class.",
       );
       return;
     }
@@ -575,6 +595,8 @@ export default function AdminDashboardPage() {
         name: newTutor.name.trim(),
         email: newTutor.email.trim(),
         contact: newTutor.contact.trim(),
+        major: newTutor.major.trim(),
+        angkatan: newTutor.angkatan.trim(),
         username: newTutor.username.trim(),
         assignedClassNames: newTutor.assignedClassNames,
         assignedClasses: newTutor.assignedClassNames.length,
@@ -638,6 +660,8 @@ export default function AdminDashboardPage() {
         name: application.name,
         email: application.email,
         contact: application.contact,
+        major: application.major,
+        angkatan: application.angkatan,
         username: credentials.username.trim(),
         assignedClassNames: application.requestedClassNames,
         assignedClasses: application.requestedClassNames.length,
@@ -804,7 +828,7 @@ export default function AdminDashboardPage() {
             stats={stats}
             revenueData={revenueData}
             userGrowthData={userGrowthData}
-            classPerformanceData={classPerformanceData}
+            registrationStatsData={registrationStatsData}
             setAdminView={setAdminView}
           />
         );

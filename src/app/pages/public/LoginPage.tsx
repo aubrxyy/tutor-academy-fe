@@ -77,7 +77,7 @@ export default function LoginPage() {
           <section className="rounded-[2rem] bg-gradient-to-br from-[#0A1B45] via-[#153063] to-[#308279] p-8 text-white shadow-[0_30px_80px_rgba(10,27,69,0.18)] sm:p-10">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-sm">
               <ShieldCheck className="h-4 w-4 text-[#92B7B0]" />
-              Belajar Bareng Mahasiswa BINUS
+              Belajar Bareng kami
             </div>
 
             <h1 className="mt-8 max-w-[12ch] text-4xl font-bold leading-tight tracking-[-0.04em] sm:text-5xl">
@@ -85,7 +85,7 @@ export default function LoginPage() {
             </h1>
 
             <p className="mt-5 max-w-xl text-base leading-7 text-white/75 sm:text-lg">
-              Platform peer-to-peer tutoring untuk mahasiswa BINUS.
+              Platform peer-to-peer tutoring untuk mahasiswa.
               Cari tutor, jadwalkan sesi belajar, dan tingkatkan pemahaman
               mata kuliah bersama mahasiswa lain yang sudah berpengalaman.
             </p>

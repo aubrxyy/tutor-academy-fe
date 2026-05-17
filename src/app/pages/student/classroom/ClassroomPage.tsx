@@ -1,5 +1,5 @@
 import { Link, useParams, useSearchParams } from "react-router";
-import { ArrowRight, Calendar, Eye, PlayCircle, Target, Video } from "lucide-react";
+import { ArrowRight, Calendar, FileText, PlayCircle, Target, Video } from "lucide-react";
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
@@ -32,58 +32,70 @@ export default function ClassroomPage() {
               terpisah, sementara curriculum rail di kiri tetap menjadi pusat navigasi kamu.
             </p>
           </div>
-          <div className="rounded-2xl border border-[#D8E5E9] bg-[#F9FCFD] px-4 py-4 text-sm text-[#476074]">
-            <span className="font-semibold text-[#0A1B45]">Catatan batch:</span>{" "}
-            {selectedBatch.intakeWindow}
-          </div>
         </div>
       </Card>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        {featuredVideo ? (
-          <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-7 shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
-            <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0A1B45] text-white">
-                <PlayCircle className="h-5 w-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <Badge className="border-0 bg-[#0A1B45]/8 text-[#0A1B45]">Video</Badge>
-                <h3 className="mt-3 text-2xl font-bold text-[#0A1B45]">{featuredVideo.title}</h3>
-                <p className="mt-2 text-sm text-[#476074]">{featuredVideo.meta}</p>
-                <p className="mt-3 text-sm leading-6 text-[#476074]">{featuredVideo.description}</p>
-                <Link to={buildClassroomItemHref(course.id, featuredVideo, batchId)}>
-                  <Button className="mt-5 bg-[#0A1B45] text-white hover:bg-[#308279]">
-                    Open video page
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
+      {featuredVideo || featuredMaterial ? (
+        <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-7 shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
+          <div className="flex flex-col gap-6">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <Badge className="border-0 bg-[#0A1B45]/8 text-[#0A1B45]">Sections</Badge>
+                <h3 className="mt-3 text-2xl font-bold text-[#0A1B45]">Video & Material</h3>
+                <p className="mt-2 text-sm leading-6 text-[#476074]">
+                  Semua konten belajar inti untuk section aktif dibuka dari area yang sama.
+                </p>
               </div>
             </div>
-          </Card>
-        ) : null}
 
-        {featuredMaterial ? (
-          <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-7 shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
-            <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#308279] text-white">
-                <Eye className="h-5 w-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <Badge className="border-0 bg-[#308279]/10 text-[#308279]">Material</Badge>
-                <h3 className="mt-3 text-2xl font-bold text-[#0A1B45]">{featuredMaterial.title}</h3>
-                <p className="mt-2 text-sm text-[#476074]">{featuredMaterial.meta}</p>
-                <p className="mt-3 text-sm leading-6 text-[#476074]">{featuredMaterial.description}</p>
-                <Link to={buildClassroomItemHref(course.id, featuredMaterial, batchId)}>
-                  <Button className="mt-5 bg-[#308279] text-white hover:bg-[#308279]/90">
-                    Open material page
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
+            <div className="grid gap-4 xl:grid-cols-2">
+              {featuredVideo ? (
+                <div className="rounded-[1.25rem] border border-[#D8E5E9] bg-[#F9FCFD] p-5">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0A1B45] text-white">
+                      <PlayCircle className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <Badge className="border-0 bg-[#0A1B45]/8 text-[#0A1B45]">Video</Badge>
+                      <h4 className="mt-3 text-xl font-bold text-[#0A1B45]">{featuredVideo.title}</h4>
+                      <p className="mt-2 text-sm text-[#476074]">{featuredVideo.meta}</p>
+                      <p className="mt-3 text-sm leading-6 text-[#476074]">{featuredVideo.description}</p>
+                      <Link to={buildClassroomItemHref(course.id, featuredVideo, batchId)}>
+                        <Button className="mt-5 bg-[#0A1B45] text-white hover:bg-[#308279]">
+                          Open video page
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              {featuredMaterial ? (
+                <div className="rounded-[1.25rem] border border-[#D8E5E9] bg-[#F9FCFD] p-5">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#308279] text-white">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <Badge className="border-0 bg-[#308279]/10 text-[#308279]">Material</Badge>
+                      <h4 className="mt-3 text-xl font-bold text-[#0A1B45]">{featuredMaterial.title}</h4>
+                      <p className="mt-2 text-sm text-[#476074]">{featuredMaterial.meta}</p>
+                      <p className="mt-3 text-sm leading-6 text-[#476074]">{featuredMaterial.description}</p>
+                      <Link to={buildClassroomItemHref(course.id, featuredMaterial, batchId)}>
+                        <Button className="mt-5 bg-[#308279] text-white hover:bg-[#308279]/90">
+                          Open material page
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </div>
-          </Card>
-        ) : null}
-      </div>
+          </div>
+        </Card>
+      ) : null}
 
       <div className="grid gap-6 xl:grid-cols-2">
         {nextMeeting ? (

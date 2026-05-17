@@ -1,224 +1,73 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router";
-import {
-  Users,
-  Video,
-  BookOpen,
-  Calendar,
-  Plus,
-  Edit,
-  Clock,
-  HelpCircle,
-  Trash2,
-  ArrowRight,
-  Sparkles,
-  FileText,
-  Upload,
-  BarChart3,
-} from "lucide-react";
-import { Button } from "../../components/ui/button";
-import { Card } from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { Textarea } from "../../components/ui/textarea";
-import DashboardSidebar from "../../components/navigation/DashboardSidebar";
-import { useAuth } from "../../auth/AuthContext";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../../components/ui/dialog";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "../../components/ui/dropdown-menu";
+import { BarChart3, BookOpen, CheckCircle2, FileText, HelpCircle, Video } from "lucide-react";
 import { toast } from "sonner";
+
+import DashboardSidebar from "../../components/navigation/DashboardSidebar";
+import { Card } from "../../components/ui/card";
+import { useAuth } from "../../auth/AuthContext";
 import { useTutorPanelCourses } from "../../api/admin";
+import { AnalyticsSection } from "./dashboard/AnalyticsSection";
+import {
+  createEmptyQuizDraft,
+  createQuizOptionDraft,
+  createQuizQuestionDraft,
+  createTutorStats,
+  initialAssignedClasses,
+  initialClassMaterials,
+  initialSessionAttendanceData,
+  initialStudentEngagementData,
+  initialTutorQuizzes,
+  initialUpcomingSessions,
+  tutorSectionCopy,
+} from "./dashboard/data";
+import { MaterialsSection } from "./dashboard/MaterialsSection";
+import { MeetingsSection } from "./dashboard/MeetingsSection";
+import { OverviewSection } from "./dashboard/OverviewSection";
+import { QuizzesSection } from "./dashboard/QuizzesSection";
+import type {
+  TutorAssignedClassCard,
+  TutorDashboardView,
+  TutorMaterialTrack,
+  TutorQuizDraft,
+  TutorQuizQuestionDraft,
+  TutorQuizQuestionType,
+  TutorQuizStatus,
+} from "./dashboard/types";
 
 export default function TutorDashboardPage() {
   const { user } = useAuth();
   const teachingCourseIds = user?.teachingCourses ?? [];
   const { data: tutorCourseData, loading: isTutorCourseLoading } =
     useTutorPanelCourses(teachingCourseIds);
-  const [activeView, setActiveView] = useState<"overview" | "meetings" | "materials" | "analytics">("overview");
-  const [isScheduleDialogOpen, setIsScheduleDialogOpen] = useState(false);
+
+  const [activeView, setActiveView] = useState<TutorDashboardView>("overview");
   const [isMaterialDialogOpen, setIsMaterialDialogOpen] = useState(false);
-  const firstName = user?.name.split(" ")[0] ?? "Raka";
+  const [activeMaterialTrack, setActiveMaterialTrack] = useState<TutorMaterialTrack>("tutor-led");
+  const [activeMaterialCourse, setActiveMaterialCourse] = useState<string | null>(null);
+  const [activeMeetingCourse, setActiveMeetingCourse] = useState<"all" | string>("all");
+  const [activeQuizCourse, setActiveQuizCourse] = useState<string | null>(null);
+  const [isQuizComposerOpen, setIsQuizComposerOpen] = useState(false);
+  const [editingQuizId, setEditingQuizId] = useState<number | null>(null);
+  const [quizzes, setQuizzes] = useState(initialTutorQuizzes);
+  const [quizDraft, setQuizDraft] = useState<TutorQuizDraft>(createEmptyQuizDraft());
 
-  const stats = [
-    {
-      icon: Users,
-      label: "Students Supported",
-      value: "450",
-      change: "+12%",
-      color: "from-[#308279] to-[#92B7B0]",
-    },
-    {
-      icon: Video,
-      label: "Pertemuan",
-      value: "24",
-      change: "+8",
-      color: "from-[#0A1B45] to-[#308279]",
-    },
-    {
-      icon: FileText,
-      label: "PDF Materials",
-      value: "18",
-      change: "+4",
-      color: "from-[#92B7B0] to-[#476074]",
-    },
-    {
-      icon: BookOpen,
-      label: "Assigned Classes",
-      value: isTutorCourseLoading
-        ? "..."
-        : String(tutorCourseData?.courses?.nodes.length ?? teachingCourseIds.length),
-      change: "Active batches",
-      color: "from-[#308279] to-[#0A1B45]",
-    },
-  ];
+  const stats = useMemo(
+    () =>
+      createTutorStats(
+        isTutorCourseLoading
+          ? "..."
+          : String(tutorCourseData?.courses?.nodes.length ?? teachingCourseIds.length),
+      ),
+    [isTutorCourseLoading, teachingCourseIds.length, tutorCourseData],
+  );
 
-  const upcomingSessions = [
-    {
-      id: 1,
-      classId: 1,
-      title: "Pertemuan 04 - Data Structures Q&A",
-      className: "Data Structures & Algorithms • Batch Reguler A",
-      date: "Senin, 17 Feb 2026",
-      startTime: "14:00",
-      endTime: "15:30",
-      attendance: 45,
-      topic: "Diskusi linked list, array traversal, dan latihan soal.",
-      zoomLink: "https://zoom.us/j/123456789",
-      status: "Completed",
-    },
-    {
-      id: 2,
-      classId: 1,
-      title: "Pertemuan 05 - Algorithm Workshop",
-      className: "Data Structures & Algorithms • Batch Reguler A",
-      date: "Rabu, 19 Feb 2026",
-      startTime: "16:00",
-      endTime: "18:00",
-      attendance: 0,
-      topic: "Live coding two-pointer dan sliding window.",
-      zoomLink: "https://zoom.us/j/987654321",
-      status: "Scheduled",
-    },
-    {
-      id: 3,
-      classId: 2,
-      title: "Pertemuan 03 - Database Design Fundamentals",
-      className: "Database Management & SQL • Batch Weekend",
-      date: "Jumat, 21 Feb 2026",
-      startTime: "13:00",
-      endTime: "14:30",
-      attendance: 38,
-      topic: "Normalisasi, ERD, dan checkpoint tugas batch.",
-      zoomLink: "",
-      status: "Completed",
-    },
-  ];
-
-  const classMaterials = [
-    {
-      id: 1,
-      classId: 1,
-      title: "Array & Linked List Cheat Notes",
-      className: "Data Structures & Algorithms",
-      format: "PDF",
-      size: "2.5 MB",
-      downloads: 324,
-      lastUpdated: "2 jam lalu",
-      status: "Published",
-    },
-    {
-      id: 2,
-      classId: 1,
-      title: "Mock Interview Worksheet",
-      className: "Data Structures & Algorithms",
-      format: "DOCX",
-      size: "1.1 MB",
-      downloads: 196,
-      lastUpdated: "Kemarin",
-      status: "Published",
-    },
-    {
-      id: 3,
-      classId: 2,
-      title: "SQL Query Patterns",
-      className: "Database Management & SQL",
-      format: "PDF",
-      size: "3.2 MB",
-      downloads: 241,
-      lastUpdated: "3 hari lalu",
-      status: "Needs review",
-    },
-  ];
-
-  const studentEngagementData = [
-    { week: "Week 1", students: 380 },
-    { week: "Week 2", students: 400 },
-    { week: "Week 3", students: 420 },
-    { week: "Week 4", students: 450 },
-  ];
-
-  const sessionAttendanceData = [
-    { name: "Hadir", value: 85, color: "#308279" },
-    { name: "Tidak Hadir", value: 15, color: "#92B7B0" },
-  ];
-
-  const assignedClasses = [
-    {
-      id: 1,
-      title: "Data Structures & Algorithms",
-      students: 234,
-      nextLive: "Senin, 17 Feb • 14:00",
-      tutorDocs: 7,
-      adminVideos: 18,
-    },
-    {
-      id: 2,
-      title: "Database Management & SQL",
-      students: 178,
-      nextLive: "Jumat, 21 Feb • 13:00",
-      tutorDocs: 6,
-      adminVideos: 14,
-    },
-    {
-      id: 3,
-      title: "HCI Design Principles",
-      students: 145,
-      nextLive: "Belum ada jadwal baru",
-      tutorDocs: 5,
-      adminVideos: 11,
-    },
-  ];
-
-  const backendAssignedClasses = useMemo(
+  const backendAssignedClasses = useMemo<TutorAssignedClassCard[]>(
     () =>
       (tutorCourseData?.courses?.nodes ?? []).map((course) => ({
-        id: course.id,
+        id: Number(course.id),
         title: course.title,
         students: 0,
+        batches: 1,
         nextLive: "Belum ada jadwal baru",
         tutorDocs: course.totalSections,
         adminVideos: course.totalLectures,
@@ -227,601 +76,390 @@ export default function TutorDashboardPage() {
   );
 
   const assignedClassCards =
-    backendAssignedClasses.length > 0 ? backendAssignedClasses : assignedClasses;
+    backendAssignedClasses.length > 0 ? backendAssignedClasses : initialAssignedClasses;
 
-  const tutorNavItems = [
-    { label: "Overview", icon: BookOpen, active: activeView === "overview", onClick: () => setActiveView("overview") },
-    { label: "Pertemuan", icon: Video, active: activeView === "meetings", onClick: () => setActiveView("meetings") },
-    { label: "Materials", icon: FileText, active: activeView === "materials", onClick: () => setActiveView("materials") },
-    { label: "Analytics", icon: BarChart3, active: activeView === "analytics", onClick: () => setActiveView("analytics") },
-    { label: "Help Center", to: "/help-faq?role=tutor", icon: HelpCircle, exact: true },
-  ];
+  const tutorLedMaterials = useMemo(
+    () => initialClassMaterials.filter((material) => material.type === "tutor-led"),
+    [],
+  );
+  const selfStudyMaterials = useMemo(
+    () => initialClassMaterials.filter((material) => material.type === "self-study"),
+    [],
+  );
 
-  const handleCopyLink = async (zoomLink: string) => {
-    try {
-      await navigator.clipboard.writeText(zoomLink);
-      toast.success("Zoom link copied", {
-        description: "Meeting link berhasil disalin ke clipboard.",
+  const visibleTrackMaterials =
+    activeMaterialTrack === "tutor-led" ? tutorLedMaterials : selfStudyMaterials;
+  const visibleMaterials =
+    activeMaterialCourse === null
+      ? visibleTrackMaterials
+      : visibleTrackMaterials.filter((material) => String(material.classId) === activeMaterialCourse);
+
+  const visibleMaterialsBySection = useMemo(() => {
+    const sectionMap = new Map<
+      string,
+      {
+        key: string;
+        sectionLabel: string;
+        sectionTitle: string;
+        materials: typeof visibleMaterials;
+      }
+    >();
+
+    visibleMaterials.forEach((material) => {
+      const key = `${material.sectionLabel}-${material.sectionTitle}`;
+      const existing = sectionMap.get(key);
+
+      if (existing) {
+        existing.materials.push(material);
+        return;
+      }
+
+      sectionMap.set(key, {
+        key,
+        sectionLabel: material.sectionLabel,
+        sectionTitle: material.sectionTitle,
+        materials: [material],
       });
-    } catch {
-      toast.error("Copy failed", {
-        description: "Clipboard belum tersedia di browser ini.",
-      });
-    }
+    });
+
+    return Array.from(sectionMap.values());
+  }, [visibleMaterials]);
+
+  const meetingCourseOptions = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          initialUpcomingSessions.map((session) => [
+            String(session.classId),
+            { id: String(session.classId), title: session.className },
+          ]),
+        ).values(),
+      ),
+    [],
+  );
+
+  const visibleMeetings = useMemo(() => {
+    const filtered =
+      activeMeetingCourse === "all"
+        ? initialUpcomingSessions
+        : initialUpcomingSessions.filter((session) => String(session.classId) === activeMeetingCourse);
+
+    return [...filtered].sort(
+      (left, right) => new Date(right.sortDateTime).getTime() - new Date(left.sortDateTime).getTime(),
+    );
+  }, [activeMeetingCourse]);
+
+  const visibleQuizzes =
+    activeQuizCourse === null
+      ? quizzes
+      : quizzes.filter((quiz) => String(quiz.classId) === activeQuizCourse);
+
+  const quizzesByCourse = useMemo(
+    () =>
+      assignedClassCards.map((item) => ({
+        ...item,
+        totalQuizzes: quizzes.filter((quiz) => quiz.classId === item.id).length,
+      })),
+    [assignedClassCards, quizzes],
+  );
+
+  const resetQuizDraft = () => {
+    setQuizDraft(createEmptyQuizDraft());
+    setEditingQuizId(null);
+    setIsQuizComposerOpen(false);
   };
 
-  const handleScheduleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsScheduleDialogOpen(false);
-    toast.success("Session scheduled", {
-      description: "Pertemuan batch baru sudah ditambahkan ke kelas yang dipilih.",
+  const handleEditQuiz = (quizId: number) => {
+    const quiz = quizzes.find((entry) => entry.id === quizId);
+    if (!quiz) return;
+
+    setEditingQuizId(quiz.id);
+    setQuizDraft({
+      title: quiz.title,
+      description: quiz.description,
+      status: quiz.status,
+      assignedBatches: quiz.assignedBatches,
+      opensAt: quiz.opensAt,
+      closesAt: quiz.closesAt,
+      questionCount: String(quiz.questionCount),
+      questions: quiz.questions,
     });
+    setIsQuizComposerOpen(true);
+  };
+  const updateQuizQuestion = (
+    questionId: number,
+    updater: (question: TutorQuizQuestionDraft) => TutorQuizQuestionDraft,
+  ) => {
+    setQuizDraft((current) => ({
+      ...current,
+      questions: current.questions.map((question) =>
+        question.id === questionId ? updater(question) : question,
+      ),
+    }));
+  };
+  const addQuizQuestion = () => {
+    setQuizDraft((current) => ({
+      ...current,
+      questions: [...current.questions, createQuizQuestionDraft(Date.now())],
+    }));
+  };
+  const removeQuizQuestion = (questionId: number) => {
+    setQuizDraft((current) => ({
+      ...current,
+      questions:
+        current.questions.length === 1
+          ? current.questions
+          : current.questions.filter((question) => question.id !== questionId),
+    }));
+  };
+  const handleQuizQuestionTypeChange = (questionId: number, nextType: TutorQuizQuestionType) => {
+    updateQuizQuestion(questionId, (question) => ({
+      ...question,
+      type: nextType,
+      options:
+        nextType === "multiple_answer"
+          ? question.options.length > 0
+            ? question.options
+            : [createQuizOptionDraft(1), createQuizOptionDraft(2)]
+          : [],
+      acceptedAnswersText: nextType === "fill_answer" ? question.acceptedAnswersText : "",
+    }));
+  };
+  const addQuizQuestionOption = (questionId: number) => {
+    updateQuizQuestion(questionId, (question) => ({
+      ...question,
+      options: [...question.options, createQuizOptionDraft(Date.now())],
+    }));
+  };
+  const removeQuizQuestionOption = (questionId: number, optionId: number) => {
+    updateQuizQuestion(questionId, (question) => ({
+      ...question,
+      options:
+        question.options.length <= 2
+          ? question.options
+          : question.options.filter((option) => option.id !== optionId),
+    }));
+  };
+
+  const handleDeleteQuiz = (quizId: number) => {
+    setQuizzes((current) => current.filter((quiz) => quiz.id !== quizId));
+    if (editingQuizId === quizId) {
+      resetQuizDraft();
+    }
+    toast.success("Quiz deleted");
+  };
+
+  const handleQuizSubmit = () => {
+    if (!activeQuizCourse) {
+      toast.error("Choose a class first.");
+      return;
+    }
+    if (!quizDraft.title.trim() || !quizDraft.description.trim()) {
+      toast.error("Complete the quiz title and description.");
+      return;
+    }
+    if (quizDraft.assignedBatches.length === 0) {
+      toast.error("Assign at least one batch.");
+      return;
+    }
+    if (!quizDraft.opensAt || !quizDraft.closesAt) {
+      toast.error("Set opened and closed time.");
+      return;
+    }
+    if (quizDraft.questions.length === 0) {
+      toast.error("Add at least one question.");
+      return;
+    }
+
+    const payload = {
+      id: editingQuizId ?? Date.now(),
+      classId: Number(activeQuizCourse),
+      title: quizDraft.title.trim(),
+      description: quizDraft.description.trim(),
+      status: quizDraft.status,
+      assignedBatches: quizDraft.assignedBatches,
+      opensAt: quizDraft.opensAt,
+      closesAt: quizDraft.closesAt,
+      questionCount: quizDraft.questions.length,
+      questions: quizDraft.questions,
+    };
+
+    if (editingQuizId) {
+      setQuizzes((current) => current.map((quiz) => (quiz.id === editingQuizId ? payload : quiz)));
+      toast.success("Quiz updated");
+    } else {
+      setQuizzes((current) => [...current, payload]);
+      toast.success("Quiz created");
+    }
+
+    resetQuizDraft();
   };
 
   const handleMaterialSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsMaterialDialogOpen(false);
-    toast.success("Material uploaded", {
-      description: "Dokumen tutor berhasil ditambahkan dan menunggu sinkronisasi storage.",
+    toast.success("Tutor note added", {
+      description: "Catatan tutor berhasil ditambahkan ke materi yang dikelola admin.",
     });
   };
+
+  useEffect(() => {
+    if (activeView === "materials") return;
+    setActiveMaterialCourse(null);
+  }, [activeView]);
+
+  useEffect(() => {
+    if (activeView === "meetings") return;
+    setActiveMeetingCourse("all");
+  }, [activeView]);
+
+  useEffect(() => {
+    if (activeView === "quizzes") return;
+    setActiveQuizCourse(null);
+    resetQuizDraft();
+  }, [activeView]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [activeView]);
 
-  const sectionCopy = {
-    overview: {
-      badge: `Tutor overview for ${firstName}`,
-      title: "Tutor Dashboard",
-      description:
-        "Lihat ringkasan batch yang kamu pegang sebelum masuk ke alur pertemuan, dokumen materi, dan analytics.",
-    },
-    meetings: {
-      badge: `Pertemuan by ${firstName}`,
-      title: "Pertemuan Batch",
-      description:
-        "Kelola jadwal, topik, absensi, dan link Zoom untuk semua batch yang kamu ajar.",
-    },
-    materials: {
-      badge: `Materials by ${firstName}`,
-      title: "Class Materials",
-      description:
-        "Fokus pada dokumen tutor, revisi PDF, dan file pendukung yang dibutuhkan students di tiap class.",
-    },
-    analytics: {
-      badge: `Analytics for ${firstName}`,
-      title: "Teaching Analytics",
-      description:
-        "Pantau engagement, attendance, dan indikator payroll per sesi dalam satu halaman yang lebih fokus.",
-    },
-  } as const;
+  const tutorNavItems = [
+    { label: "Overview", icon: BookOpen, active: activeView === "overview", onClick: () => setActiveView("overview") },
+    { label: "Live meetings", icon: Video, active: activeView === "meetings", onClick: () => setActiveView("meetings") },
+    { label: "Materials", icon: FileText, active: activeView === "materials", onClick: () => setActiveView("materials") },
+    { label: "Quizzes", icon: CheckCircle2, active: activeView === "quizzes", onClick: () => setActiveView("quizzes") },
+    { label: "Analytics", icon: BarChart3, active: activeView === "analytics", onClick: () => setActiveView("analytics") },
+    { label: "Help Center", to: "/help-faq?role=tutor", icon: HelpCircle, exact: true },
+  ];
 
   return (
     <div className="min-h-screen bg-[#F3F8FA] lg:flex">
       <DashboardSidebar roleLabel="Tutor" navItems={tutorNavItems} />
 
       <main className="min-w-0 flex-1">
-      <header className="relative overflow-hidden bg-gradient-to-br from-[#071735] via-[#0A1B45] to-[#308279] text-white">
-        <div className="absolute inset-0 bg-grid-pattern opacity-20" />
-        <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-[#92B7B0]/15 blur-3xl" />
-        <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex flex-col gap-8 mb-6">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/85 backdrop-blur-sm">
-                <Sparkles className="h-4 w-4 text-[#92B7B0]" />
-                {sectionCopy[activeView].badge}
-              </div>
+        <header className="relative overflow-hidden bg-gradient-to-br from-[#071735] via-[#0A1B45] to-[#308279] text-white">
+          <div className="absolute inset-0 bg-grid-pattern opacity-20" />
+          <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-[#92B7B0]/15 blur-3xl" />
+          <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <div className="flex flex-col gap-8">
               <div className="mt-5 max-w-3xl">
-                <div>
-                  <h1 className="text-4xl font-bold tracking-[-0.03em]">{sectionCopy[activeView].title}</h1>
-                  <p className="text-white/80 mt-3 max-w-2xl leading-7">
-                    {sectionCopy[activeView].description}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                {activeView !== "analytics" ? (
-                  <Button
-                    className="bg-white text-[#0A1B45] hover:bg-[#F3F8FA]"
-                    onClick={() => setIsScheduleDialogOpen(true)}
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    Tambah Pertemuan
-                  </Button>
-                ) : null}
-                {activeView !== "meetings" ? (
-                  <Button
-                    variant="outline"
-                    className="border-white/30 bg-white/10 text-white hover:bg-white/15 hover:text-white"
-                    onClick={() => setIsMaterialDialogOpen(true)}
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Material
-                  </Button>
-                ) : null}
+                <h1 className="text-4xl font-bold tracking-[-0.03em]">
+                  {tutorSectionCopy[activeView].title}
+                </h1>
+                <p className="mt-3 max-w-2xl leading-7 text-white/80">
+                  {tutorSectionCopy[activeView].description}
+                </p>
               </div>
             </div>
-          </div>
 
-          <div className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-white/75 inline-flex">
-            Last sync: 2 minutes ago
+            {activeView === "overview" ? (
+              <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+                {stats.map((stat) => (
+                  <Card
+                    key={stat.label}
+                    className="border-white/15 bg-white/10 p-5 shadow-lg backdrop-blur-md transition-all hover:-translate-y-1"
+                  >
+                    <div
+                      className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} shadow-lg`}
+                    >
+                      <stat.icon className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="mb-1 text-3xl font-bold tracking-[-0.03em] text-white">{stat.value}</div>
+                    <div className="text-sm text-white/80">{stat.label}</div>
+                    {stat.change ? <div className="mt-1 text-xs text-white/60">{stat.change}</div> : null}
+                  </Card>
+                ))}
+              </div>
+            ) : null}
           </div>
+        </header>
 
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           {activeView === "overview" ? (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4 mt-6">
-              {stats.map((stat) => (
-                <Card
-                  key={stat.label}
-                  className="border-white/15 bg-white/10 p-5 shadow-lg backdrop-blur-md transition-all hover:-translate-y-1"
-                >
-                  <div
-                    className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} shadow-lg`}
-                  >
-                    <stat.icon className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="mb-1 text-3xl font-bold tracking-[-0.03em] text-white">{stat.value}</div>
-                  <div className="text-sm text-white/80">{stat.label}</div>
-                  <div className="mt-1 text-xs text-white/60">{stat.change}</div>
-                </Card>
-              ))}
-            </div>
+            <OverviewSection
+              assignedClassCards={assignedClassCards}
+              onOpenMeetings={(courseId) => {
+                setActiveView("meetings");
+                setActiveMeetingCourse(courseId);
+              }}
+              onOpenMaterials={(courseId) => {
+                setActiveView("materials");
+                setActiveMaterialCourse(courseId);
+              }}
+              onOpenQuizzes={(courseId) => {
+                setActiveView("quizzes");
+                setActiveQuizCourse(courseId);
+              }}
+            />
+          ) : null}
+
+          {activeView === "meetings" ? (
+            <MeetingsSection
+              activeMeetingCourse={activeMeetingCourse}
+              meetingCourseOptions={meetingCourseOptions}
+              visibleMeetings={visibleMeetings}
+              onMeetingCourseChange={setActiveMeetingCourse}
+            />
+          ) : null}
+
+          {activeView === "materials" ? (
+            <MaterialsSection
+              activeMaterialCourse={activeMaterialCourse}
+              activeMaterialTrack={activeMaterialTrack}
+              assignedClassCards={assignedClassCards}
+              classMaterials={initialClassMaterials}
+              isMaterialDialogOpen={isMaterialDialogOpen}
+              visibleMaterials={visibleMaterials}
+              visibleMaterialsBySection={visibleMaterialsBySection}
+              onBackToClasses={() => setActiveMaterialCourse(null)}
+              onMaterialCourseChange={setActiveMaterialCourse}
+              onMaterialDialogChange={setIsMaterialDialogOpen}
+              onMaterialSubmit={handleMaterialSubmit}
+              onMaterialTrackChange={setActiveMaterialTrack}
+            />
+          ) : null}
+
+          {activeView === "quizzes" ? (
+            <QuizzesSection
+              activeQuizCourse={activeQuizCourse}
+              assignedClassCards={assignedClassCards}
+              editingQuizId={editingQuizId}
+              isQuizComposerOpen={isQuizComposerOpen}
+              quizDraft={quizDraft}
+              quizzesByCourse={quizzesByCourse}
+              upcomingSessions={initialUpcomingSessions}
+              visibleQuizzes={visibleQuizzes}
+              onBackToClasses={() => {
+                setActiveQuizCourse(null);
+                resetQuizDraft();
+              }}
+              onDeleteQuiz={handleDeleteQuiz}
+              onEditQuiz={handleEditQuiz}
+              onOpenCourse={setActiveQuizCourse}
+              onOpenQuizComposer={() => {
+                setEditingQuizId(null);
+                setQuizDraft(createEmptyQuizDraft());
+                setIsQuizComposerOpen(true);
+              }}
+              onQuizDraftChange={setQuizDraft}
+              onQuizQuestionChange={updateQuizQuestion}
+              onQuizQuestionTypeChange={handleQuizQuestionTypeChange}
+              onAddQuizQuestion={addQuizQuestion}
+              onRemoveQuizQuestion={removeQuizQuestion}
+              onAddQuizQuestionOption={addQuizQuestionOption}
+              onRemoveQuizQuestionOption={removeQuizQuestionOption}
+              onQuizSubmit={handleQuizSubmit}
+              onResetQuizDraft={resetQuizDraft}
+            />
+          ) : null}
+
+          {activeView === "analytics" ? (
+            <AnalyticsSection
+              sessionAttendanceData={initialSessionAttendanceData}
+              studentEngagementData={initialStudentEngagementData}
+            />
           ) : null}
         </div>
-      </header>
-
-      <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {activeView === "overview" ? (
-          <section className="mb-8">
-            <div className="mb-5 flex items-end justify-between gap-4">
-              <div>
-                <h2 className="text-2xl font-bold text-[#0A1B45]">Assigned Class Portfolio</h2>
-                <p className="text-[#476074]">Semua class yang sedang kamu handle tampil di satu overview.</p>
-              </div>
-              <Badge className="border-0 bg-[#308279]/10 px-3 py-1.5 text-[#308279]">
-                {assignedClassCards.length} active classes
-              </Badge>
-            </div>
-
-            <div className="grid gap-4 lg:grid-cols-3">
-              {assignedClassCards.map((item) => (
-                <Card
-                  key={item.id}
-                  className="border-[#D9E6EA] bg-white p-6 shadow-[0_18px_40px_rgba(10,27,69,0.08)] transition-all hover:-translate-y-1 hover:shadow-[0_24px_48px_rgba(10,27,69,0.12)]"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="text-sm font-medium text-[#308279]">Class #{item.id}</div>
-                      <h3 className="mt-2 text-xl font-bold text-[#0A1B45]">{item.title}</h3>
-                    </div>
-                    <Link to={`/class/${item.id}`}>
-                      <Button variant="ghost" size="sm" className="text-[#308279] hover:bg-[#308279]/10">
-                        Open
-                      </Button>
-                    </Link>
-                  </div>
-
-                  <div className="mt-5 grid grid-cols-2 gap-3">
-                    <div className="rounded-2xl bg-[#F3F8FA] p-4">
-                      <div className="text-xs uppercase tracking-[0.16em] text-[#476074]">Students</div>
-                      <div className="mt-2 text-2xl font-bold text-[#0A1B45]">{item.students}</div>
-                    </div>
-                    <div className="rounded-2xl bg-[#F3F8FA] p-4">
-                      <div className="text-xs uppercase tracking-[0.16em] text-[#476074]">Tutor Docs</div>
-                      <div className="mt-2 text-2xl font-bold text-[#0A1B45]">{item.tutorDocs}</div>
-                    </div>
-                    <div className="rounded-2xl bg-[#F3F8FA] p-4">
-                      <div className="text-xs uppercase tracking-[0.16em] text-[#476074]">Admin Videos</div>
-                      <div className="mt-2 text-2xl font-bold text-[#0A1B45]">{item.adminVideos}</div>
-                    </div>
-                    <div className="rounded-2xl bg-[#F3F8FA] p-4">
-                      <div className="text-xs uppercase tracking-[0.16em] text-[#476074]">Next Live</div>
-                      <div className="mt-2 text-sm font-semibold text-[#0A1B45]">{item.nextLive}</div>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {activeView === "meetings" ? (
-          <section className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-[#0A1B45]">Daftar Pertemuan Batch</h2>
-                <p className="text-[#476074]">Pertemuan cohort yang kamu ajar sekaligus basis payroll per sesi</p>
-              </div>
-              <Dialog open={isScheduleDialogOpen} onOpenChange={setIsScheduleDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-[#308279] hover:bg-[#308279]/90">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Tambah Pertemuan
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Tambah Pertemuan Baru</DialogTitle>
-                    <DialogDescription>
-                      Input detail pertemuan yang akan dipakai untuk delivery batch dan rekap gaji tutor.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form className="space-y-4" onSubmit={handleScheduleSubmit}>
-                    <div className="space-y-2">
-                      <Label htmlFor="session-title">Judul Pertemuan</Label>
-                      <Input id="session-title" placeholder="e.g., Pertemuan 05 - Algorithm Workshop" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="class-select">Kelas / Batch</Label>
-                      <select id="class-select" className="w-full rounded-md border p-2">
-                        <option>Data Structures & Algorithms • Batch Reguler A</option>
-                        <option>Database Management & SQL • Batch Weekend</option>
-                        <option>HCI Design Principles • Batch Intensif</option>
-                      </select>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="session-date">Tanggal</Label>
-                        <Input id="session-date" type="date" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="session-start">Jam Mulai</Label>
-                        <Input id="session-start" type="time" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="session-end">Jam Selesai</Label>
-                        <Input id="session-end" type="time" />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="session-description">Topik</Label>
-                      <Textarea
-                        id="session-description"
-                        placeholder="Jelaskan topik utama yang akan dibahas di pertemuan ini..."
-                        rows={3}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="session-attendance">Absensi</Label>
-                        <Input id="session-attendance" type="number" placeholder="0" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="zoom-link">Link Zoom (opsional)</Label>
-                        <Input id="zoom-link" placeholder="https://zoom.us/j/..." />
-                      </div>
-                    </div>
-                    <div className="flex gap-3 pt-4">
-                      <Button type="submit" className="bg-[#308279] hover:bg-[#308279]/90">
-                        Simpan Pertemuan
-                      </Button>
-                      <Button type="button" variant="outline" onClick={() => setIsScheduleDialogOpen(false)}>
-                        Batal
-                      </Button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            <div className="grid gap-4">
-              {upcomingSessions.map((session) => (
-                <Card
-                  key={session.id}
-                  className="overflow-hidden border-2 transition-all hover:border-[#308279] hover:shadow-lg"
-                >
-                  <div className="p-6">
-                    <div className="mb-4 flex items-start justify-between">
-                      <div className="flex items-start gap-4">
-                        <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#308279] to-[#0A1B45]">
-                          <Video className="h-7 w-7 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="mb-1 text-xl font-bold text-[#0A1B45]">{session.title}</h3>
-                          <p className="mb-2 text-sm text-[#476074]">{session.className}</p>
-                          <div className="flex items-center gap-4 text-sm">
-                            <div className="flex items-center gap-1 text-[#476074]">
-                              <Calendar className="h-4 w-4" />
-                              <span>{session.date}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-[#476074]">
-                              <Clock className="h-4 w-4" />
-                              <span>
-                                {session.startTime} - {session.endTime}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1 text-[#476074]">
-                              <Users className="h-4 w-4" />
-                              <span>{session.attendance} hadir</span>
-                            </div>
-                          </div>
-                          <p className="mt-3 text-sm leading-6 text-[#476074]">{session.topic}</p>
-                        </div>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem
-                            onSelect={() => {
-                              toast.success("Session editor opened", {
-                                description: `Kamu bisa lanjutkan edit untuk ${session.title}.`,
-                              });
-                            }}
-                          >
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit Session
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-red-600"
-                            onSelect={() => {
-                              toast.error("Session cancelled", {
-                                description: `${session.title} ditandai sebagai dibatalkan.`,
-                              });
-                            }}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Cancel Session
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-
-                    {session.zoomLink ? (
-                      <div className="rounded-lg border border-[#308279]/20 bg-[#F3F8FA] p-4">
-                        <div className="flex items-center justify-between gap-4">
-                          <div>
-                            <p className="mb-1 text-xs text-[#476074]">Zoom Meeting Link:</p>
-                            <code className="text-sm font-mono text-[#0A1B45]">{session.zoomLink}</code>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-[#308279] text-[#308279]"
-                            onClick={() => handleCopyLink(session.zoomLink)}
-                          >
-                            Copy Link
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="rounded-lg border border-dashed border-[#D8E5E9] bg-[#FCFEFE] p-4 text-sm text-[#476074]">
-                        Pertemuan ini tidak memakai Zoom link. Bisa dipakai untuk sesi offline atau pending setup.
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {activeView === "materials" ? (
-          <section className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-[#0A1B45]">Class Materials</h2>
-                <p className="text-[#476074]">Upload PDF, DOCX, cheat notes, dan dokumen pendukung lainnya</p>
-              </div>
-              <Dialog open={isMaterialDialogOpen} onOpenChange={setIsMaterialDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="bg-[#308279] hover:bg-[#308279]/90">
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Material
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Upload Tutor Material</DialogTitle>
-                    <DialogDescription>
-                      Tambahkan dokumen pembelajaran ke class yang sudah dikelola admin.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form className="space-y-4" onSubmit={handleMaterialSubmit}>
-                    <div className="space-y-2">
-                      <Label htmlFor="material-title">Document Title</Label>
-                      <Input id="material-title" placeholder="e.g., SQL Query Patterns" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="material-class">Class</Label>
-                        <select id="material-class" className="w-full rounded-md border p-2">
-                          <option>Data Structures & Algorithms</option>
-                          <option>Database Management & SQL</option>
-                          <option>HCI Design Principles</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="material-type">Format</Label>
-                        <select id="material-type" className="w-full rounded-md border p-2">
-                          <option>PDF</option>
-                          <option>DOCX</option>
-                          <option>PPTX</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="material-file">File</Label>
-                      <Input id="material-file" type="file" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="material-notes">Description</Label>
-                      <Textarea
-                        id="material-notes"
-                        placeholder="Jelaskan isi dokumen atau cara menggunakannya untuk students..."
-                        rows={3}
-                      />
-                    </div>
-                    <div className="flex gap-3 pt-4">
-                      <Button type="submit" className="bg-[#308279] hover:bg-[#308279]/90">
-                        Upload Material
-                      </Button>
-                      <Button type="button" variant="outline" onClick={() => setIsMaterialDialogOpen(false)}>
-                        Batal
-                      </Button>
-                    </div>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {classMaterials.map((material) => (
-                <Card
-                  key={material.id}
-                  className="border-2 p-6 transition-all hover:border-[#308279] hover:shadow-lg"
-                >
-                  <div className="mb-4 flex items-start justify-between gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#308279]/10 text-[#308279]">
-                      <FileText className="h-6 w-6" />
-                    </div>
-                    <Badge
-                      className={
-                        material.status === "Published"
-                          ? "border-0 bg-[#308279]/10 text-[#308279]"
-                          : "border-0 bg-[#0A1B45]/10 text-[#0A1B45]"
-                      }
-                    >
-                      {material.status}
-                    </Badge>
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-[#308279]">{material.className}</div>
-                    <h3 className="mt-2 text-lg font-bold text-[#0A1B45]">{material.title}</h3>
-                    <p className="mt-2 text-sm text-[#476074]">
-                      {material.format} • {material.size} • {material.downloads} downloads
-                    </p>
-                    <p className="mt-1 text-sm text-[#476074]">Updated {material.lastUpdated}</p>
-                  </div>
-                  <div className="mt-6 flex gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1 border-[#308279] text-[#308279]"
-                      onClick={() =>
-                        toast.message("Revision flow", {
-                          description: `Revisi untuk ${material.title} akan diarahkan ke uploader dokumen.`,
-                        })
-                      }
-                    >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Revise
-                    </Button>
-                    <Link to={`/class/${material.classId}`} className="flex-1">
-                      <Button variant="outline" className="w-full">
-                        Open Class
-                      </Button>
-                    </Link>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {activeView === "analytics" ? (
-          <section className="space-y-6">
-            <div>
-              <h2 className="mb-2 text-2xl font-bold text-[#0A1B45]">Teaching Analytics</h2>
-              <p className="text-[#476074]">Ringkasan performa live teaching dan engagement students</p>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card className="p-6">
-                <h3 className="mb-4 text-lg font-bold text-[#0A1B45]">Student Growth</h3>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={studentEngagementData}>
-                      <CartesianGrid stroke="#92B7B0" strokeDasharray="3 3" opacity={0.3} />
-                      <XAxis dataKey="week" stroke="#476074" />
-                      <YAxis stroke="#476074" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "#fff",
-                          border: "1px solid #308279",
-                          borderRadius: "8px",
-                        }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="students"
-                        stroke="#308279"
-                        strokeWidth={3}
-                        dot={{ fill: "#308279", r: 5 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </Card>
-
-              <Card className="p-6">
-                <h3 className="mb-4 text-lg font-bold text-[#0A1B45]">Meeting Attendance Rate</h3>
-                <div className="flex h-64 items-center justify-center">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={sessionAttendanceData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={90}
-                        dataKey="value"
-                        label={({ name, value }) => `${name}: ${value}%`}
-                      >
-                        {sessionAttendanceData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="mt-4 rounded-lg bg-[#308279]/5 p-4">
-                  <p className="text-sm text-[#476074]">
-                    <span className="font-bold text-[#308279]">85%</span> students rata-rata hadir di
-                    pertemuan batch kamu minggu ini.
-                  </p>
-                </div>
-              </Card>
-            </div>
-
-            <Card className="p-6">
-              <h3 className="mb-4 text-lg font-bold text-[#0A1B45]">Performance Summary</h3>
-              <div className="grid gap-4 md:grid-cols-4">
-                <div className="rounded-lg bg-[#F3F8FA] p-4">
-                  <div className="mb-1 text-2xl font-bold text-[#308279]">4.9</div>
-                  <div className="text-sm text-[#476074]">Rata-rata Rating</div>
-                </div>
-                <div className="rounded-lg bg-[#F3F8FA] p-4">
-                  <div className="mb-1 text-2xl font-bold text-[#0A1B45]">18</div>
-                  <div className="text-sm text-[#476074]">Dokumen Aktif</div>
-                </div>
-                <div className="rounded-lg bg-[#F3F8FA] p-4">
-                  <div className="mb-1 text-2xl font-bold text-[#0A1B45]">19</div>
-                  <div className="text-sm text-[#476074]">Completed Meetings</div>
-                </div>
-                <div className="rounded-lg bg-[#F3F8FA] p-4">
-                  <div className="mb-1 text-2xl font-bold text-[#308279]">Rp 5.700.000</div>
-                  <div className="text-sm text-[#476074]">Projected Session Payroll</div>
-                </div>
-              </div>
-              <div className="mt-6 flex justify-end">
-                <Link to="/help-faq?role=tutor">
-                  <Button
-                    variant="outline"
-                    className="border-[#308279] text-[#308279]"
-                  >
-                    Open tutor help center
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-            </Card>
-          </section>
-        ) : null}
-      </div>
       </main>
     </div>
   );

@@ -1,5 +1,6 @@
 import { gql } from "@apollo/client";
 import { useQuery } from "@apollo/client/react";
+import { useEffect, useMemo, useState } from "react";
 
 export type CourseLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
 export type CourseStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
@@ -51,6 +52,7 @@ export interface CourseCardView {
 }
 
 export interface CourseDetailView extends CourseCardView {
+  tutorIds: string[];
   subtitle: string;
   description: string;
   pricing: {
@@ -66,6 +68,7 @@ export const COURSE_FIELDS = gql`
     tutorId
     title
     slug
+    thumbnailUrl
     description
     shortDescription
     level
@@ -128,6 +131,8 @@ interface CoursesData {
   } | null;
 }
 
+const COURSES_CACHE_KEY = "tutoring-academy.published-courses";
+
 function formatPrice(course: Course) {
   if (course.isFree || course.price <= 0) {
     return "Free";
@@ -180,6 +185,7 @@ export function mapCourseToCard(course: Course): CourseCardView {
 export function mapCourseToDetail(course: Course): CourseDetailView {
   return {
     ...mapCourseToCard(course),
+    tutorIds: course.tutorId,
     subtitle: course.shortDescription,
     description: course.description,
     pricing: {
@@ -190,8 +196,6 @@ export function mapCourseToDetail(course: Course): CourseDetailView {
       `${course.totalSections} sections`,
       `${course.totalLectures} lectures`,
       `${formatDuration(course.totalDuration)} of content`,
-      `${formatLevel(course.level)} level`,
-      course.isFree ? "Free access" : "Paid course access",
     ],
   };
 }
@@ -206,8 +210,41 @@ export function useCourses(options: { enabled?: boolean } = {}) {
     },
   );
 
+  const liveCourses = useMemo(
+    () => (data?.courses?.nodes ?? []).map(mapCourseToCard),
+    [data?.courses?.nodes],
+  );
+  const [cachedCourses, setCachedCourses] = useState<CourseCardView[]>([]);
+
+  useEffect(() => {
+    if (!enabled || typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      const raw = window.localStorage.getItem(COURSES_CACHE_KEY);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as CourseCardView[];
+      if (Array.isArray(parsed)) {
+        setCachedCourses(parsed);
+      }
+    } catch {
+      window.localStorage.removeItem(COURSES_CACHE_KEY);
+    }
+  }, [enabled]);
+
+  useEffect(() => {
+    if (!enabled || typeof window === "undefined" || liveCourses.length === 0) {
+      return;
+    }
+
+    setCachedCourses(liveCourses);
+    window.localStorage.setItem(COURSES_CACHE_KEY, JSON.stringify(liveCourses));
+  }, [enabled, liveCourses]);
+
   return {
-    courses: (data?.courses?.nodes ?? []).map(mapCourseToCard),
+    courses: liveCourses.length > 0 ? liveCourses : cachedCourses,
     loading: enabled ? loading : false,
     error,
     refetch,

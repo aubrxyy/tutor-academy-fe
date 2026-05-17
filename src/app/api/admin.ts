@@ -110,6 +110,17 @@ interface TutorUsersData {
   } | null;
 }
 
+export const GET_TUTORS_BY_IDS = gql`
+  query GetTutorsByIds($ids: [String!]) {
+    users(where: { id: { in: $ids }, role: { eq: TUTOR } }, order: [{ name: ASC }]) {
+      nodes {
+        ...UserFields
+      }
+    }
+  }
+  ${USER_FIELDS}
+`;
+
 export function useAdminPanelData() {
   return useQuery<AdminPanelData>(GET_ADMIN_PANEL_DATA, {
     fetchPolicy: "cache-and-network",
@@ -126,6 +137,14 @@ export function useTutorPanelCourses(courseIds: string[]) {
 
 export function useTutorUsers() {
   return useQuery<TutorUsersData>(GET_TUTOR_USERS, {
+    fetchPolicy: "cache-and-network",
+  });
+}
+
+export function useTutorsByIds(ids: string[]) {
+  return useQuery<TutorUsersData>(GET_TUTORS_BY_IDS, {
+    variables: { ids },
+    skip: ids.length === 0,
     fetchPolicy: "cache-and-network",
   });
 }

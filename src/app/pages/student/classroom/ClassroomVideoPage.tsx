@@ -135,12 +135,6 @@ export default function ClassroomVideoPage() {
               <Clock className="h-4 w-4" />
               {item.meta}
             </span>
-            {item.sourceLabel ? (
-              <span className="flex items-center gap-2">
-                <Video className="h-4 w-4" />
-                {item.sourceLabel}
-              </span>
-            ) : null}
           </div>
           <p className="mt-5 max-w-3xl text-sm leading-7 text-[#476074]">{item.description}</p>
         </div>

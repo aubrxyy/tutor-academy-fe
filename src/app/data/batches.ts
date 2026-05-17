@@ -13,12 +13,82 @@ export interface CourseBatchView {
   intakeWindow: string;
 }
 
+export interface CoursePackageBatchView {
+  id: string;
+  batchCode: string;
+  name: string;
+  periodLabel: string;
+  enrollmentDeadline: string;
+  seatsLeft: number;
+  totalSeats: number;
+  tutorName: string;
+  admissionStatus: "Pending Review" | "Approved" | "Closed";
+  intakeWindow: string;
+}
+
+export interface CoursePackageDetailView {
+  id: "ala-carte" | "paket-tutor";
+  name: string;
+  description: string;
+  priceLabel: string;
+  features: string[];
+  batches: CoursePackageBatchView[];
+}
+
 function formatPrice(price: number) {
   if (price <= 0) {
     return "Free";
   }
 
   return `Rp ${price.toLocaleString("id-ID")}`;
+}
+
+function formatDateLabel(value: Date) {
+  return value.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function addDays(base: Date, days: number) {
+  const next = new Date(base);
+  next.setDate(base.getDate() + days);
+  return next;
+}
+
+function buildWeeklyBatches(args: {
+  courseId: string | undefined;
+  tutorName: string;
+  packagePrefix: "A" | "T";
+  packageName: string;
+  seats: number;
+  baseOffsetDays: number;
+}): CoursePackageBatchView[] {
+  const baseId = args.courseId ?? "course";
+  const startDate = addDays(new Date("2026-05-19T00:00:00+07:00"), args.baseOffsetDays);
+
+  return Array.from({ length: 3 }, (_, index) => {
+    const windowStart = addDays(startDate, index * 7);
+    const windowEnd = addDays(windowStart, 6);
+    const deadline = addDays(windowStart, -1);
+
+    return {
+      id: `${baseId}-${args.packagePrefix.toLowerCase()}-${index + 1}`,
+      batchCode: `${args.packagePrefix}${index + 1}`,
+      name: `${args.packageName} • Week ${index + 1}`,
+      periodLabel: `${formatDateLabel(windowStart)} - ${formatDateLabel(windowEnd)}`,
+      enrollmentDeadline: formatDateLabel(deadline),
+      seatsLeft: Math.max(args.seats - (index + 1) * 4, 3),
+      totalSeats: args.seats,
+      tutorName: args.tutorName,
+      admissionStatus: index === 0 ? "Approved" : index === 1 ? "Pending Review" : "Closed",
+      intakeWindow:
+        index === 2
+          ? "Enrollment window is closed for this batch."
+          : "Enrollment is open until 1 day before the batch starts.",
+    };
+  });
 }
 
 export function getMockBatchesForCourse(
@@ -71,6 +141,57 @@ export function getMockBatchesForCourse(
       priceLabel,
       admissionStatus: "Closed",
       intakeWindow: "Batch penuh dan pendaftaran sudah ditutup",
+    },
+  ];
+}
+
+export function getCoursePackagesForDetail(args: {
+  courseId: string | undefined;
+  tutorName: string;
+  basePrice: number;
+  isFree?: boolean;
+}): CoursePackageDetailView[] {
+  const alaCartePrice = args.isFree ? 0 : Math.round(args.basePrice * 0.75);
+  const tutorPackagePrice = args.isFree ? 0 : args.basePrice;
+
+  return [
+    {
+      id: "ala-carte",
+      name: "Ala carte",
+      description: "Access learning videos and written materials only.",
+      priceLabel: formatPrice(alaCartePrice),
+      features: [
+        "On-demand learning videos",
+        "Written materials and references",
+        "Self-paced access to core class content",
+      ],
+      batches: buildWeeklyBatches({
+        courseId: args.courseId,
+        tutorName: args.tutorName,
+        packagePrefix: "A",
+        packageName: "Ala carte",
+        seats: 40,
+        baseOffsetDays: 0,
+      }),
+    },
+    {
+      id: "paket-tutor",
+      name: "Paket tutor",
+      description: "Includes Ala carte content plus tutor live sessions.",
+      priceLabel: formatPrice(tutorPackagePrice),
+      features: [
+        "Everything in Ala carte",
+        "Tutor-led live sessions",
+        "Structured cohort support during the selected batch window",
+      ],
+      batches: buildWeeklyBatches({
+        courseId: args.courseId,
+        tutorName: args.tutorName,
+        packagePrefix: "T",
+        packageName: "Paket tutor",
+        seats: 24,
+        baseOffsetDays: 7,
+      }),
     },
   ];
 }
