@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ArrowLeft, CheckCircle2, Edit, Plus, Save, Trash2 } from "lucide-react";
 
 import { Badge } from "../../../components/ui/badge";
@@ -72,6 +73,20 @@ export function QuizzesSection({
   onQuizSubmit,
   onResetQuizDraft,
 }: QuizzesSectionProps) {
+  const [quizComposerStep, setQuizComposerStep] = useState<"setup" | "questions">("setup");
+
+  const handleContinueToQuestions = () => {
+    if (!quizDraft.title.trim() || !quizDraft.description.trim()) {
+      return;
+    }
+    setQuizComposerStep("questions");
+  };
+
+  const handleResetQuizDraft = () => {
+    setQuizComposerStep("setup");
+    onResetQuizDraft();
+  };
+
   return (
     <section className="space-y-6">
       {activeQuizCourse === null ? (
@@ -152,11 +167,33 @@ export function QuizzesSection({
                       Compose quiz metadata, then add questions below. Multiple answer questions can have more than one correct option.
                     </p>
                   </div>
-                  <Button variant="outline" className="border-[#D8E5E9]" onClick={onResetQuizDraft}>
+                  <Button variant="outline" className="border-[#D8E5E9]" onClick={handleResetQuizDraft}>
                     Cancel
                   </Button>
                 </div>
 
+                <div className="grid gap-2 rounded-2xl border border-[#D8E5E9] bg-[#F7FAFB] p-1 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => setQuizComposerStep("setup")}
+                    className={`rounded-xl px-4 py-2 text-sm font-semibold ${
+                      quizComposerStep === "setup" ? "bg-[#0A1B45] text-white" : "text-[#476074]"
+                    }`}
+                  >
+                    Quiz Setup
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleContinueToQuestions}
+                    className={`rounded-xl px-4 py-2 text-sm font-semibold ${
+                      quizComposerStep === "questions" ? "bg-[#0A1B45] text-white" : "text-[#476074]"
+                    }`}
+                  >
+                    Questions
+                  </button>
+                </div>
+
+                {quizComposerStep === "setup" ? (
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="quiz-title">Quiz title</Label>
@@ -231,7 +268,9 @@ export function QuizzesSection({
                     />
                   </div>
                 </div>
+                ) : null}
 
+                {quizComposerStep === "questions" ? (
                 <div className="space-y-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
@@ -404,13 +443,25 @@ export function QuizzesSection({
                     </div>
                   ))}
                 </div>
+                ) : null}
 
                 <div className="flex flex-wrap gap-3">
-                  <Button className="bg-[#308279] hover:bg-[#308279]/90" onClick={onQuizSubmit}>
-                    <Save className="mr-2 h-4 w-4" />
-                    {editingQuizId ? "Save Quiz" : "Create Quiz"}
-                  </Button>
-                  <Button variant="outline" className="border-[#D8E5E9]" onClick={onResetQuizDraft}>
+                  {quizComposerStep === "setup" ? (
+                    <Button className="bg-[#308279] hover:bg-[#308279]/90" onClick={handleContinueToQuestions}>
+                      Continue to Questions
+                    </Button>
+                  ) : (
+                    <>
+                      <Button variant="outline" className="border-[#D8E5E9]" onClick={() => setQuizComposerStep("setup")}>
+                        Back to Setup
+                      </Button>
+                      <Button className="bg-[#308279] hover:bg-[#308279]/90" onClick={onQuizSubmit}>
+                        <Save className="mr-2 h-4 w-4" />
+                        {editingQuizId ? "Save Quiz" : "Create Quiz"}
+                      </Button>
+                    </>
+                  )}
+                  <Button variant="outline" className="border-[#D8E5E9]" onClick={handleResetQuizDraft}>
                     Cancel
                   </Button>
                 </div>

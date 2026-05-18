@@ -27,10 +27,11 @@ export interface CoursePackageBatchView {
 }
 
 export interface CoursePackageDetailView {
-  id: "ala-carte" | "paket-tutor";
+  id: "video-only" | "article-only" | "video-article" | "video-article-live";
   name: string;
   description: string;
   priceLabel: string;
+  accessLabel: string;
   features: string[];
   requiresBatch: boolean;
   batches: CoursePackageBatchView[];
@@ -61,7 +62,7 @@ function addDays(base: Date, days: number) {
 function buildWeeklyBatches(args: {
   courseId: string | undefined;
   tutorName: string;
-  packagePrefix: "A" | "T";
+  packagePrefix: "A" | "T" | "L";
   packageName: string;
   seats: number;
   baseOffsetDays: number;
@@ -155,37 +156,68 @@ export function getCoursePackagesForDetail(args: {
 }): CoursePackageDetailView[] {
   const alaCartePrice = args.isFree ? 0 : args.alaCartePrice;
   const tutorPackagePrice = args.isFree ? 0 : args.tutorPackagePrice;
+  const bundlePrice = args.isFree ? 0 : args.tutorPackagePrice;
 
   return [
     {
-      id: "ala-carte",
-      name: "Ala Carte",
-      description: "Access learning videos and written materials only.",
+      id: "video-only",
+      name: "Video only",
+      description: "Ala carte access for video lessons only.",
       priceLabel: formatPrice(alaCartePrice),
+      accessLabel: "Video lessons only",
       features: [
         "On-demand learning videos",
-        "Written materials and references",
-        "Self-paced access to core class content",
+        "Self-paced access without a batch",
+        "Best for students who prefer guided visual lessons",
       ],
       requiresBatch: false,
       batches: [],
     },
     {
-      id: "paket-tutor",
-      name: "Tutor Package",
-      description: "Includes Ala carte content plus tutor live sessions.",
-      priceLabel: formatPrice(tutorPackagePrice),
+      id: "article-only",
+      name: "Article only",
+      description: "Ala carte access for article lessons and references only.",
+      priceLabel: formatPrice(alaCartePrice),
+      accessLabel: "Article lessons only",
       features: [
-        "Everything in Ala carte",
+        "Written article lessons and templates",
+        "Self-paced access without a batch",
+        "Best for students who prefer reading-based study",
+      ],
+      requiresBatch: false,
+      batches: [],
+    },
+    {
+      id: "video-article",
+      name: "Video + article",
+      description: "Bundle access for all asynchronous course content.",
+      priceLabel: formatPrice(bundlePrice),
+      accessLabel: "Video and article lessons",
+      features: [
+        "All on-demand video lessons",
+        "All article lessons and references",
+        "Complete self-paced access without live sessions",
+      ],
+      requiresBatch: false,
+      batches: [],
+    },
+    {
+      id: "video-article-live",
+      name: "Video + article + live sessions",
+      description: "Full package with course content and tutor-led live sessions.",
+      priceLabel: formatPrice(tutorPackagePrice),
+      accessLabel: "Video, article, and tutor live sessions",
+      features: [
+        "Everything in Video + article",
         "Tutor-led live sessions",
-        "Structured cohort support during the selected batch window",
+        "Structured cohort support during the selected batch",
       ],
       requiresBatch: true,
       batches: buildWeeklyBatches({
         courseId: args.courseId,
         tutorName: args.tutorName,
-        packagePrefix: "T",
-        packageName: "Paket tutor",
+        packagePrefix: "L",
+        packageName: "Live session package",
         seats: 24,
         baseOffsetDays: 7,
       }),

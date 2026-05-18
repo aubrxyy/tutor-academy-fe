@@ -39,75 +39,69 @@ export default function AdminClassesPage({
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <div className="space-y-4">
         {classes.map((item) => (
           <Card
             key={item.id}
-            className="flex h-full flex-col overflow-hidden border-2 transition-all hover:border-[#308279] hover:shadow-lg"
+            className="relative overflow-hidden border-2 transition-all hover:border-[#308279] hover:shadow-lg"
           >
-            <div className="bg-gradient-to-br from-[#0A1B45] to-[#308279] p-6 text-white">
-              <div className="mb-4 flex items-start justify-between gap-3">
-                <Badge className={getClassStatusBadgeClassName(item.status)}>
-                  {getCourseStatusLabel(item.status)}
-                </Badge>
-              </div>
-              <div className="min-h-[88px]">
-                <h3 className="text-lg font-bold leading-snug">{item.title}</h3>
-                <p className="mt-3 text-sm text-white/80">Tutor: {item.tutor}</p>
-              </div>
-            </div>
-            <div className="flex flex-1 flex-col justify-between p-6">
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-xl bg-[#F3F8FA] p-3">
-                    <div className="text-xs uppercase tracking-[0.14em] text-[#476074]">Students</div>
-                    <div className="mt-2 text-2xl font-bold text-[#0A1B45]">{item.students}</div>
-                  </div>
-                  <div className="rounded-xl bg-[#F3F8FA] p-3">
-                    <div className="text-xs uppercase tracking-[0.14em] text-[#476074]">Quizzes</div>
-                    <div className="mt-2 text-2xl font-bold text-[#308279]">{item.quizzes}</div>
-                  </div>
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-[92%] bg-[linear-gradient(to_right,#0A1B45_0%,rgba(10,27,69,0.92)_28%,rgba(48,130,121,0.72)_58%,rgba(48,130,121,0.28)_78%,transparent_100%)]" />
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-[70%] bg-[radial-gradient(circle_at_24%_35%,rgba(255,255,255,0.34),transparent_28%)]" />
+            <div className="flex flex-col gap-5 p-5 xl:flex-row xl:items-center xl:justify-between">
+              <div className="relative min-w-0 flex-1 rounded-xl px-4 py-3 text-white xl:max-w-md">
+                <div className="mb-2 flex flex-wrap items-center gap-2">
+                  <Badge className={getClassStatusBadgeClassName(item.status)}>
+                    {getCourseStatusLabel(item.status)}
+                  </Badge>
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/75">
+                    Tutor: {item.tutor}
+                  </span>
                 </div>
-                <div className="grid grid-cols-3 gap-3 text-center">
-                  <div className="rounded-lg bg-[#F3F8FA] p-3">
-                    <div className="text-lg font-bold text-[#0A1B45]">{item.videos}</div>
-                    <div className="text-xs text-[#476074]">Videos</div>
-                  </div>
-                  <div className="rounded-lg bg-[#F3F8FA] p-3">
-                    <div className="text-lg font-bold text-[#308279]">{item.sessions}</div>
-                    <div className="text-xs text-[#476074]">Sessions</div>
-                  </div>
-                  <div className="rounded-lg bg-[#F3F8FA] p-3">
-                    <div className="text-lg font-bold text-[#0A1B45]">{item.docs}</div>
-                    <div className="text-xs text-[#476074]">Materials</div>
-                  </div>
+                <h3 className="text-lg font-bold leading-snug text-white drop-shadow-sm">{item.title}</h3>
+              </div>
+              <div className="relative grid grid-cols-3 gap-3 sm:grid-cols-6 xl:w-[560px]">
+                <ClassMetric label="Students" value={item.students} />
+                <ClassMetric label="Videos" value={item.videos} />
+                <ClassMetric label="Sessions" value={item.sessions} />
+                <ClassMetric label="Materials" value={item.docs} />
+                <ClassMetric label="Quizzes" value={item.quizzes} />
+                <div className="flex items-center justify-end gap-2 sm:col-span-1">
+                  <Button
+                    variant="ghost"
+                    className="text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]"
+                    disabled={isDeletingClass}
+                    onClick={() => onDeleteClass(item.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
-              <div className="mt-6 flex gap-2">
+              <div className="relative flex flex-col gap-2 sm:flex-row xl:w-[260px]">
                 <Link to={`/admin/classes/${item.id}/edit`} className="flex-1">
                   <Button className="w-full bg-[#0A1B45] hover:bg-[#0A1B45]/90">
                     <BookOpen className="mr-2 h-4 w-4" />
-                    Edit Class
+                    Edit
                   </Button>
                 </Link>
-                <Link to={`/admin/classes/${item.id}/edit?tab=videos`} className="flex-1">
+                <Link to={`/admin/classes/${item.id}/edit?tab=quizzes`} className="flex-1">
                   <Button variant="outline" className="w-full border-[#308279] text-[#308279]">
-                    Add materials
+                    Quizzes
                   </Button>
                 </Link>
-                <Button
-                  variant="ghost"
-                  className="text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]"
-                  disabled={isDeletingClass}
-                  onClick={() => onDeleteClass(item.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
               </div>
             </div>
           </Card>
         ))}
       </div>
+    </div>
+  );
+}
+
+function ClassMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-lg bg-[#F3F8FA] p-3 text-center">
+      <div className="text-lg font-bold text-[#0A1B45]">{value}</div>
+      <div className="text-xs text-[#476074]">{label}</div>
     </div>
   );
 }

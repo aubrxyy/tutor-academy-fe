@@ -30,17 +30,19 @@ export function OverviewSection({
         {assignedClassCards.map((item) => (
           <Card
             key={item.id}
-            className="border-[#D9E6EA] bg-white p-6 shadow-[0_18px_40px_rgba(10,27,69,0.08)] transition-all hover:-translate-y-1 hover:shadow-[0_24px_48px_rgba(10,27,69,0.12)]"
+            className="relative overflow-hidden border-[#D9E6EA] bg-white p-6 shadow-[0_18px_40px_rgba(10,27,69,0.08)] transition-all hover:-translate-y-1 hover:shadow-[0_24px_48px_rgba(10,27,69,0.12)]"
           >
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <h3 className="mt-2 text-xl font-bold text-[#0A1B45]">{item.title}</h3>
-                <div className="mt-1 text-sm font-medium text-[#308279]">Teaching {item.batches} batches</div>
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-80 bg-gradient-to-r from-[#0A1B45] to-[#308279] opacity-90" />
+            <div className="pointer-events-none absolute inset-y-0 left-56 w-40 bg-gradient-to-r from-[#308279] to-transparent" />
+            <div className="relative flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+              <div className="rounded-xl px-4 py-3 text-white">
+                <h3 className="mt-2 text-xl font-bold text-white drop-shadow-sm">{item.title}</h3>
+                <div className="mt-1 text-sm font-medium text-white/80">Teaching {item.batches} batches</div>
                 <div className="mt-4 flex gap-3">
                   <button
                     type="button"
                     onClick={() => onOpenMeetings(String(item.id))}
-                    className="flex size-12 cursor-pointer items-center justify-center rounded-2xl bg-[#0A1B45] text-white shadow-[0_10px_24px_rgba(10,27,69,0.18)] transition hover:-translate-y-0.5"
+                    className="flex size-12 cursor-pointer items-center justify-center rounded-2xl bg-white/15 text-white shadow-[0_10px_24px_rgba(10,27,69,0.18)] transition hover:-translate-y-0.5"
                     aria-label={`Open live meetings for ${item.title}`}
                   >
                     <Video className="size-5" />
@@ -48,7 +50,7 @@ export function OverviewSection({
                   <button
                     type="button"
                     onClick={() => onOpenMaterials(String(item.id))}
-                    className="flex size-12 cursor-pointer items-center justify-center rounded-2xl bg-[#308279] text-white shadow-[0_10px_24px_rgba(48,130,121,0.22)] transition hover:-translate-y-0.5"
+                    className="flex size-12 cursor-pointer items-center justify-center rounded-2xl bg-white/15 text-white shadow-[0_10px_24px_rgba(48,130,121,0.22)] transition hover:-translate-y-0.5"
                     aria-label={`Open materials for ${item.title}`}
                   >
                     <FileText className="size-5" />
@@ -56,7 +58,7 @@ export function OverviewSection({
                   <button
                     type="button"
                     onClick={() => onOpenQuizzes(String(item.id))}
-                    className="flex size-12 cursor-pointer items-center justify-center rounded-2xl bg-[#F5E4A8] text-[#7A5A00] shadow-[0_10px_24px_rgba(245,228,168,0.35)] transition hover:-translate-y-0.5"
+                    className="flex size-12 cursor-pointer items-center justify-center rounded-2xl bg-white/90 text-[#0A1B45] shadow-[0_10px_24px_rgba(245,228,168,0.35)] transition hover:-translate-y-0.5"
                     aria-label={`Open quizzes for ${item.title}`}
                   >
                     <CheckCircle2 className="size-5" />

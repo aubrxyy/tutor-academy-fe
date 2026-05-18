@@ -170,8 +170,9 @@ export default function CourseDetailPage() {
                   Pilih package enrollment
                 </div>
                 <p className="mt-3 text-sm leading-5 text-[#476074]">
-                  Ala carte memberi akses ke semua video dan written materials tanpa batch. Paket
-                  tutor menambahkan live sessions dan tetap memilih batch.
+                  Pilih ala carte untuk akses video saja atau article saja. Bundle menggabungkan
+                  video dan article, sementara package live session menambahkan tutor dan wajib
+                  memilih batch.
                 </p>
               </div>
 
@@ -220,7 +221,7 @@ export default function CourseDetailPage() {
                                   Self-paced access
                                 </div>
                                 <div className="mt-1 text-sm text-[#476074]">
-                                  No batch needed. Students can start learning materials right after
+                                  No batch needed. Students can start this package right after
                                   enrollment.
                                 </div>
                               </div>
@@ -228,7 +229,7 @@ export default function CourseDetailPage() {
                             <div className="mt-4 space-y-2 text-sm text-[#476074]">
                               <div className="flex items-center gap-2">
                                 <Video className="h-4 w-4 text-[#308279]" />
-                                <span>Videos and written materials only</span>
+                                <span>{pkg.accessLabel}</span>
                               </div>
                               <div className="flex items-center gap-2">
                                 <Clock className="h-4 w-4 text-[#308279]" />
@@ -236,7 +237,7 @@ export default function CourseDetailPage() {
                               </div>
                             </div>
                             <div className="mt-5 flex items-center justify-between gap-3">
-                              <Link to={`/classroom/${courseId}`}>
+                              <Link to={`/classroom/${courseId}?package=${pkg.id}`}>
                                 <Button className="bg-[#0A1B45] text-white hover:bg-[#308279]">
                                   Choose Package
                                 </Button>
@@ -300,7 +301,7 @@ export default function CourseDetailPage() {
                               </div>
                             </div>
                             <div className="mt-5 flex items-center justify-between gap-3">
-                              <Link to={`/classroom/${courseId}?batch=${selectedBatch.id}`}>
+                              <Link to={`/classroom/${courseId}?package=${pkg.id}&batch=${selectedBatch.id}`}>
                                 <Button className="bg-[#0A1B45] text-white hover:bg-[#308279]">
                                   Choose Batch
                                 </Button>

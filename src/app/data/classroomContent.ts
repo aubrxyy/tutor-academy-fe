@@ -61,7 +61,8 @@ export function getMockClassroomData(courseId: string | undefined, batchId?: str
   const batches = getMockBatchesForCourse(courseId, course.instructor, 499000);
   const selectedBatch = batches.find((batch) => batch.id === batchId) ?? batches[0];
 
-  const items: ClassroomContentItem[] = [
+const items: ClassroomContentItem[] = [
+    // Placeholder YouTube lesson until backend video sources are connected.
     {
       id: "video-1",
       kind: "video",
@@ -75,7 +76,7 @@ export function getMockClassroomData(courseId: string | undefined, batchId?: str
       actionLabel: "Watch Video",
       duration: "15:30",
       sourceLabel: "Hosted lesson",
-      sourceUrl: "https://example.com/videos/class-overview",
+      sourceUrl: "https://youtu.be/ekQHJX9rMp8?si=XxvTxtrsZwJ0uj4E",
       objectives: [
         "Memahami struktur cohort dan milestone batch",
         "Mengetahui ekspektasi tugas dan ritme pertemuan",
@@ -122,7 +123,7 @@ export function getMockClassroomData(courseId: string | undefined, batchId?: str
       actionLabel: "Watch Video",
       duration: "25:10",
       sourceLabel: "Hosted lesson",
-      sourceUrl: "https://example.com/videos/array-basics",
+      sourceUrl: "https://youtu.be/ekQHJX9rMp8?si=XxvTxtrsZwJ0uj4E",
       objectives: [
         "Memahami memory model array",
         "Mengenali operasi insert, delete, dan lookup",
@@ -220,7 +221,7 @@ export function getMockClassroomData(courseId: string | undefined, batchId?: str
       actionLabel: "Watch Video",
       duration: "28:15",
       sourceLabel: "Hosted lesson",
-      sourceUrl: "https://example.com/videos/sliding-window",
+      sourceUrl: "https://youtu.be/ekQHJX9rMp8?si=XxvTxtrsZwJ0uj4E",
       objectives: [
         "Memahami kapan sliding window cocok dipakai",
         "Membaca perubahan window kiri dan kanan",

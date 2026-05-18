@@ -836,7 +836,7 @@ export default function AdminDashboardPage() {
         return (
           <AdminClassesPage
             classes={classes}
-            onCreateClass={() => navigate("/admin/classes/new/edit")}
+            onCreateClass={() => navigate("/admin/courses/create")}
             onDeleteClass={handleDeleteClass}
             isDeletingClass={isDeletingClass}
             getClassStatusBadgeClassName={getClassStatusBadgeClassName}

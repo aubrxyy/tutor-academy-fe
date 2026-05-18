@@ -57,12 +57,14 @@ import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import {
   ArrowLeft,
+  CalendarDays,
   ClipboardCheck,
   FileText,
   Pencil,
   Plus,
   Save,
   Trash2,
+  Upload,
   Video,
 } from "lucide-react";
 import AdminSidebar from "../../../components/navigation/AdminSidebar";
@@ -100,7 +102,7 @@ import {
   type Section,
 } from "../../../api/curriculum";
 
-type EditorTab = "basic" | "curriculum" | "quizzes";
+type EditorTab = "basic" | "curriculum" | "pricing" | "batches" | "quizzes" | "live";
 type CurriculumItemType = "video" | "material";
 type CurriculumSourceType = "upload" | "link" | "editor";
 
@@ -213,6 +215,11 @@ type CourseFormState = {
   status: CourseStatus;
 };
 
+type CourseExtraFormState = {
+  category: string;
+  thumbnail: string;
+};
+
 type BatchDurationUnit = "day" | "week" | "month";
 
 type BatchDraft = {
@@ -223,6 +230,28 @@ type BatchDraft = {
   durationUnit: BatchDurationUnit;
   capacity: string;
 };
+
+type EditBatchGenerator = {
+  firstBatchStartDate: string;
+  numberOfBatches: string;
+  intervalValue: string;
+  intervalUnit: "day" | "week";
+  quotaPerBatch: string;
+};
+
+type LiveSessionDraft = {
+  id: number;
+  batchName: string;
+  tutorId: string;
+  sessionDate: string;
+  startsAt: string;
+  endsAt: string;
+  platform: "Zoom" | "Google Meet" | "LMS Meeting Room";
+  meetingLink: string;
+  topic: string;
+};
+
+type QuizComposerStep = "setup" | "questions";
 
 const emptySectionDraft: SectionDraft = {
   title: "",
@@ -261,6 +290,11 @@ const emptyQuizDraft = (): QuizDraft => ({
   closesAt: "",
   questions: [createQuestionDraft(Date.now())],
 });
+
+const demoCourseExtra: CourseExtraFormState = {
+  category: "Computer Science",
+  thumbnail: "Data Structures cohort thumbnail",
+};
 
 const materialEditorConfig: EditorConfig = {
   licenseKey: "GPL",
@@ -679,7 +713,13 @@ export default function CourseEditPage() {
       ? "curriculum"
       : initialTab === "quizzes"
         ? "quizzes"
-        : "basic";
+        : initialTab === "live"
+          ? "live"
+          : initialTab === "pricing"
+            ? "pricing"
+            : initialTab === "batches"
+              ? "batches"
+              : "basic";
   const { data: tutorUsersData, loading: isTutorUsersLoading } = useTutorUsers();
   const { data: courseData, loading: isCourseLoading } = useQuery<CourseByIdData>(
     GET_COURSE_BY_ID,
@@ -712,17 +752,27 @@ export default function CourseEditPage() {
     isCreatingLectureRequest || isUpdatingLectureRequest || isDeletingLectureRequest;
 
   const [classData, setClassData] = useState<CourseFormState>({
-    title: "",
-    subtitle: "",
-    description: "",
-    totalDuration: "",
-    price: "",
+    title: isNewClass ? "" : "Data Structures Intensive",
+    subtitle: isNewClass ? "" : "Interview-ready algorithms and live mentoring",
+    description: isNewClass
+      ? ""
+      : "A practical class covering arrays, linked lists, recursion, and problem-solving patterns with guided tutor sessions.",
+    totalDuration: isNewClass ? "" : "120",
+    price: isNewClass ? "" : "499000",
     alaCartePrice: "",
     isFree: false,
     level: "BEGINNER",
     status: "DRAFT",
   });
+  const [courseExtra, setCourseExtra] = useState<CourseExtraFormState>(demoCourseExtra);
   const [batchDrafts, setBatchDrafts] = useState<BatchDraft[]>([createEmptyBatchDraft()]);
+  const [editBatchGenerator, setEditBatchGenerator] = useState<EditBatchGenerator>({
+    firstBatchStartDate: "",
+    numberOfBatches: "2",
+    intervalValue: "1",
+    intervalUnit: "week",
+    quotaPerBatch: "20",
+  });
   const batchOptions = batchDrafts.map((batch, index) => `Batch ${index + 1}`);
 
 
@@ -775,9 +825,30 @@ export default function CourseEditPage() {
   const [quizDraft, setQuizDraft] = useState<QuizDraft>(emptyQuizDraft);
   const [isItemComposerOpen, setIsItemComposerOpen] = useState(false);
   const [isQuizComposerOpen, setIsQuizComposerOpen] = useState(isNewClass);
+  const [quizComposerStep, setQuizComposerStep] = useState<QuizComposerStep>("setup");
+  const [liveSessions, setLiveSessions] = useState<LiveSessionDraft[]>([
+    {
+      id: 1,
+      batchName: "Batch 1",
+      tutorId: "",
+      sessionDate: "",
+      startsAt: "",
+      endsAt: "",
+      platform: "Zoom",
+      meetingLink: "",
+      topic: "",
+    },
+  ]);
+  const [editPackageEnabled, setEditPackageEnabled] = useState({
+    videoOnly: true,
+    articleOnly: true,
+    videoArticle: true,
+    live: true,
+  });
   const [isUploadDragActive, setIsUploadDragActive] = useState(false);
   const tutorPackagePrice = classData.isFree ? 0 : Number(sanitizePriceInput(classData.price)) || 0;
   const alaCartePrice = classData.isFree ? 0 : Number(sanitizePriceInput(classData.alaCartePrice)) || 0;
+  const isLiveSessionActive = !classData.isFree && tutorPackagePrice > 0 && batchDrafts.some((batch) => batch.tutorId);
 
   useEffect(() => {
     const course = courseData?.courses?.nodes?.[0];
@@ -867,12 +938,14 @@ export default function CourseEditPage() {
     setQuizDraft(emptyQuizDraft());
     setEditingQuizId(null);
     setIsQuizComposerOpen(false);
+    setQuizComposerStep("setup");
   };
 
   const openNewQuizComposer = () => {
     setEditingQuizId(null);
     setQuizDraft(emptyQuizDraft());
     setIsQuizComposerOpen(true);
+    setQuizComposerStep("setup");
   };
 
   const mapQuizToDraft = (quiz: CourseQuiz): QuizDraft => ({
@@ -899,6 +972,7 @@ export default function CourseEditPage() {
     setEditingQuizId(quiz.id);
     setQuizDraft(mapQuizToDraft(quiz));
     setIsQuizComposerOpen(true);
+    setQuizComposerStep("setup");
   };
 
   const handleDeleteQuiz = (quizId: number) => {
@@ -1076,6 +1150,62 @@ export default function CourseEditPage() {
     resetQuizDraft();
   };
 
+  const goToQuizQuestions = () => {
+    if (!quizDraft.title.trim() || !quizDraft.description.trim()) {
+      toast.error("Please complete the quiz title and description.");
+      return;
+    }
+
+    if (quizDraft.assignedBatches.length === 0) {
+      toast.error("Assign at least one batch for this quiz.");
+      return;
+    }
+
+    if (!quizDraft.opensAt || !quizDraft.closesAt) {
+      toast.error("Please complete both opened and closed time.");
+      return;
+    }
+
+    if (new Date(quizDraft.opensAt).getTime() >= new Date(quizDraft.closesAt).getTime()) {
+      toast.error("Closed time must be later than opened time.");
+      return;
+    }
+
+    setQuizComposerStep("questions");
+  };
+
+  const addLiveSession = () => {
+    setLiveSessions((current) => [
+      ...current,
+      {
+        id: Date.now(),
+        batchName: batchOptions[0] ?? "Batch 1",
+        tutorId: batchDrafts[0]?.tutorId ?? "",
+        sessionDate: "",
+        startsAt: "",
+        endsAt: "",
+        platform: "Zoom",
+        meetingLink: "",
+        topic: "",
+      },
+    ]);
+  };
+
+  const updateLiveSession = (
+    sessionId: number,
+    updater: (session: LiveSessionDraft) => LiveSessionDraft,
+  ) => {
+    setLiveSessions((current) =>
+      current.map((session) => (session.id === sessionId ? updater(session) : session)),
+    );
+  };
+
+  const removeLiveSession = (sessionId: number) => {
+    setLiveSessions((current) =>
+      current.length <= 1 ? current : current.filter((session) => session.id !== sessionId),
+    );
+  };
+
   const renderQuizComposer = () => (
     <Card className="rounded-[1.5rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.07)]">
       <div className="flex flex-col gap-6">
@@ -1085,8 +1215,7 @@ export default function CourseEditPage() {
               {editingQuizId ? "Edit Quiz" : "Create New Quiz"}
             </h3>
             <p className="mt-2 text-sm leading-7 text-[#476074]">
-              Compose quiz metadata, then add questions below. Multiple answer
-              questions can have more than one correct option.
+              Step 1 defines quiz metadata and batch assignment. Step 2 manages the questions.
             </p>
           </div>
           <Button variant="outline" className="border-[#D8E5E9]" onClick={resetQuizDraft}>
@@ -1094,6 +1223,28 @@ export default function CourseEditPage() {
           </Button>
         </div>
 
+        <div className="grid gap-2 rounded-2xl border border-[#D8E5E9] bg-[#F7FAFB] p-1 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setQuizComposerStep("setup")}
+            className={`rounded-xl px-4 py-2 text-sm font-semibold ${
+              quizComposerStep === "setup" ? "bg-[#0A1B45] text-white" : "text-[#476074]"
+            }`}
+          >
+            Quiz Setup
+          </button>
+          <button
+            type="button"
+            onClick={goToQuizQuestions}
+            className={`rounded-xl px-4 py-2 text-sm font-semibold ${
+              quizComposerStep === "questions" ? "bg-[#0A1B45] text-white" : "text-[#476074]"
+            }`}
+          >
+            Questions
+          </button>
+        </div>
+
+        {quizComposerStep === "setup" ? (
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="quiz-title">Quiz title</Label>
@@ -1193,7 +1344,9 @@ export default function CourseEditPage() {
             />
           </div>
         </div>
+        ) : null}
 
+        {quizComposerStep === "questions" ? (
         <div className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -1368,12 +1521,24 @@ export default function CourseEditPage() {
             </div>
           ))}
         </div>
+        ) : null}
 
         <div className="flex flex-wrap gap-3">
-          <Button className="bg-[#308279] hover:bg-[#308279]/90" onClick={handleQuizSubmit}>
-            <Save className="mr-2 h-4 w-4" />
-            {editingQuizId ? "Save Quiz" : "Create Quiz"}
-          </Button>
+          {quizComposerStep === "setup" ? (
+            <Button className="bg-[#308279] hover:bg-[#308279]/90" onClick={goToQuizQuestions}>
+              Continue to Questions
+            </Button>
+          ) : (
+            <>
+              <Button variant="outline" className="border-[#D8E5E9]" onClick={() => setQuizComposerStep("setup")}>
+                Back to Setup
+              </Button>
+              <Button className="bg-[#308279] hover:bg-[#308279]/90" onClick={handleQuizSubmit}>
+                <Save className="mr-2 h-4 w-4" />
+                {editingQuizId ? "Save Quiz" : "Create Quiz"}
+              </Button>
+            </>
+          )}
           <Button variant="outline" className="border-[#D8E5E9]" onClick={resetQuizDraft}>
             Cancel
           </Button>
@@ -1788,97 +1953,438 @@ export default function CourseEditPage() {
     setIsItemComposerOpen(true);
   };
 
-  return (
-    <div className="bg-[#F3F8FA] lg:flex">
-      <AdminSidebar activeView="classes" />
+  const renderEditBatchSetup = () => (
+    <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.07)]">
+      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-[#0A1B45]">Batch Generator</h2>
+          <p className="mt-2 text-sm text-[#476074]">Generate live-session batches and assign tutors per batch.</p>
+        </div>
+        <Button
+          type="button"
+          className="bg-[#308279] hover:bg-[#308279]/90"
+          onClick={() => setBatchDrafts((current) => [...current, createEmptyBatchDraft(current.length)])}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Add batch
+        </Button>
+      </div>
 
-      <main className="min-w-0 flex-1">
-        <div className="border-b border-[#D8E5E9] bg-gradient-to-r from-[#0A1B45] via-[#123061] to-[#308279] text-white">
-          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-10">
-            <Link to="/admin-dashboard?view=classes">
-              <Button variant="ghost" className="mb-6 text-white hover:bg-white/10">
-                <ArrowLeft className="mr-2 h-5 w-5" />
-                Back to Classes
-              </Button>
-            </Link>
-
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <h1 className="mt-5 text-4xl font-bold tracking-[-0.03em]">
-                  {isNewClass ? "Create New Class" : "Edit Class"}
-                </h1>
-                <p className="mt-3 max-w-3xl text-white/80">
-                  Manage class details, build section-based curriculum for videos and materials,
-                  and keep quizzes in a separate class-level workflow.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-4 lg:items-end">
-                {activeTab === "curriculum" ? (
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <div className="rounded-2xl border border-white/15 bg-white/10 px-2 py-3 backdrop-blur-sm">
-                      <div className="text-[10px] uppercase tracking-[0.14em] text-white/65">Sections</div>
-                      <div className="mt-1 text-2xl font-bold text-white">{curriculumSummary.totalSections}</div>
-                    </div>
-                    <div className="rounded-2xl border border-white/15 bg-white/10 px-2 py-3 backdrop-blur-sm">
-                      <div className="text-[10px] uppercase tracking-[0.14em] text-white/65">Videos</div>
-                      <div className="mt-1 text-2xl font-bold text-white">{curriculumSummary.totalVideos}</div>
-                    </div>
-                    <div className="rounded-2xl border border-white/15 bg-white/10 px-2 py-3 backdrop-blur-sm">
-                      <div className="text-[10px] uppercase tracking-[0.14em] text-white/65">Materials</div>
-                      <div className="mt-1 text-2xl font-bold text-white">{curriculumSummary.totalMaterials}</div>
-                    </div>
-                    <div className="rounded-2xl border border-white/15 bg-white/10 px-2 py-3 backdrop-blur-sm">
-                      <div className="text-[10px] uppercase tracking-[0.14em] text-white/65">Quizzes</div>
-                      <div className="mt-1 text-2xl font-bold text-white">{curriculumSummary.totalQuizzes}</div>
-                    </div>
-                  </div>
-                ) : null}
-                {activeTab === "basic" ? (
-                  <Button
-                    className="bg-white text-[#0A1B45] hover:bg-white/90"
-                    onClick={handleSaveChanges}
-                    disabled={isSavingCourse || isCourseLoading}
-                  >
-                    <Save className="mr-2 h-4 w-4" />
-                    {isSavingCourse ? "Saving..." : "Save Class"}
-                  </Button>
-                ) : null}
-              </div>
-            </div>
+      <div className="mb-8 grid gap-5 lg:grid-cols-3">
+        <div className="space-y-2">
+          <Label>First batch start date</Label>
+          <Input
+            type="date"
+            value={editBatchGenerator.firstBatchStartDate}
+            onChange={(event) =>
+              setEditBatchGenerator((current) => ({
+                ...current,
+                firstBatchStartDate: event.target.value,
+              }))
+            }
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Number of batches</Label>
+          <Input
+            type="number"
+            min="1"
+            value={editBatchGenerator.numberOfBatches}
+            onChange={(event) =>
+              setEditBatchGenerator((current) => ({
+                ...current,
+                numberOfBatches: event.target.value,
+              }))
+            }
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Interval</Label>
+          <div className="grid grid-cols-[1fr_120px] gap-2">
+            <Input
+              type="number"
+              min="1"
+              value={editBatchGenerator.intervalValue}
+              onChange={(event) =>
+                setEditBatchGenerator((current) => ({
+                  ...current,
+                  intervalValue: event.target.value,
+                }))
+              }
+            />
+            <select
+              value={editBatchGenerator.intervalUnit}
+              onChange={(event) =>
+                setEditBatchGenerator((current) => ({
+                  ...current,
+                  intervalUnit: event.target.value as EditBatchGenerator["intervalUnit"],
+                }))
+              }
+              className="rounded-md border border-[#D8E5E9] bg-white p-2"
+            >
+              <option value="day">Days</option>
+              <option value="week">Weeks</option>
+            </select>
           </div>
         </div>
+        <div className="space-y-2">
+          <Label>Quota per batch</Label>
+          <Input
+            type="number"
+            min="1"
+            value={editBatchGenerator.quotaPerBatch}
+            onChange={(event) =>
+              setEditBatchGenerator((current) => ({
+                ...current,
+                quotaPerBatch: event.target.value,
+              }))
+            }
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Estimated last batch end date</Label>
+          <Input
+            readOnly
+            className="bg-[#F3F8FA]"
+            value={
+              editBatchGenerator.firstBatchStartDate
+                ? formatDateInputValue(
+                    addDurationToDate(
+                      editBatchGenerator.firstBatchStartDate,
+                      (Number(editBatchGenerator.numberOfBatches || 1) - 1) *
+                        Number(editBatchGenerator.intervalValue || 1) +
+                        4,
+                      editBatchGenerator.intervalUnit,
+                    ),
+                  )
+                : "Complete date, batches, and interval"
+            }
+          />
+        </div>
+        <div className="flex items-end">
+          <Button
+            type="button"
+            className="w-full bg-[#308279] hover:bg-[#308279]/90"
+            onClick={() => {
+              if (!editBatchGenerator.firstBatchStartDate) {
+                toast.error("Set the first batch start date.");
+                return;
+              }
 
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-10">
+              const intervalCount = Number(editBatchGenerator.intervalValue || 1);
+              const intervalDays = editBatchGenerator.intervalUnit === "week" ? intervalCount * 7 : intervalCount;
+              const firstStart = new Date(`${editBatchGenerator.firstBatchStartDate}T00:00:00`);
+
+              setBatchDrafts(
+                Array.from({ length: Number(editBatchGenerator.numberOfBatches || 1) }, (_, index) => {
+                  const start = new Date(firstStart);
+                  start.setDate(firstStart.getDate() + index * intervalDays);
+
+                  return {
+                    id: `local-batch-${Date.now()}-${index}`,
+                    tutorId: "",
+                    startDate: start.toISOString().slice(0, 10),
+                    durationValue: "4",
+                    durationUnit: "week" as const,
+                    capacity: editBatchGenerator.quotaPerBatch || "20",
+                  };
+                }),
+              );
+            }}
+          >
+            <CalendarDays className="mr-2 h-4 w-4" />
+            Generate Batches
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {batchDrafts.map((batch, index) => {
+          const isPersistedBatch = !batch.id.startsWith("local-batch-");
+
+          return (
+            <div
+              key={batch.id}
+              className="grid gap-4 rounded-2xl border border-[#D8E5E9] bg-[#FAFCFD] p-4 lg:grid-cols-[1.2fr_1fr_1fr_1fr_auto]"
+            >
+              <div className="space-y-2">
+                <Label htmlFor={`batch-tutor-tab-${batch.id}`}>Batch {index + 1} tutor</Label>
+                <select
+                  id={`batch-tutor-tab-${batch.id}`}
+                  value={batch.tutorId}
+                  onChange={(event) =>
+                    setBatchDrafts((current) =>
+                      current.map((item) =>
+                        item.id === batch.id ? { ...item, tutorId: event.target.value } : item,
+                      ),
+                    )
+                  }
+                  className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                  disabled={isTutorUsersLoading || isPersistedBatch}
+                >
+                  <option value="">Select tutor</option>
+                  {tutorOptions.map((tutor) => (
+                    <option key={tutor.id} value={tutor.id}>
+                      {tutor.name} ({tutor.username})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`batch-start-tab-${batch.id}`}>Start date</Label>
+                <Input
+                  id={`batch-start-tab-${batch.id}`}
+                  type="date"
+                  value={batch.startDate}
+                  disabled={isPersistedBatch}
+                  onChange={(event) =>
+                    setBatchDrafts((current) =>
+                      current.map((item) =>
+                        item.id === batch.id ? { ...item, startDate: event.target.value } : item,
+                      ),
+                    )
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`batch-duration-tab-${batch.id}`}>Batch duration</Label>
+                <div className="grid grid-cols-[minmax(0,1fr)_112px] gap-2">
+                  <Input
+                    id={`batch-duration-tab-${batch.id}`}
+                    type="number"
+                    min="1"
+                    value={batch.durationValue}
+                    disabled={isPersistedBatch}
+                    onChange={(event) =>
+                      setBatchDrafts((current) =>
+                        current.map((item) =>
+                          item.id === batch.id ? { ...item, durationValue: event.target.value } : item,
+                        ),
+                      )
+                    }
+                  />
+                  <select
+                    aria-label="Batch duration unit"
+                    value={batch.durationUnit}
+                    disabled={isPersistedBatch}
+                    onChange={(event) =>
+                      setBatchDrafts((current) =>
+                        current.map((item) =>
+                          item.id === batch.id
+                            ? { ...item, durationUnit: event.target.value as BatchDurationUnit }
+                            : item,
+                        ),
+                      )
+                    }
+                    className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                  >
+                    <option value="day">Hari</option>
+                    <option value="week">Minggu</option>
+                    <option value="month">Bulan</option>
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor={`batch-capacity-tab-${batch.id}`}>Capacity</Label>
+                <Input
+                  id={`batch-capacity-tab-${batch.id}`}
+                  type="number"
+                  min="1"
+                  value={batch.capacity}
+                  disabled={isPersistedBatch}
+                  onChange={(event) =>
+                    setBatchDrafts((current) =>
+                      current.map((item) =>
+                        item.id === batch.id ? { ...item, capacity: event.target.value } : item,
+                      ),
+                    )
+                  }
+                />
+              </div>
+              <div className="flex items-end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]"
+                  disabled={batchDrafts.length === 1 || isPersistedBatch}
+                  onClick={() => setBatchDrafts((current) => current.filter((item) => item.id !== batch.id))}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+
+  const renderEditPackagePricing = () => {
+    const packages = [
+      {
+        key: "videoOnly" as const,
+        name: "Video only",
+        description: "Students can access video lessons from the curriculum.",
+        value: classData.alaCartePrice,
+        onChange: (value: string) => setClassData({ ...classData, alaCartePrice: sanitizePriceInput(value) }),
+      },
+      {
+        key: "articleOnly" as const,
+        name: "Article only",
+        description: "Students can access written article lessons and templates.",
+        value: classData.alaCartePrice,
+        onChange: (value: string) => setClassData({ ...classData, alaCartePrice: sanitizePriceInput(value) }),
+      },
+      {
+        key: "videoArticle" as const,
+        name: "Video + article",
+        description: "Students can access all asynchronous video and article content.",
+        value: classData.price,
+        onChange: (value: string) => setClassData({ ...classData, price: sanitizePriceInput(value) }),
+      },
+      {
+        key: "live" as const,
+        name: "Video + article + live sessions",
+        description: "Students get course content plus tutor-led live batch sessions.",
+        value: classData.price,
+        onChange: (value: string) => setClassData({ ...classData, price: sanitizePriceInput(value) }),
+      },
+    ];
+
+    return (
+      <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.07)]">
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-[#0A1B45]">Package & Pricing Setup</h2>
+          <p className="mt-2 text-sm text-[#476074]">Enable packages only when matching curriculum content exists.</p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          {packages.map((coursePackage) => (
+            <div key={coursePackage.key} className="rounded-xl border border-[#D8E5E9] bg-[#FAFCFD] p-5">
+              <div className="flex gap-3">
+                <input
+                  type="checkbox"
+                  checked={editPackageEnabled[coursePackage.key]}
+                  onChange={(event) =>
+                    setEditPackageEnabled((current) => ({
+                      ...current,
+                      [coursePackage.key]: event.target.checked,
+                    }))
+                  }
+                  className="mt-1 h-4 w-4 accent-[#308279]"
+                />
+                <div className="flex-1">
+                  <h3 className="font-bold text-[#0A1B45]">{coursePackage.name}</h3>
+                  <p className="mt-1 text-sm text-[#476074]">{coursePackage.description}</p>
+                  <div className="mt-4">
+                    <Label>Price</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={coursePackage.value}
+                      disabled={!editPackageEnabled[coursePackage.key] || classData.isFree}
+                      onChange={(event) => coursePackage.onChange(event.target.value)}
+                      placeholder="499000"
+                      className="mt-2"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    );
+  };
+
+  return (
+    <div className="flex min-h-screen bg-[#F3F8FA]">
+      <AdminSidebar activeView="classes" />
+
+      <main className="min-w-0 flex-1 p-6 lg:p-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <Link to="/admin-dashboard?view=classes" className="mb-3 inline-flex items-center text-sm font-semibold text-[#308279]">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Classes
+              </Link>
+              <div className="flex flex-wrap items-center gap-3">
+                <h1 className="text-3xl font-bold text-[#0A1B45]">
+                  {isNewClass ? "Create Course" : "Edit Course"}
+                </h1>
+                <Badge
+                  className={
+                    classData.status === "PUBLISHED"
+                      ? "bg-[#DDF8EA] text-[#16834D]"
+                      : "bg-[#FFF4D8] text-[#9A6700]"
+                  }
+                >
+                  {classData.status === "PUBLISHED" ? "Published" : "Draft"}
+                </Badge>
+              </div>
+              <p className="mt-2 max-w-3xl text-[#476074]">
+                Update course info, curriculum, package batches, live sessions, and quizzes in the same builder flow used for creation.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              className="border-[#308279] text-[#308279]"
+              onClick={handleSaveChanges}
+              disabled={isSavingCourse || isCourseLoading}
+            >
+              <Save className="mr-2 h-4 w-4" />
+              {isSavingCourse ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+
           <Tabs value={activeTab} onValueChange={(value) => setTab(value as EditorTab)} className="w-full">
-            <TabsList className="mb-8 grid w-full max-w-3xl grid-cols-3 rounded-2xl border border-[#D8E5E9] bg-white p-1">
+            <TabsList className="mb-6 grid h-auto w-full gap-3 rounded-xl border border-[#D8E5E9] bg-white p-4 shadow-sm md:grid-cols-2 xl:grid-cols-6">
               <TabsTrigger
                 value="basic"
-                className="rounded-xl font-semibold text-[#476074] data-[state=active]:border-[#0A1B45]/10 data-[state=active]:bg-[#0A1B45] data-[state=active]:text-white"
+                className="h-auto justify-start rounded-lg border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
               >
                 Class Information
               </TabsTrigger>
               <TabsTrigger
                 value="curriculum"
-                className="rounded-xl font-semibold text-[#476074] data-[state=active]:border-[#0A1B45]/10 data-[state=active]:bg-[#0A1B45] data-[state=active]:text-white"
+                className="h-auto justify-start rounded-lg border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
               >
                 Curriculum Builder
               </TabsTrigger>
               <TabsTrigger
+                value="pricing"
+                className="h-auto justify-start rounded-lg border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
+              >
+                Package Pricing
+              </TabsTrigger>
+              <TabsTrigger
+                value="batches"
+                className="h-auto justify-start rounded-lg border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
+              >
+                Batch Setup
+              </TabsTrigger>
+              <TabsTrigger
                 value="quizzes"
-                className="rounded-xl font-semibold text-[#476074] data-[state=active]:border-[#0A1B45]/10 data-[state=active]:bg-[#0A1B45] data-[state=active]:text-white"
+                className="h-auto justify-start rounded-lg border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
               >
                 Quizzes
+              </TabsTrigger>
+              <TabsTrigger
+                value="live"
+                className="h-auto justify-start rounded-lg border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
+              >
+                Live Sessions
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="basic">
+              <div className="space-y-6">
               <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.07)]">
                 <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold text-[#0A1B45]">Class Information</h2>
+                    <h2 className="text-2xl font-bold text-[#0A1B45]">Course Info</h2>
                     <p className="mt-2 text-sm text-[#476074]">
-                      Isi detail class, batch, harga, dan status publikasi sesuai data backend.
+                      Set the draft basics before adding curriculum and commercial options.
                     </p>
                   </div>
                   {isCourseLoading ? (
@@ -1890,7 +2396,7 @@ export default function CourseEditPage() {
                 <form className="space-y-6">
                   <div className="grid gap-6 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="title">Class Title</Label>
+                      <Label htmlFor="title">Course title</Label>
                       <Input
                         id="title"
                         placeholder="e.g. Data Structures Intensive"
@@ -1907,20 +2413,79 @@ export default function CourseEditPage() {
                         onChange={(event) => setClassData({ ...classData, subtitle: event.target.value })}
                       />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="category">Category</Label>
+                      <Input
+                        id="category"
+                        placeholder="Design / Computer Science"
+                        value={courseExtra.category}
+                        onChange={(event) => setCourseExtra({ ...courseExtra, category: event.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea
+                        id="description"
+                        placeholder="Describe what students will learn, prerequisites, and class outcomes."
+                        value={classData.description}
+                        onChange={(event) => setClassData({ ...classData, description: event.target.value })}
+                        rows={6}
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="thumbnail">Thumbnail</Label>
+                      <div className="flex min-h-32 w-full items-center justify-center rounded-lg border border-dashed border-[#B8CDD3] bg-[#F7FBFC] p-5 text-center">
+                        <div className="w-full max-w-2xl">
+                          <Upload className="mx-auto h-5 w-5 text-[#308279]" />
+                          <p className="mt-2 text-sm font-semibold text-[#0A1B45]">
+                            {courseExtra.thumbnail || "Upload class thumbnail here"}
+                          </p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="mt-3 border-[#308279] text-[#308279]"
+                            onClick={() => setCourseExtra({ ...courseExtra, thumbnail: "thumbnail-preview.jpg" })}
+                          >
+                            Choose thumbnail
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="level">Difficulty level</Label>
+                      <select
+                        id="level"
+                        value={classData.level}
+                        onChange={(event) =>
+                          setClassData({ ...classData, level: event.target.value as CourseLevel })
+                        }
+                        className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                      >
+                        {courseLevelOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="totalDuration">Estimated duration</Label>
+                      <Input
+                        id="totalDuration"
+                        type="number"
+                        min="0"
+                        value={classData.totalDuration}
+                        onChange={(event) =>
+                          setClassData({ ...classData, totalDuration: event.target.value })
+                        }
+                        placeholder="e.g. 120"
+                      />
+                    </div>
                   </div>
+                </form>
+              </Card>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Describe what students will learn, prerequisites, and class outcomes."
-                      value={classData.description}
-                      onChange={(event) => setClassData({ ...classData, description: event.target.value })}
-                      rows={6}
-                    />
-                  </div>
-
-                  <div className="rounded-[1.5rem] border border-[#D8E5E9] bg-[#F9FCFD] p-5">
+              <Card className="hidden rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.07)]">
                     <div className="mb-4 flex items-center justify-between gap-3">
                       <div>
                         <h3 className="text-lg font-bold text-[#0A1B45]">Tutor package batches</h3>
@@ -2077,97 +2642,17 @@ export default function CourseEditPage() {
                         );
                       })}
                     </div>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="price">Tutor Package Price (Rp)</Label>
-                      <Input
-                        id="price"
-                        type="text"
-                        inputMode="numeric"
-                        value={formatPriceInput(classData.price)}
-                        onChange={(event) =>
-                          setClassData({
-                            ...classData,
-                            price: sanitizePriceInput(event.target.value),
-                          })
-                        }
-                        disabled={classData.isFree}
-                        placeholder="499.000"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="alaCartePrice">Ala Carte Price (Rp)</Label>
-                      <Input
-                        id="alaCartePrice"
-                        type="text"
-                        inputMode="numeric"
-                        value={formatPriceInput(classData.alaCartePrice)}
-                        onChange={(event) =>
-                          setClassData({
-                            ...classData,
-                            alaCartePrice: sanitizePriceInput(event.target.value),
-                          })
-                        }
-                        disabled={classData.isFree}
-                        placeholder="349.000"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="totalDuration">Course Duration Estimate</Label>
-                      <Input
-                        id="totalDuration"
-                        type="number"
-                        min="0"
-                        value={classData.totalDuration}
-                        onChange={(event) =>
-                          setClassData({ ...classData, totalDuration: event.target.value })
-                        }
-                        placeholder="e.g. 120"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="level">Level</Label>
-                      <select
-                        id="level"
-                        value={classData.level}
-                        onChange={(event) =>
-                          setClassData({ ...classData, level: event.target.value as CourseLevel })
-                        }
-                        className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
-                      >
-                        {courseLevelOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="status">Publishing Status</Label>
-                      <select
-                        id="status"
-                        value={classData.status}
-                        onChange={(event) =>
-                          setClassData({
-                            ...classData,
-                            status: event.target.value as CourseStatus,
-                          })
-                        }
-                        className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
-                      >
-                        {courseStatusOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                </form>
               </Card>
+
+              </div>
+            </TabsContent>
+
+            <TabsContent value="pricing">
+              {renderEditPackagePricing()}
+            </TabsContent>
+
+            <TabsContent value="batches">
+              {renderEditBatchSetup()}
             </TabsContent>
 
             <TabsContent value="curriculum">
@@ -2548,6 +3033,7 @@ export default function CourseEditPage() {
                                 Reset
                               </Button>
                             )}
+                            
                           </div>
                         </div>
                       </div>
@@ -2563,6 +3049,172 @@ export default function CourseEditPage() {
                     </button>
                   )}
               </div>
+            </TabsContent>
+
+            <TabsContent value="live">
+              <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.07)]">
+                <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-[#0A1B45]">Live Session Schedule</h2>
+                    <p className="mt-2 max-w-3xl text-sm leading-7 text-[#476074]">
+                      Add session dates, assigned tutors, platform, and meeting links after the live-session package is active.
+                    </p>
+                  </div>
+                  <Button className="bg-[#308279] hover:bg-[#308279]/90" onClick={addLiveSession}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Session
+                  </Button>
+                </div>
+
+                  <div className="space-y-4">
+                    {liveSessions.map((session, index) => (
+                      <div key={session.id} className="rounded-2xl border border-[#D8E5E9] bg-[#FAFCFD] p-5">
+                        <div className="mb-4 flex items-center justify-between gap-3">
+                          <div>
+                            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#92A4AE]">
+                              Session {index + 1}
+                            </div>
+                            <h3 className="mt-1 text-lg font-bold text-[#0A1B45]">
+                              {session.topic || "Untitled live session"}
+                            </h3>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            className="text-[#B42318] hover:bg-[#FDECEC] hover:text-[#B42318]"
+                            onClick={() => removeLiveSession(session.id)}
+                            disabled={liveSessions.length === 1}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                          <div className="space-y-2">
+                            <Label>Topic</Label>
+                            <Input
+                              value={session.topic}
+                              onChange={(event) =>
+                                updateLiveSession(session.id, (current) => ({
+                                  ...current,
+                                  topic: event.target.value,
+                                }))
+                              }
+                              placeholder="e.g. Research critique"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Batch</Label>
+                            <select
+                              value={session.batchName}
+                              onChange={(event) =>
+                                updateLiveSession(session.id, (current) => ({
+                                  ...current,
+                                  batchName: event.target.value,
+                                }))
+                              }
+                              className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                            >
+                              {batchOptions.map((batch) => (
+                                <option key={batch} value={batch}>
+                                  {batch}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Assigned tutor</Label>
+                            <select
+                              value={session.tutorId}
+                              onChange={(event) =>
+                                updateLiveSession(session.id, (current) => ({
+                                  ...current,
+                                  tutorId: event.target.value,
+                                }))
+                              }
+                              className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                            >
+                              <option value="">Select tutor</option>
+                              {tutorOptions.map((tutor) => (
+                                <option key={tutor.id} value={tutor.id}>
+                                  {tutor.name} ({tutor.username})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Date</Label>
+                            <Input
+                              type="date"
+                              value={session.sessionDate}
+                              onChange={(event) =>
+                                updateLiveSession(session.id, (current) => ({
+                                  ...current,
+                                  sessionDate: event.target.value,
+                                }))
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Start time</Label>
+                            <Input
+                              type="time"
+                              value={session.startsAt}
+                              onChange={(event) =>
+                                updateLiveSession(session.id, (current) => ({
+                                  ...current,
+                                  startsAt: event.target.value,
+                                }))
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>End time</Label>
+                            <Input
+                              type="time"
+                              value={session.endsAt}
+                              onChange={(event) =>
+                                updateLiveSession(session.id, (current) => ({
+                                  ...current,
+                                  endsAt: event.target.value,
+                                }))
+                              }
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Platform</Label>
+                            <select
+                              value={session.platform}
+                              onChange={(event) =>
+                                updateLiveSession(session.id, (current) => ({
+                                  ...current,
+                                  platform: event.target.value as LiveSessionDraft["platform"],
+                                }))
+                              }
+                              className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                            >
+                              <option>Zoom</option>
+                              <option>Google Meet</option>
+                              <option>LMS Meeting Room</option>
+                            </select>
+                          </div>
+                          <div className="space-y-2 xl:col-span-2">
+                            <Label>Meeting link</Label>
+                            <Input
+                              value={session.meetingLink}
+                              onChange={(event) =>
+                                updateLiveSession(session.id, (current) => ({
+                                  ...current,
+                                  meetingLink: event.target.value,
+                                }))
+                              }
+                              placeholder="https://zoom.us/j/..."
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+              </Card>
             </TabsContent>
 
             <TabsContent value="quizzes">
