@@ -15,7 +15,7 @@ export interface Batch {
 
 export interface CreateBatchInput {
   courseId: string;
-  tutorId: string;
+  tutorId?: string | null;
   startDate: string;
   endDate: string;
   capacity: number;
@@ -25,6 +25,7 @@ const BATCH_FIELDS = gql`
   fragment BatchFields on Batch {
     id
     courseId
+    tutorId
     startDate
     endDate
     capacity
@@ -46,9 +47,10 @@ export const GET_COURSE_BATCHES = gql`
 export const CREATE_BATCH = gql`
   mutation CreateBatch($input: CreateBatchInput!) {
     createBatch(input: $input) {
-      __typename
+      ...BatchFields
     }
   }
+  ${BATCH_FIELDS}
 `;
 
 interface CourseBatchesData {

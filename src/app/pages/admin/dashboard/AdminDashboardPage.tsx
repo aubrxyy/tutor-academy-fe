@@ -28,45 +28,6 @@ import AdminOverviewPage from "./AdminOverviewPage";
 import AdminStudentsPage from "../students/AdminStudentsPage";
 import AdminTutorsPage from "../tutors/AdminTutorsPage";
 
-const initialClasses: ManagedClass[] = [
-  {
-    id: "1",
-    title: "Data Structures & Algorithms",
-    level: "BEGINNER",
-    tutor: "Raka Pratama",
-    students: 234,
-    videos: 18,
-    sessions: 12,
-    docs: 15,
-    quizzes: 4,
-    status: "PUBLISHED",
-  },
-  {
-    id: "2",
-    title: "Database Management & SQL",
-    level: "INTERMEDIATE",
-    tutor: "Andi Wijaya",
-    students: 178,
-    videos: 14,
-    sessions: 10,
-    docs: 12,
-    quizzes: 3,
-    status: "PUBLISHED",
-  },
-  {
-    id: "3",
-    title: "HCI Design Principles",
-    level: "ADVANCED",
-    tutor: "Denny Kusuma",
-    students: 145,
-    videos: 11,
-    sessions: 8,
-    docs: 10,
-    quizzes: 2,
-    status: "DRAFT",
-  },
-];
-
 const initialStudents: ManagedStudent[] = [
   {
     id: "1",
@@ -343,10 +304,10 @@ export default function AdminDashboardPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { logout, user } = useAuth();
-  const { data: adminData, loading: isAdminDataLoading } = useAdminPanelData();
+  const { data: adminData, loading: isAdminDataLoading, error: adminDataError } = useAdminPanelData();
   const [deleteCourse, { loading: isDeletingClass }] = useMutation(DELETE_COURSE);
   const [searchQuery, setSearchQuery] = useState("");
-  const [classes, setClasses] = useState(initialClasses);
+  const [classes, setClasses] = useState<ManagedClass[]>([]);
   const [students, setStudents] = useState(initialStudents);
   const [tutors, setTutors] = useState(initialTutors);
   const [tutorApplications, setTutorApplications] = useState(initialTutorApplications);
@@ -836,6 +797,8 @@ export default function AdminDashboardPage() {
         return (
           <AdminClassesPage
             classes={classes}
+            isLoading={isAdminDataLoading}
+            errorMessage={adminDataError?.message}
             onCreateClass={() => navigate("/admin/courses/create")}
             onDeleteClass={handleDeleteClass}
             isDeletingClass={isDeletingClass}

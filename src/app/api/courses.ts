@@ -142,6 +142,10 @@ export interface CoursePackagePricing {
   tutorPackagePrice: number;
 }
 
+// Temporary frontend-only package pricing boundary.
+// Replace this localStorage model with package GraphQL queries/mutations once the backend
+// exposes course package entities with package type, price, and access scope.
+
 function getDefaultCoursePackagePricing(course: Pick<Course, "price" | "isFree">): CoursePackagePricing {
   if (course.isFree || course.price <= 0) {
     return {

@@ -34,6 +34,7 @@ const ADMIN_BATCH_FIELDS = gql`
   fragment AdminBatchFields on Batch {
     id
     courseId
+    tutorId
     startDate
     endDate
     capacity

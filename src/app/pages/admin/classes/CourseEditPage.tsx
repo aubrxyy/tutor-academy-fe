@@ -77,7 +77,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui
 import { Textarea } from "../../../components/ui/textarea";
 import { toast } from "sonner";
 import { useTutorUsers } from "../../../api/admin";
-import { CREATE_BATCH, useCourseBatches, type Batch } from "../../../api/batches";
+import { CREATE_BATCH, useCourseBatches, type Batch, type CreateBatchInput } from "../../../api/batches";
 import {
   CREATE_COURSE,
   GET_COURSE_BY_ID,
@@ -706,7 +706,7 @@ export default function CourseEditPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const wordCountContainersRef = useRef<Record<string, HTMLDivElement | null>>({});
-  const isNewClass = courseId === "new";
+  const isNewClass = !courseId || courseId === "new";
   const initialTab = searchParams.get("tab");
   const activeTab: EditorTab =
     initialTab === "curriculum" || initialTab === "videos"
@@ -1846,9 +1846,7 @@ export default function CourseEditPage() {
     };
   };
 
-  const buildBatchInputs = () => {
-    if (isNewClass || !courseId) return [];
-
+  const buildBatchInputs = (resolvedCourseId: string): CreateBatchInput[] => {
     return batchDrafts.map((batch, index) => {
       const durationValue = Number(batch.durationValue);
       const capacity = Number(batch.capacity);
@@ -1870,7 +1868,7 @@ export default function CourseEditPage() {
       }
 
       return {
-        courseId,
+        courseId: resolvedCourseId,
         tutorId: batch.tutorId,
         startDate: new Date(`${batch.startDate}T00:00:00`).toISOString(),
         endDate: addDurationToDate(batch.startDate, durationValue, batch.durationUnit),
@@ -1889,8 +1887,6 @@ export default function CourseEditPage() {
     }
 
     try {
-      const batchInputs = buildBatchInputs();
-
       if (isNewClass) {
         const result = await createCourse({
           variables: { input },
@@ -1899,6 +1895,20 @@ export default function CourseEditPage() {
           "data" in result && result.data && typeof result.data === "object"
             ? (result.data as { createCourse?: { id?: string } | null }).createCourse?.id
             : undefined;
+
+        if (!createdCourseId) {
+          throw new Error("Course was created, but the backend did not return a course ID.");
+        }
+
+        const batchInputs = buildBatchInputs(createdCourseId);
+
+        await Promise.all(
+          batchInputs.map((batchInput) =>
+            createBatch({
+              variables: { input: batchInput },
+            }),
+          ),
+        );
 
         if (createdCourseId) {
           setCoursePackagePricing(createdCourseId, {
@@ -1918,6 +1928,8 @@ export default function CourseEditPage() {
         variables: { id: courseId, input },
       });
 
+      const batchInputs = buildBatchInputs(courseId);
+
       setCoursePackagePricing(courseId, {
         alaCartePrice:
           classData.isFree ? 0 : Number(sanitizePriceInput(classData.alaCartePrice)),
@@ -1926,7 +1938,11 @@ export default function CourseEditPage() {
       });
 
       const existingBatchIds = new Set((batchData?.batches?.nodes ?? []).map((batch) => batch.id));
-      const newBatchInputs = batchInputs.filter((_, index) => !existingBatchIds.has(batchDrafts[index]?.id));
+      const newBatchInputs = batchInputs.filter(
+        (_, index) =>
+          batchDrafts[index]?.id.startsWith("local-batch-") ||
+          !existingBatchIds.has(batchDrafts[index]?.id),
+      );
 
       await Promise.all(
         newBatchInputs.map((batchInput) =>

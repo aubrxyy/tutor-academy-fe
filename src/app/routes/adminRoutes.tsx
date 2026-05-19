@@ -18,7 +18,7 @@ export const adminRoutes: RouteObject[] = [
       },
       {
         path: "/admin/classes/:courseId/edit",
-        Component: CourseEditPage,
+        Component: CourseCreateWizard,
       },
       {
         path: "/course/:courseId/edit",

@@ -7,6 +7,8 @@ import type { ManagedClass } from "../shared/types";
 
 type AdminClassesPageProps = {
   classes: ManagedClass[];
+  isLoading: boolean;
+  errorMessage?: string;
   onCreateClass: () => void;
   onDeleteClass: (courseId: string) => void;
   isDeletingClass: boolean;
@@ -16,6 +18,8 @@ type AdminClassesPageProps = {
 
 export default function AdminClassesPage({
   classes,
+  isLoading,
+  errorMessage,
   onCreateClass,
   onDeleteClass,
   isDeletingClass,
@@ -40,6 +44,21 @@ export default function AdminClassesPage({
       </div>
 
       <div className="space-y-4">
+        {isLoading && (
+          <Card className="border-[#D8E5E9] bg-white p-6 text-[#476074]">
+            Loading backend classes...
+          </Card>
+        )}
+        {!isLoading && errorMessage && (
+          <Card className="border-[#F2B8B5] bg-[#FDECEC] p-6 text-[#B42318]">
+            Unable to load backend classes: {errorMessage}
+          </Card>
+        )}
+        {!isLoading && !errorMessage && classes.length === 0 && (
+          <Card className="border-[#D8E5E9] bg-white p-6 text-[#476074]">
+            No classes found in the backend yet.
+          </Card>
+        )}
         {classes.map((item) => (
           <Card
             key={item.id}

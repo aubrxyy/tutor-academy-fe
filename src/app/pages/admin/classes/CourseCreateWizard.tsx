@@ -1,5 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
+import { CombinedGraphQLErrors } from "@apollo/client/errors";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import {
   Bold,
@@ -14,7 +16,7 @@ import {
   type EditorConfig,
 } from "ckeditor5";
 import "ckeditor5/ckeditor5.css";
-import { Link } from "react-router";
+import { Link, useParams } from "react-router";
 import {
   ArrowLeft,
   CalendarDays,
@@ -29,6 +31,19 @@ import {
   Video,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTutorUsers } from "../../../api/admin";
+import { CREATE_BATCH, useCourseBatches, type Batch as BackendBatch, type CreateBatchInput } from "../../../api/batches";
+import {
+  CREATE_COURSE,
+  GET_COURSE_BY_ID,
+  UPDATE_COURSE,
+  getCoursePackagePricing,
+  setCoursePackagePricing,
+  type Course,
+  type CourseInput,
+  type CourseLevel,
+  type CourseStatus as BackendCourseStatus,
+} from "../../../api/courses";
 import AdminSidebar from "../../../components/navigation/AdminSidebar";
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
@@ -40,7 +55,7 @@ import "./course-edit-ckeditor.css";
 
 type CurriculumItemType = "video" | "article";
 type PackageType = "video_only" | "article_only" | "video_article" | "video_article_live";
-type CourseStatus = "draft" | "published";
+type WizardCourseStatus = "draft" | "published";
 type BatchStatus = "open" | "closed";
 type IntervalUnit = "days" | "weeks";
 
@@ -74,7 +89,7 @@ type Batch = {
   classStart: string;
   classEnd: string;
   quota: number;
-  tutorName: string;
+  tutorId: string;
   status: BatchStatus;
 };
 
@@ -89,7 +104,7 @@ type CourseDraft = {
   curriculum: CurriculumSection[];
   packages: CoursePackage[];
   batches: Batch[];
-  status: CourseStatus;
+  status: WizardCourseStatus;
 };
 
 type BatchGenerator = {
@@ -113,7 +128,11 @@ type ItemDraft = {
   articleContent: string;
 };
 
-const tutorOptions = ["Unassigned", "Alya Pratama", "Bima Santoso", "Citra Lestari"];
+type CourseByIdData = {
+  courses: {
+    nodes: Course[];
+  } | null;
+};
 
 const packageDefaults: CoursePackage[] = [
   {
@@ -181,8 +200,7 @@ const initialDraft: CourseDraft = {
   status: "draft",
 };
 
-const baseSteps = ["Course Info", "Curriculum Builder", "Package & Pricing", "Review & Publish"];
-const batchStep = "Batch Setup";
+const baseSteps = ["Course Info", "Curriculum Builder", "Package & Pricing", "Batch Setup", "Review & Publish"];
 
 const editorConfig: EditorConfig = {
   licenseKey: "GPL",
@@ -234,9 +252,88 @@ function getEnabledLivePackage(draft: CourseDraft) {
   return draft.packages.some((coursePackage) => coursePackage.id === "video_article_live" && coursePackage.enabled);
 }
 
+function getPackagePrice(draft: CourseDraft, packageId: PackageType) {
+  const price = draft.packages.find((coursePackage) => coursePackage.id === packageId)?.price;
+  return typeof price === "number" && Number.isFinite(price) ? price : 0;
+}
+
+function getBackendCourseLevel(difficulty: string): CourseLevel {
+  const normalized = difficulty.toUpperCase();
+  if (normalized === "INTERMEDIATE") return "INTERMEDIATE";
+  if (normalized === "ADVANCED") return "ADVANCED";
+  return "BEGINNER";
+}
+
+function getWizardDifficulty(level: CourseLevel) {
+  if (level === "INTERMEDIATE") return "Intermediate";
+  if (level === "ADVANCED") return "Advanced";
+  return "Beginner";
+}
+
+function parseDurationMinutes(value: string) {
+  const directValue = Number(value);
+  if (Number.isFinite(directValue)) return directValue;
+
+  const matchedNumber = value.match(/\d+/)?.[0];
+  return matchedNumber ? Number(matchedNumber) : Number.NaN;
+}
+
+function getBackendCourseStatus(status: WizardCourseStatus): BackendCourseStatus {
+  return status === "published" ? "PUBLISHED" : "DRAFT";
+}
+
+function mapBackendBatchToWizardBatch(batch: BackendBatch, index: number): Batch {
+  return {
+    id: batch.id,
+    name: `Batch ${index + 1}`,
+    enrollmentStart: formatDisplayDate(batch.startDate) ? toDateInput(new Date(batch.startDate)) : "",
+    enrollmentEnd: formatDisplayDate(batch.startDate) ? toDateInput(new Date(batch.startDate)) : "",
+    classStart: toDateInput(new Date(batch.startDate)),
+    classEnd: toDateInput(new Date(batch.endDate)),
+    quota: batch.capacity,
+    tutorId: batch.tutorId ?? "",
+    status: batch.status === "OPEN" ? "open" : "closed",
+  };
+}
+
+function formatSaveError(error: unknown) {
+  const formatGraphQLError = (entry: {
+    message?: string;
+    extensions?: Record<string, unknown> | null;
+    path?: readonly (string | number)[] | null;
+  }) => {
+    const code = typeof entry.extensions?.code === "string" ? entry.extensions.code : "NO_CODE";
+    const path = entry.path?.length ? ` path: ${entry.path.join(".")}` : "";
+    return `[${code}] ${entry.message ?? "GraphQL error"}${path}`;
+  };
+
+  if (CombinedGraphQLErrors.is(error)) {
+    return error.errors.map(formatGraphQLError).join("; ");
+  }
+
+  if (error && typeof error === "object") {
+    const maybeGraphQLErrors = (error as { graphQLErrors?: unknown }).graphQLErrors;
+    if (Array.isArray(maybeGraphQLErrors) && maybeGraphQLErrors.length > 0) {
+      return maybeGraphQLErrors.map((entry) => formatGraphQLError(entry as Parameters<typeof formatGraphQLError>[0])).join("; ");
+    }
+
+    const maybeNetworkError = (error as { networkError?: { message?: string } }).networkError;
+    if (maybeNetworkError?.message) {
+      return `Network error: ${maybeNetworkError.message}`;
+    }
+  }
+
+  return error instanceof Error ? error.message : "Please try again.";
+}
+
 export default function CourseCreateWizard() {
+  const { courseId } = useParams();
+  const isEditMode = Boolean(courseId);
+  const [persistedCourseId, setPersistedCourseId] = useState<string | null>(courseId ?? null);
   const [currentStep, setCurrentStep] = useState(0);
   const [draft, setDraft] = useState<CourseDraft>(initialDraft);
+  const [courseTutorIds, setCourseTutorIds] = useState<string[]>([]);
+  const [savedBatchIds, setSavedBatchIds] = useState<Set<string>>(new Set());
   const [sectionTitle, setSectionTitle] = useState("");
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [editingSectionTitle, setEditingSectionTitle] = useState("");
@@ -252,13 +349,24 @@ export default function CourseCreateWizard() {
     enrollmentCloseBeforeValue: 1,
     enrollmentCloseBeforeUnit: "days",
   });
+  const { data: tutorUsersData, loading: isTutorUsersLoading } = useTutorUsers();
+  const tutorOptions = tutorUsersData?.users?.nodes ?? [];
+  const { data: courseData, loading: isCourseLoading } = useQuery<CourseByIdData>(
+    GET_COURSE_BY_ID,
+    {
+      variables: { courseId: courseId ?? "" },
+      skip: !courseId,
+      fetchPolicy: "cache-and-network",
+    },
+  );
+  const { data: batchData, loading: isBatchesLoading } = useCourseBatches(courseId);
+  const [createCourse, { loading: isCreatingCourse }] = useMutation(CREATE_COURSE);
+  const [updateCourse, { loading: isUpdatingCourse }] = useMutation(UPDATE_COURSE);
+  const [createBatch, { loading: isCreatingBatch }] = useMutation(CREATE_BATCH);
+  const isSaving = isCreatingCourse || isUpdatingCourse || isCreatingBatch;
 
   const livePackageEnabled = getEnabledLivePackage(draft);
-  const steps = useMemo(() => {
-    const nextSteps = [...baseSteps];
-    if (livePackageEnabled) nextSteps.splice(3, 0, batchStep);
-    return nextSteps;
-  }, [livePackageEnabled]);
+  const steps = baseSteps;
   const activeStepName = steps[Math.min(currentStep, steps.length - 1)] ?? steps[0];
   const hasVideo = draft.curriculum.some((section) =>
     section.items.some((item) => item.type === "video"),
@@ -271,15 +379,196 @@ export default function CourseCreateWizard() {
     [batchGenerator],
   );
 
+  useEffect(() => {
+    const course = courseData?.courses?.nodes?.[0];
+    if (!course || !isEditMode) return;
+
+    const packagePricing = getCoursePackagePricing(course.id, course);
+    const backendBatches = batchData?.batches?.nodes ?? [];
+
+    setPersistedCourseId(course.id);
+    setCourseTutorIds(course.tutorId ?? []);
+    setDraft((current) => ({
+      ...current,
+      title: course.title,
+      subtitle: course.shortDescription,
+      category: current.category || "General",
+      description: course.description,
+      difficulty: getWizardDifficulty(course.level),
+      estimatedDuration: String(course.totalDuration),
+      status: course.status === "PUBLISHED" ? "published" : "draft",
+      packages: current.packages.map((coursePackage) => {
+        if (coursePackage.id === "video_only" || coursePackage.id === "article_only") {
+          return {
+            ...coursePackage,
+            enabled: packagePricing.alaCartePrice > 0,
+            price: packagePricing.alaCartePrice,
+          };
+        }
+
+        if (coursePackage.id === "video_article_live") {
+          return {
+            ...coursePackage,
+            enabled: backendBatches.length > 0,
+            price: packagePricing.tutorPackagePrice,
+          };
+        }
+
+        return {
+          ...coursePackage,
+          enabled: packagePricing.tutorPackagePrice > 0,
+          price: packagePricing.tutorPackagePrice,
+        };
+      }),
+    }));
+  }, [batchData, courseData, isEditMode]);
+
+  useEffect(() => {
+    if (!isEditMode || isBatchesLoading || !batchData) return;
+
+    const backendBatches = batchData.batches?.nodes ?? [];
+    setSavedBatchIds(new Set(backendBatches.map((batch) => batch.id)));
+
+    if (backendBatches.length > 0) {
+      setDraft((current) => ({
+        ...current,
+        batches: backendBatches.map(mapBackendBatchToWizardBatch),
+      }));
+    }
+  }, [batchData, isBatchesLoading, isEditMode]);
+
   const updateDraft = <Key extends keyof CourseDraft>(key: Key, value: CourseDraft[Key]) => {
     setDraft((current) => ({ ...current, [key]: value, status: "draft" }));
   };
 
+  const buildCourseInput = (status: WizardCourseStatus): CourseInput | null => {
+    const courseInfoError = validateCourseInfo();
+    if (courseInfoError) {
+      toast.error(courseInfoError);
+      return null;
+    }
+
+    const totalDuration = parseDurationMinutes(draft.estimatedDuration);
+    if (!Number.isFinite(totalDuration) || totalDuration < 0) {
+      toast.error("Estimated duration must include a valid number.");
+      return null;
+    }
+
+    const tutorIds = Array.from(new Set(courseTutorIds.filter(Boolean)));
+    if (tutorIds.length === 0) {
+      toast.error("Assign at least one course tutor in Batch Setup.");
+      return null;
+    }
+    const alaCartePrice = Math.max(getPackagePrice(draft, "video_only"), getPackagePrice(draft, "article_only"));
+    const fullPackagePrice =
+      getPackagePrice(draft, "video_article_live") ||
+      getPackagePrice(draft, "video_article") ||
+      alaCartePrice;
+
+    return {
+      tutorId: tutorIds,
+      title: draft.title.trim(),
+      description: draft.description.trim(),
+      shortDescription: draft.subtitle.trim(),
+      price: fullPackagePrice,
+      level: getBackendCourseLevel(draft.difficulty),
+      isFree: fullPackagePrice <= 0 && alaCartePrice <= 0,
+      status: getBackendCourseStatus(status),
+      totalSections: draft.curriculum.length,
+      totalLectures: draft.curriculum.reduce((total, section) => total + section.items.length, 0),
+      totalDuration,
+    };
+  };
+
+  const buildBatchInputs = (resolvedCourseId: string): Array<{ draftId: string; input: CreateBatchInput }> => {
+    if (!livePackageEnabled) return [];
+    const fallbackTutorId = courseTutorIds[0] ?? "";
+
+    return draft.batches
+      .filter((batch) => !savedBatchIds.has(batch.id))
+      .map((batch) => {
+        const input: CreateBatchInput = {
+          courseId: resolvedCourseId,
+          tutorId: batch.tutorId || fallbackTutorId || null,
+          startDate: new Date(`${batch.classStart}T00:00:00`).toISOString(),
+          endDate: new Date(`${batch.classEnd}T00:00:00`).toISOString(),
+          capacity: batch.quota,
+        };
+
+        return { draftId: batch.id, input };
+      });
+  };
+
+  const persistCourse = async (status: WizardCourseStatus) => {
+    const input = buildCourseInput(status);
+    if (!input) return;
+
+    try {
+      let resolvedCourseId = persistedCourseId;
+
+      if (resolvedCourseId) {
+        await updateCourse({
+          variables: { id: resolvedCourseId, input },
+        });
+      } else {
+        const result = await createCourse({
+          variables: { input },
+        });
+        resolvedCourseId =
+          "data" in result && result.data && typeof result.data === "object"
+            ? (result.data as { createCourse?: { id?: string } | null }).createCourse?.id ?? null
+            : null;
+
+        if (!resolvedCourseId) {
+          throw new Error("Course was created, but the backend did not return a course ID.");
+        }
+        setPersistedCourseId(resolvedCourseId);
+      }
+
+      const batchInputs = buildBatchInputs(resolvedCourseId);
+      const createdBatchIds: string[] = [];
+
+      await Promise.all(
+        batchInputs.map(async ({ draftId, input: batchInput }) => {
+          const result = await createBatch({
+            variables: { input: batchInput },
+          });
+          const createdBatchId =
+            "data" in result && result.data && typeof result.data === "object"
+              ? (result.data as { createBatch?: { id?: string } | null }).createBatch?.id
+              : undefined;
+          createdBatchIds.push(draftId);
+          if (createdBatchId) createdBatchIds.push(createdBatchId);
+        }),
+      );
+
+      if (createdBatchIds.length > 0) {
+        setSavedBatchIds((current) => new Set([...current, ...createdBatchIds]));
+      }
+
+      const alaCartePrice = Math.max(getPackagePrice(draft, "video_only"), getPackagePrice(draft, "article_only"));
+      const tutorPackagePrice =
+        getPackagePrice(draft, "video_article_live") ||
+        getPackagePrice(draft, "video_article") ||
+        alaCartePrice;
+
+      setCoursePackagePricing(resolvedCourseId, {
+        alaCartePrice,
+        tutorPackagePrice,
+      });
+
+      setDraft((current) => ({ ...current, status }));
+      toast.success(status === "published" ? "Course published" : "Draft saved", {
+        description: `${input.title} has been saved to the backend.`,
+      });
+    } catch (error) {
+      const message = formatSaveError(error);
+      toast.error("Unable to save course", { description: message });
+    }
+  };
+
   const saveDraft = () => {
-    setDraft((current) => ({ ...current, status: "draft" }));
-    toast.success("Draft saved", {
-      description: "The demo course builder state is saved locally for this session.",
-    });
+    void persistCourse("draft");
   };
 
   const getPackageUnavailableReason = (packageType: PackageType) => {
@@ -433,13 +722,18 @@ export default function CourseCreateWizard() {
         classStart,
         classEnd: addDays(classStart, 27),
         quota: Number(batchGenerator.quotaPerBatch),
-        tutorName: "Unassigned",
+        tutorId: "",
         status: closeBeforeDays > 0 ? "closed" as const : "open" as const,
       };
     });
 
     updateDraft("batches", nextBatches);
-    toast.success("Mock batches generated.");
+    toast.success("Batches generated.");
+  };
+
+  const updateCourseTutors = (nextTutorIds: string[]) => {
+    setCourseTutorIds(nextTutorIds);
+    setDraft((current) => ({ ...current, status: "draft" }));
   };
 
   const removeBatch = (batchId: string) => {
@@ -449,10 +743,10 @@ export default function CourseCreateWizard() {
     );
   };
 
-  const updateBatchTutor = (batchId: string, tutorName: string) => {
+  const updateBatchTutor = (batchId: string, tutorId: string) => {
     updateDraft(
       "batches",
-      draft.batches.map((batch) => (batch.id === batchId ? { ...batch, tutorName } : batch)),
+      draft.batches.map((batch) => (batch.id === batchId ? { ...batch, tutorId } : batch)),
     );
   };
 
@@ -484,6 +778,7 @@ export default function CourseCreateWizard() {
   };
 
   const validateBatchSetup = () => {
+    if (courseTutorIds.length === 0) return "Assign at least one course tutor.";
     if (!livePackageEnabled) return "";
     if (!batchGenerator.firstBatchStartDate || !batchGenerator.numberOfBatches || !batchGenerator.quotaPerBatch) {
       return "Complete the batch start date, number of batches, and quota.";
@@ -512,7 +807,7 @@ export default function CourseCreateWizard() {
     if (activeStepName === "Batch Setup") {
       const batchError = validateBatchSetup();
       if (batchError) return batchError;
-      if (draft.batches.length === 0) return "Generate at least one batch before continuing.";
+      if (livePackageEnabled && draft.batches.length === 0) return "Generate at least one batch before continuing.";
     }
     return "";
   };
@@ -540,16 +835,14 @@ export default function CourseCreateWizard() {
       validateCourseInfo() ||
       validateCurriculum() ||
       validatePackagePricing() ||
+      (courseTutorIds.length === 0 ? "Assign at least one course tutor." : "") ||
       (livePackageEnabled && draft.batches.length === 0 ? "Generate at least one batch." : "");
     if (message) {
       toast.error(message);
       return;
     }
 
-    setDraft((current) => ({ ...current, status: "published" }));
-    toast.success("Course published", {
-      description: "Demo course state is now marked as Published.",
-    });
+    void persistCourse("published");
   };
 
   return (
@@ -564,18 +857,18 @@ export default function CourseCreateWizard() {
                 Back to classes
               </Link>
               <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-3xl font-bold text-[#0A1B45]">Create Course</h1>
+                <h1 className="text-3xl font-bold text-[#0A1B45]">{isEditMode ? "Edit Course" : "Create Course"}</h1>
                 <Badge className={draft.status === "published" ? "bg-[#DDF8EA] text-[#16834D]" : "bg-[#FFF4D8] text-[#9A6700]"}>
                   {draft.status === "published" ? "Published" : "Draft"}
                 </Badge>
               </div>
               <p className="mt-2 max-w-3xl text-[#476074]">
-                Build a mock course with sections, video/article curriculum, package pricing, batches, and review.
+                Build a course with sections, video/article curriculum, package pricing, batches, and review.
               </p>
             </div>
-            <Button variant="outline" className="border-[#308279] text-[#308279]" onClick={saveDraft}>
+            <Button variant="outline" className="border-[#308279] text-[#308279]" onClick={saveDraft} disabled={isSaving || isCourseLoading}>
               <Save className="mr-2 h-4 w-4" />
-              Save Draft
+              {isSaving ? "Saving..." : "Save Draft"}
             </Button>
           </div>
 
@@ -640,12 +933,26 @@ export default function CourseCreateWizard() {
               setBatchGenerator={setBatchGenerator}
               estimatedLastBatchEndDate={estimatedLastBatchEndDate}
               batches={draft.batches}
+              tutorOptions={tutorOptions}
+              isTutorUsersLoading={isTutorUsersLoading}
+              courseTutorIds={courseTutorIds}
+              updateCourseTutors={updateCourseTutors}
+              livePackageEnabled={livePackageEnabled}
               generateBatches={generateBatches}
               removeBatch={removeBatch}
               updateBatchTutor={updateBatchTutor}
             />
           )}
-          {activeStepName === "Review & Publish" && <ReviewPublishStep draft={draft} publishCourse={publishCourse} livePackageEnabled={livePackageEnabled} />}
+          {activeStepName === "Review & Publish" && (
+            <ReviewPublishStep
+              draft={draft}
+              publishCourse={publishCourse}
+              livePackageEnabled={livePackageEnabled}
+              courseTutorIds={courseTutorIds}
+              tutorOptions={tutorOptions}
+              isSaving={isSaving}
+            />
+          )}
 
           <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
             <Button
@@ -657,18 +964,18 @@ export default function CourseCreateWizard() {
               Back
             </Button>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Button variant="outline" className="border-[#308279] text-[#308279]" onClick={saveDraft}>
+              <Button variant="outline" className="border-[#308279] text-[#308279]" onClick={saveDraft} disabled={isSaving || isCourseLoading}>
                 <Save className="mr-2 h-4 w-4" />
-                Save Draft
+                {isSaving ? "Saving..." : "Save Draft"}
               </Button>
               {currentStep < steps.length - 1 ? (
                 <Button className="bg-[#308279] hover:bg-[#308279]/90" onClick={goNext}>
                   Next
                 </Button>
               ) : (
-                <Button className="bg-[#308279] hover:bg-[#308279]/90" onClick={publishCourse}>
+                <Button className="bg-[#308279] hover:bg-[#308279]/90" onClick={publishCourse} disabled={isSaving || isCourseLoading}>
                   <ClipboardCheck className="mr-2 h-4 w-4" />
-                  Publish
+                  {isSaving ? "Saving..." : "Publish"}
                 </Button>
               )}
             </div>
@@ -998,6 +1305,11 @@ function BatchSetupStep({
   setBatchGenerator,
   estimatedLastBatchEndDate,
   batches,
+  tutorOptions,
+  isTutorUsersLoading,
+  courseTutorIds,
+  updateCourseTutors,
+  livePackageEnabled,
   generateBatches,
   removeBatch,
   updateBatchTutor,
@@ -1006,17 +1318,46 @@ function BatchSetupStep({
   setBatchGenerator: Dispatch<SetStateAction<BatchGenerator>>;
   estimatedLastBatchEndDate: string;
   batches: Batch[];
+  tutorOptions: Array<{ id: string; name: string; username: string }>;
+  isTutorUsersLoading: boolean;
+  courseTutorIds: string[];
+  updateCourseTutors: (tutorIds: string[]) => void;
+  livePackageEnabled: boolean;
   generateBatches: () => void;
   removeBatch: (batchId: string) => void;
-  updateBatchTutor: (batchId: string, tutorName: string) => void;
+  updateBatchTutor: (batchId: string, tutorId: string) => void;
 }) {
+  const primaryCourseTutorId = courseTutorIds[0] ?? "";
+
   return (
     <Card className="border-[#D8E5E9] bg-white p-6 shadow-sm">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-[#0A1B45]">Batch Generator</h2>
-        <p className="mt-2 text-sm text-[#476074]">Generate live-session batches and assign tutors per batch.</p>
+        <h2 className="text-2xl font-bold text-[#0A1B45]">Tutor & Batch Setup</h2>
+        <p className="mt-2 text-sm text-[#476074]">
+          Assign the course tutor required for saving. Generate batches only when the live package is enabled.
+        </p>
       </div>
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="mb-6 rounded-xl border border-[#D8E5E9] bg-[#FAFCFD] p-4">
+        <Field label="Course tutor">
+          <select
+            value={primaryCourseTutorId}
+            onChange={(event) => updateCourseTutors(event.target.value ? [event.target.value] : [])}
+            className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+            disabled={isTutorUsersLoading}
+          >
+            <option value="">Select a tutor</option>
+            {tutorOptions.map((tutor) => (
+              <option key={tutor.id} value={tutor.id}>{tutor.name} ({tutor.username})</option>
+            ))}
+          </select>
+        </Field>
+      </div>
+      {!livePackageEnabled && (
+        <div className="rounded-lg border border-[#D8E5E9] bg-[#F3F8FA] p-4 text-sm text-[#476074]">
+          Batch generation is optional for the selected packages. Saving this course only requires the course tutor above.
+        </div>
+      )}
+      {livePackageEnabled && <div className="grid gap-5 lg:grid-cols-3">
         <Field label="First batch start date">
           <Input type="date" value={batchGenerator.firstBatchStartDate} onChange={(event) => setBatchGenerator((current) => ({ ...current, firstBatchStartDate: event.target.value }))} />
         </Field>
@@ -1056,11 +1397,13 @@ function BatchSetupStep({
         <Field label="Estimated last batch end date">
           <Input value={estimatedLastBatchEndDate || "Complete date, batches, and interval"} readOnly className="bg-[#F3F8FA]" />
         </Field>
-      </div>
-      <Button className="mt-5 bg-[#308279] hover:bg-[#308279]/90" onClick={generateBatches}>
-        <CalendarDays className="mr-2 h-4 w-4" />
-        Generate Batches
-      </Button>
+      </div>}
+      {livePackageEnabled && (
+        <Button className="mt-5 bg-[#308279] hover:bg-[#308279]/90" onClick={generateBatches}>
+          <CalendarDays className="mr-2 h-4 w-4" />
+          Generate Batches
+        </Button>
+      )}
       {batches.length > 0 && (
         <div className="mt-6 overflow-x-auto rounded-xl border border-[#D8E5E9]">
           <table className="w-full min-w-[960px] text-left text-sm">
@@ -1083,9 +1426,15 @@ function BatchSetupStep({
                   <td className="p-3 text-[#476074]">{formatDisplayDate(batch.classStart)} to {formatDisplayDate(batch.classEnd)}</td>
                   <td className="p-3 text-[#476074]">{batch.quota}</td>
                   <td className="p-3">
-                    <select value={batch.tutorName} onChange={(event) => updateBatchTutor(batch.id, event.target.value)} className="w-full rounded-md border border-[#D8E5E9] bg-white p-2">
+                    <select
+                      value={batch.tutorId}
+                      onChange={(event) => updateBatchTutor(batch.id, event.target.value)}
+                      className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                      disabled={isTutorUsersLoading}
+                    >
+                      <option value="">Use course tutor</option>
                       {tutorOptions.map((tutor) => (
-                        <option key={tutor} value={tutor}>{tutor}</option>
+                        <option key={tutor.id} value={tutor.id}>{tutor.name} ({tutor.username})</option>
                       ))}
                     </select>
                   </td>
@@ -1109,26 +1458,35 @@ function ReviewPublishStep({
   draft,
   publishCourse,
   livePackageEnabled,
+  courseTutorIds,
+  tutorOptions,
+  isSaving,
 }: {
   draft: CourseDraft;
   publishCourse: () => void;
   livePackageEnabled: boolean;
+  courseTutorIds: string[];
+  tutorOptions: Array<{ id: string; name: string; username: string }>;
+  isSaving: boolean;
 }) {
   const itemCount = draft.curriculum.reduce((total, section) => total + section.items.length, 0);
   const videoCount = draft.curriculum.reduce((total, section) => total + section.items.filter((item) => item.type === "video").length, 0);
   const articleCount = itemCount - videoCount;
   const enabledPackages = draft.packages.filter((coursePackage) => coursePackage.enabled);
+  const courseTutorNames = courseTutorIds
+    .map((tutorId) => tutorOptions.find((tutor) => tutor.id === tutorId)?.name ?? tutorId)
+    .join(", ");
 
   return (
     <Card className="border-[#D8E5E9] bg-white p-6 shadow-sm">
       <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-[#0A1B45]">Review & Publish</h2>
-          <p className="mt-2 text-sm text-[#476074]">Confirm the demo course setup before marking it published locally.</p>
+          <p className="mt-2 text-sm text-[#476074]">Confirm the course setup before publishing it.</p>
         </div>
-        <Button className="bg-[#308279] hover:bg-[#308279]/90" onClick={publishCourse}>
+        <Button className="bg-[#308279] hover:bg-[#308279]/90" onClick={publishCourse} disabled={isSaving}>
           <ClipboardCheck className="mr-2 h-4 w-4" />
-          Publish
+          {isSaving ? "Saving..." : "Publish"}
         </Button>
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
@@ -1160,13 +1518,18 @@ function ReviewPublishStep({
             </div>
           )}
         </SummaryCard>
+        <SummaryCard title="Tutor Assignment">
+          <p className="text-sm text-[#476074]">
+            {courseTutorNames || "No course tutor assigned."}
+          </p>
+        </SummaryCard>
         {livePackageEnabled && (
           <SummaryCard title="Batches">
             <p className="text-sm text-[#476074]">{draft.batches.length} generated batches</p>
             <div className="mt-3 space-y-2">
               {draft.batches.slice(0, 4).map((batch) => (
                 <div key={batch.id} className="rounded-lg bg-[#F3F8FA] p-3 text-sm text-[#476074]">
-                  <span className="font-semibold text-[#0A1B45]">{batch.name}</span> · starts {formatDisplayDate(batch.classStart)} · quota {batch.quota} · tutor {batch.tutorName}
+                  <span className="font-semibold text-[#0A1B45]">{batch.name}</span> - starts {formatDisplayDate(batch.classStart)} - quota {batch.quota} - tutor {tutorOptions.find((tutor) => tutor.id === (batch.tutorId || courseTutorIds[0]))?.name ?? "Unassigned"}
                 </div>
               ))}
             </div>
