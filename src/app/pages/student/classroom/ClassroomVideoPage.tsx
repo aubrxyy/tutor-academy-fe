@@ -1,7 +1,7 @@
 import { AlertTriangle, Camera, Clock, Eye, EyeOff, PlayCircle } from "lucide-react";
 import Plyr from "plyr";
 import "plyr/dist/plyr.css";
-import { useEffect, useRef, useState } from "react";
+import { type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router";
 import { Badge } from "../../../components/ui/badge";
 import { Card } from "../../../components/ui/card";
@@ -33,6 +33,11 @@ type GazeApiResponse = {
   faceCount: number;
   smoothedGaze: { x: number; y: number } | null;
   faceBox?: { x: number; y: number; width: number; height: number };
+};
+
+type TrackerPosition = {
+  x: number;
+  y: number;
 };
 
 function getVideoMimeType(sourceUrl: string) {
@@ -89,6 +94,10 @@ function getCenteredSquareCrop(sourceWidth: number, sourceHeight: number) {
     y: (sourceHeight - size) / 2,
     size,
   };
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
 }
 
 function drawFacePreview(
@@ -155,6 +164,7 @@ export default function ClassroomVideoPage() {
   const batchId = searchParams.get("batch") ?? `${courseId ?? "course"}-batch-a`;
   const { items } = getMockClassroomData(courseId, batchId);
   const item = items.find((entry) => entry.id === itemId && entry.kind === "video");
+  const trackerPanelRef = useRef<HTMLDivElement | null>(null);
   const playerHostRef = useRef<HTMLDivElement | null>(null);
   const playerRef = useRef<Plyr | null>(null);
   const webcamVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -163,10 +173,12 @@ export default function ClassroomVideoPage() {
   const webcamStreamRef = useRef<MediaStream | null>(null);
   const isAnalyzingRef = useRef(false);
   const latestFaceBoxRef = useRef<GazeApiResponse["faceBox"]>();
+  const trackerDragOffsetRef = useRef<TrackerPosition | null>(null);
   const [videoError, setVideoError] = useState(false);
   const [trackerEnabled, setTrackerEnabled] = useState(false);
   const [trackerError, setTrackerError] = useState<string | null>(null);
   const [focusStatus, setFocusStatus] = useState<GazeApiResponse | null>(null);
+  const [trackerPosition, setTrackerPosition] = useState<TrackerPosition | null>(null);
 
   useEffect(() => {
     setVideoError(false);
@@ -375,6 +387,120 @@ export default function ClassroomVideoPage() {
     return () => window.clearInterval(interval);
   }, [trackerEnabled]);
 
+  useEffect(() => {
+    if (!trackerEnabled) {
+      setTrackerPosition(null);
+      trackerDragOffsetRef.current = null;
+      return;
+    }
+
+    const setInitialTrackerPosition = () => {
+      const panel = trackerPanelRef.current;
+      const panelWidth = panel?.offsetWidth ?? 188;
+      const panelHeight = panel?.offsetHeight ?? 300;
+      const margin = 20;
+
+      setTrackerPosition((current) => {
+        if (current) {
+          return current;
+        }
+
+        return {
+          x: Math.max(margin, window.innerWidth - panelWidth - margin),
+          y: Math.max(margin - 20, window.innerHeight - panelHeight - 140),
+        };
+      });
+    };
+
+    const animationFrame = window.requestAnimationFrame(setInitialTrackerPosition);
+
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [trackerEnabled]);
+
+  useEffect(() => {
+    if (!trackerEnabled) {
+      return;
+    }
+
+    const keepTrackerInBounds = () => {
+      const panel = trackerPanelRef.current;
+
+      if (!panel) {
+        return;
+      }
+
+      const panelRect = panel.getBoundingClientRect();
+      const margin = 8;
+
+      setTrackerPosition((current) => {
+        if (!current) {
+          return current;
+        }
+
+        return {
+          x: clamp(current.x, margin, Math.max(margin, window.innerWidth - panelRect.width - margin)),
+          y: clamp(current.y, margin, Math.max(margin, window.innerHeight - panelRect.height - margin)),
+        };
+      });
+    };
+
+    window.addEventListener("resize", keepTrackerInBounds);
+
+    return () => window.removeEventListener("resize", keepTrackerInBounds);
+  }, [trackerEnabled]);
+
+  const moveTrackerPanel = (clientX: number, clientY: number) => {
+    const panel = trackerPanelRef.current;
+    const offset = trackerDragOffsetRef.current;
+
+    if (!panel || !offset) {
+      return;
+    }
+
+    const panelRect = panel.getBoundingClientRect();
+    const margin = 8;
+    const nextX = clientX - offset.x;
+    const nextY = clientY - offset.y;
+
+    setTrackerPosition({
+      x: clamp(nextX, margin, Math.max(margin, window.innerWidth - panelRect.width - margin)),
+      y: clamp(nextY, margin, Math.max(margin, window.innerHeight - panelRect.height - margin)),
+    });
+  };
+
+  const handleTrackerPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const panel = trackerPanelRef.current;
+
+    if (!panel) {
+      return;
+    }
+
+    const panelRect = panel.getBoundingClientRect();
+    trackerDragOffsetRef.current = {
+      x: event.clientX - panelRect.left,
+      y: event.clientY - panelRect.top,
+    };
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    moveTrackerPanel(event.clientX, event.clientY);
+  };
+
+  const handleTrackerPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!trackerDragOffsetRef.current) {
+      return;
+    }
+
+    moveTrackerPanel(event.clientX, event.clientY);
+  };
+
+  const handleTrackerPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    trackerDragOffsetRef.current = null;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
   const focusPercentage = focusStatus?.warning ? 42 : focusStatus ? 92 : 0;
   const focusLabel = focusStatus?.warning ? "Tidak fokus" : focusStatus ? "Fokus" : "Standby";
   const trackerStatusText = trackerEnabled ? "Tracking" : "Off";
@@ -413,7 +539,7 @@ export default function ClassroomVideoPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="relative overflow-hidden rounded-3xl border-[#D8E5E9] bg-white shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
+      <div className="relative overflow-hidden rounded-3xl border border-[#D8E5E9] bg-white shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
         <div className="aspect-video bg-[#071735] [--plyr-color-main:#308279]">
           {item.sourceUrl && !videoError ? (
             <div ref={playerHostRef} className="h-full w-full" />
@@ -433,7 +559,20 @@ export default function ClassroomVideoPage() {
         </div>
 
         {trackerEnabled ? (
-          <div className={`absolute bottom-3 mt-16 right-3 z-10 w-[156px] rounded-2xl border p-2.5 text-white backdrop-blur-md sm:bottom-3 sm:right-5 sm:w-[160px] sm:p-3 ${trackerPanelClass}`}>
+          <div
+            ref={trackerPanelRef}
+            className={`fixed z-50 w-[156px] cursor-move touch-none select-none rounded-2xl border p-2.5 text-white backdrop-blur-md sm:w-[188px] sm:p-3 ${trackerPanelClass}`}
+            style={{
+              left: trackerPosition?.x ?? 20,
+              top: trackerPosition?.y ?? 20,
+            }}
+            role="group"
+            aria-label="Moveable webcam eye tracker"
+            onPointerDown={handleTrackerPointerDown}
+            onPointerMove={handleTrackerPointerMove}
+            onPointerUp={handleTrackerPointerUp}
+            onPointerCancel={handleTrackerPointerUp}
+          >
             <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-black">
               <video ref={webcamVideoRef} className="hidden" autoPlay muted playsInline />
               <canvas ref={facePreviewCanvasRef} className="aspect-square w-full scale-x-[-1] object-cover" />
@@ -468,7 +607,7 @@ export default function ClassroomVideoPage() {
           </div>
           <p className="mt-5 max-w-3xl text-sm leading-7 text-[#476074]">{item.description}</p>
         </div>
-      </Card>
+      </div>
 
       <Card className="rounded-2xl border-[#D8E5E9] bg-white p-5 shadow-[0_14px_32px_rgba(10,27,69,0.05)]">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
