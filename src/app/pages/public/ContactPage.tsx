@@ -108,11 +108,11 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-[#F3F8FA]">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-[#0A1B45] to-[#308279] text-white py-20">
+      <section className="bg-gradient-to-r from-[#0A1B45] to-[#308279] py-20 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <h1 className="text-5xl font-bold mb-6">Contact Us</h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto">
+            <h1 className="mb-6 text-4xl font-bold tracking-[-0.03em] sm:text-5xl">Contact Us</h1>
+            <p className="mx-auto max-w-2xl text-lg text-white/90 sm:text-xl">
               Ada pertanyaan? Tim kami siap membantu kamu!
             </p>
           </div>
@@ -124,8 +124,8 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {contactMethods.map((method, idx) => (
-              <Card key={idx} className="p-6 hover:shadow-lg transition-all text-center">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#308279] to-[#0A1B45] flex items-center justify-center mx-auto mb-4">
+              <Card key={idx} className="p-6 text-center transition-all duration-200 hover:-translate-y-0.5 hover:border-[#308279] hover:shadow-[0_20px_46px_rgba(10,27,69,0.09)]">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#308279] to-[#0A1B45]">
                   <method.icon className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="font-bold text-lg text-[#0A1B45] mb-2">{method.title}</h3>
@@ -138,7 +138,7 @@ export default function ContactPage() {
           {/* Contact Form & Office Hours */}
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Contact Form */}
-            <Card className="p-8">
+            <Card className="p-6 sm:p-8">
               <h2 className="text-2xl font-bold text-[#0A1B45] mb-6">Send us a Message</h2>
               <form className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
@@ -168,9 +168,9 @@ export default function ContactPage() {
 
             {/* Office Hours & Info */}
             <div className="space-y-6">
-              <Card className="p-8">
+              <Card className="p-6 sm:p-8">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#308279] to-[#0A1B45] flex items-center justify-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#308279] to-[#0A1B45]">
                     <Clock className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -194,7 +194,7 @@ export default function ContactPage() {
                 </div>
               </Card>
 
-              <Card className="p-8 bg-gradient-to-br from-[#308279] to-[#0A1B45] text-white">
+              <Card className="bg-gradient-to-br from-[#308279] to-[#0A1B45] p-6 text-white sm:p-8">
                 <h3 className="font-bold text-xl mb-4">Need Immediate Help?</h3>
                 <p className="text-white/90 mb-6">
                   For urgent technical issues or support during live sessions, contact us via WhatsApp for fastest response.

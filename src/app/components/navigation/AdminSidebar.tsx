@@ -46,8 +46,8 @@ export default function AdminSidebar({ activeView }: AdminSidebarProps) {
   };
 
   return (
-    <aside className="sticky top-0 h-screen w-72 bg-gradient-to-b from-[#081734] to-[#308279] text-white shadow-[18px_0_40px_rgba(10,27,69,0.12)]">
-      <div className="p-6">
+    <aside className="z-20 w-full bg-gradient-to-b from-[#081734] to-[#308279] text-white shadow-[0_12px_34px_rgba(10,27,69,0.16)] lg:sticky lg:top-0 lg:h-screen lg:w-72 lg:flex-shrink-0 lg:shadow-[18px_0_40px_rgba(10,27,69,0.12)]">
+      <div className="p-5 sm:p-6">
         <Link to="/" className="flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-white shadow-md backdrop-blur-sm">
             <GraduationCap className="h-5 w-5" />
@@ -68,12 +68,12 @@ export default function AdminSidebar({ activeView }: AdminSidebarProps) {
         </div>
       </div>
 
-      <nav className="px-3">
+      <nav className="flex gap-2 overflow-x-auto px-3 pb-4 lg:block lg:overflow-visible lg:pb-0">
         {navItems.map((item) => (
           <Link
             key={item.id}
             to={`/admin-dashboard?view=${item.id}`}
-            className={`mb-2 flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-all ${
+            className={`flex shrink-0 items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition-all lg:mb-2 lg:w-full ${
               activeView === item.id ? "bg-white/20 backdrop-blur-sm" : "hover:bg-white/10"
             }`}
           >
@@ -83,7 +83,7 @@ export default function AdminSidebar({ activeView }: AdminSidebarProps) {
         ))}
       </nav>
 
-      <div className="absolute bottom-0 left-0 right-0 border-t border-white/20 p-4">
+      <div className="border-t border-white/20 p-4 lg:absolute lg:bottom-0 lg:left-0 lg:right-0">
         <div className="mb-4 rounded-2xl bg-white/10 p-4">
           <div className="text-sm font-semibold">{user?.name ?? "Ops Admin"}</div>
           <div className="mt-1 text-xs uppercase tracking-[0.16em] text-white/65">

@@ -846,11 +846,11 @@ export default function CourseCreateWizard() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#F3F8FA]">
+    <div className="min-h-screen bg-[#F3F8FA] lg:flex">
       <AdminSidebar activeView="classes" />
-      <main className="min-w-0 flex-1 p-6 lg:p-8">
+      <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <Link to="/admin-dashboard?view=classes" className="mb-3 inline-flex items-center text-sm font-semibold text-[#308279]">
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -872,14 +872,14 @@ export default function CourseCreateWizard() {
             </Button>
           </div>
 
-          <Card className="mb-6 border-[#D8E5E9] bg-white p-4 shadow-sm">
-            <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-5">
+          <Card className="mb-6 border-[#D8E5E9] bg-white p-3 shadow-sm sm:p-4">
+            <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
               {steps.map((step, index) => (
                 <button
                   key={step}
                   type="button"
                   onClick={() => selectStep(index)}
-                  className={`rounded-lg border p-3 text-left transition ${
+                  className={`rounded-xl border p-3 text-left transition ${
                     index === currentStep
                       ? "border-[#308279] bg-[#EAF5F3]"
                       : index < currentStep
@@ -994,7 +994,7 @@ function CourseInfoStep({
   updateDraft: <Key extends keyof CourseDraft>(key: Key, value: CourseDraft[Key]) => void;
 }) {
   return (
-    <Card className="border-[#D8E5E9] bg-white p-6 shadow-sm">
+    <Card className="border-[#D8E5E9] bg-white p-5 shadow-sm sm:p-6">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-[#0A1B45]">Course Info</h2>
         <p className="mt-2 text-sm text-[#476074]">Set the draft basics before adding curriculum and commercial options.</p>
@@ -1013,7 +1013,7 @@ function CourseInfoStep({
           <Textarea rows={5} value={draft.description} onChange={(event) => updateDraft("description", event.target.value)} placeholder="Describe outcomes, learning scope, and course expectations." />
         </Field>
         <Field label="Thumbnail" className="lg:col-span-2">
-          <div className="flex min-h-32 w-full items-center justify-center rounded-lg border border-dashed border-[#B8CDD3] bg-[#F7FBFC] p-5 text-center">
+          <div className="flex min-h-32 w-full items-center justify-center rounded-2xl border border-dashed border-[#B8CDD3] bg-[#F7FBFC] p-5 text-center">
             <div className="w-full max-w-2xl">
               <Upload className="mx-auto h-5 w-5 text-[#308279]" />
               <p className="mt-2 text-sm font-semibold text-[#0A1B45]">
@@ -1031,7 +1031,7 @@ function CourseInfoStep({
           </div>
         </Field>
         <Field label="Difficulty level">
-          <select value={draft.difficulty} onChange={(event) => updateDraft("difficulty", event.target.value)} className="w-full rounded-md border border-[#D8E5E9] bg-white p-2">
+          <select value={draft.difficulty} onChange={(event) => updateDraft("difficulty", event.target.value)} className="w-full border-[#D8E5E9]">
             <option>Beginner</option>
             <option>Intermediate</option>
             <option>Advanced</option>
@@ -1077,7 +1077,7 @@ function CurriculumStep({
   removeCurriculumItem: (sectionId: string, itemId: string) => void;
 }) {
   return (
-    <Card className="border-[#D8E5E9] bg-white p-6 shadow-sm">
+    <Card className="border-[#D8E5E9] bg-white p-5 shadow-sm sm:p-6">
       <div>
         <div>
           <h2 className="text-2xl font-bold text-[#0A1B45]">Curriculum Builder</h2>
@@ -1093,7 +1093,7 @@ function CurriculumStep({
           const activeDraft = itemDraft?.sectionId === section.id ? itemDraft : null;
 
           return (
-            <div key={section.id} className="rounded-xl border border-[#D8E5E9] bg-[#FAFCFD] p-5">
+            <div key={section.id} className="rounded-2xl border border-[#D8E5E9] bg-[#FAFCFD] p-5">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0 flex-1">
                   <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#92A4AE]">Section {index + 1}</div>
@@ -1128,10 +1128,10 @@ function CurriculumStep({
 
               <div className="mt-4 grid gap-3">
                 {section.items.length === 0 ? (
-                  <div className="rounded-lg bg-white p-4 text-sm text-[#476074]">No lessons yet.</div>
+                  <div className="rounded-2xl border border-dashed border-[#D8E5E9] bg-white p-4 text-sm text-[#476074]">No lessons yet.</div>
                 ) : (
                   section.items.map((item) => (
-                    <div key={item.id} className="rounded-lg bg-white p-3">
+                    <div key={item.id} className="rounded-2xl border border-[#E5EEF1] bg-white p-3">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
                           {item.type === "video" ? <Video className="h-4 w-4 text-[#308279]" /> : <FileText className="h-4 w-4 text-[#0A1B45]" />}
@@ -1155,7 +1155,7 @@ function CurriculumStep({
               </div>
 
               {activeDraft && (
-                <div className="mt-5 rounded-xl border border-[#D8E5E9] bg-white p-5">
+                <div className="mt-5 rounded-2xl border border-[#D8E5E9] bg-white p-5">
                   <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                       <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[#92A4AE]">
@@ -1172,7 +1172,7 @@ function CurriculumStep({
                       <select
                         value={activeDraft.type}
                         onChange={(event) => setItemDraft((current) => current ? { ...current, type: event.target.value as CurriculumItemType } : current)}
-                        className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                        className="w-full border-[#D8E5E9]"
                       >
                         <option value="video">Video</option>
                         <option value="article">Article</option>
@@ -1186,7 +1186,7 @@ function CurriculumStep({
                         <Field label="YouTube link" className="lg:col-span-2">
                           <Input value={activeDraft.youtubeUrl} onChange={(event) => setItemDraft((current) => current ? { ...current, youtubeUrl: event.target.value } : current)} placeholder="https://www.youtube.com/watch?v=..." />
                         </Field>
-                        <div className="rounded-lg border border-[#D8E5E9] bg-[#F7FBFC] p-4 text-sm leading-6 text-[#476074] lg:col-span-2">
+                        <div className="rounded-2xl border border-[#D8E5E9] bg-[#F7FBFC] p-4 text-sm leading-6 text-[#476074] lg:col-span-2">
                           <div className="font-semibold text-[#0A1B45]">Unlisted video guide</div>
                           <ol className="mt-2 list-decimal space-y-1 pl-5">
                             <li>Upload the video in YouTube Studio.</li>
@@ -1199,7 +1199,7 @@ function CurriculumStep({
                       </>
                     ) : (
                       <Field label="Article content" className="lg:col-span-2">
-                        <div className="rounded-lg border border-[#D8E5E9] bg-white">
+                        <div className="rounded-2xl border border-[#D8E5E9] bg-white">
                           <CKEditor
                             editor={ClassicEditor}
                             config={editorConfig}
@@ -1223,7 +1223,7 @@ function CurriculumStep({
           );
         })}
       </div>
-      <div className="rounded-[1.5rem] border border-[#D8E5E9] bg-white p-6">
+      <div className="mt-5 rounded-2xl border border-dashed border-[#D8E5E9] bg-white p-6">
           <h3 className="text-2xl font-bold text-[#0A1B45]">
             {sections.length === 0 ? "Create first section" : "Create another section"}
           </h3>
@@ -1256,7 +1256,7 @@ function PackagePricingStep({
   updatePackagePrice: (packageId: PackageType, value: string) => void;
 }) {
   return (
-    <Card className="border-[#D8E5E9] bg-white p-6 shadow-sm">
+    <Card className="border-[#D8E5E9] bg-white p-5 shadow-sm sm:p-6">
       <div>
         <h2 className="text-2xl font-bold text-[#0A1B45]">Package & Pricing Setup</h2>
         <p className="mt-2 text-sm text-[#476074]">Enable packages only when matching curriculum content exists.</p>
@@ -1265,7 +1265,7 @@ function PackagePricingStep({
         {packages.map((coursePackage) => {
           const reason = getPackageUnavailableReason(coursePackage.id);
           return (
-            <div key={coursePackage.id} className={`rounded-xl border p-5 ${reason ? "border-[#D8E5E9] bg-[#F4F7F8] opacity-75" : "border-[#D8E5E9] bg-[#FAFCFD]"}`}>
+            <div key={coursePackage.id} className={`rounded-2xl border p-5 transition-colors ${reason ? "border-[#D8E5E9] bg-[#F4F7F8] opacity-75" : "border-[#D8E5E9] bg-[#FAFCFD]"}`}>
               <div className="flex gap-3">
                 <input
                   type="checkbox"
@@ -1330,19 +1330,19 @@ function BatchSetupStep({
   const primaryCourseTutorId = courseTutorIds[0] ?? "";
 
   return (
-    <Card className="border-[#D8E5E9] bg-white p-6 shadow-sm">
+    <Card className="border-[#D8E5E9] bg-white p-5 shadow-sm sm:p-6">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-[#0A1B45]">Tutor & Batch Setup</h2>
         <p className="mt-2 text-sm text-[#476074]">
           Assign the course tutor required for saving. Generate batches only when the live package is enabled.
         </p>
       </div>
-      <div className="mb-6 rounded-xl border border-[#D8E5E9] bg-[#FAFCFD] p-4">
+      <div className="mb-6 rounded-2xl border border-[#D8E5E9] bg-[#FAFCFD] p-4">
         <Field label="Course tutor">
           <select
             value={primaryCourseTutorId}
             onChange={(event) => updateCourseTutors(event.target.value ? [event.target.value] : [])}
-            className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+            className="w-full border-[#D8E5E9]"
             disabled={isTutorUsersLoading}
           >
             <option value="">Select a tutor</option>
@@ -1353,7 +1353,7 @@ function BatchSetupStep({
         </Field>
       </div>
       {!livePackageEnabled && (
-        <div className="rounded-lg border border-[#D8E5E9] bg-[#F3F8FA] p-4 text-sm text-[#476074]">
+        <div className="rounded-2xl border border-[#D8E5E9] bg-[#F3F8FA] p-4 text-sm text-[#476074]">
           Batch generation is optional for the selected packages. Saving this course only requires the course tutor above.
         </div>
       )}
@@ -1367,7 +1367,7 @@ function BatchSetupStep({
         <Field label="Interval">
           <div className="grid grid-cols-[1fr_120px] gap-2">
             <Input type="number" min="1" value={batchGenerator.intervalValue} onChange={(event) => setBatchGenerator((current) => ({ ...current, intervalValue: event.target.value === "" ? "" : Number(event.target.value) }))} />
-            <select value={batchGenerator.intervalUnit} onChange={(event) => setBatchGenerator((current) => ({ ...current, intervalUnit: event.target.value as IntervalUnit }))} className="rounded-md border border-[#D8E5E9] bg-white p-2">
+            <select value={batchGenerator.intervalUnit} onChange={(event) => setBatchGenerator((current) => ({ ...current, intervalUnit: event.target.value as IntervalUnit }))} className="border-[#D8E5E9]">
               <option value="days">Days</option>
               <option value="weeks">Weeks</option>
             </select>
@@ -1376,7 +1376,7 @@ function BatchSetupStep({
         <Field label="Enrollment opens before class">
           <div className="grid grid-cols-[1fr_120px] gap-2">
             <Input type="number" min="1" value={batchGenerator.enrollmentOpenBeforeValue} onChange={(event) => setBatchGenerator((current) => ({ ...current, enrollmentOpenBeforeValue: event.target.value === "" ? "" : Number(event.target.value) }))} />
-            <select value={batchGenerator.enrollmentOpenBeforeUnit} onChange={(event) => setBatchGenerator((current) => ({ ...current, enrollmentOpenBeforeUnit: event.target.value as IntervalUnit }))} className="rounded-md border border-[#D8E5E9] bg-white p-2">
+            <select value={batchGenerator.enrollmentOpenBeforeUnit} onChange={(event) => setBatchGenerator((current) => ({ ...current, enrollmentOpenBeforeUnit: event.target.value as IntervalUnit }))} className="border-[#D8E5E9]">
               <option value="days">Days</option>
               <option value="weeks">Weeks</option>
             </select>
@@ -1385,7 +1385,7 @@ function BatchSetupStep({
         <Field label="Enrollment closes before class">
           <div className="grid grid-cols-[1fr_120px] gap-2">
             <Input type="number" min="0" value={batchGenerator.enrollmentCloseBeforeValue} onChange={(event) => setBatchGenerator((current) => ({ ...current, enrollmentCloseBeforeValue: event.target.value === "" ? "" : Number(event.target.value) }))} />
-            <select value={batchGenerator.enrollmentCloseBeforeUnit} onChange={(event) => setBatchGenerator((current) => ({ ...current, enrollmentCloseBeforeUnit: event.target.value as IntervalUnit }))} className="rounded-md border border-[#D8E5E9] bg-white p-2">
+            <select value={batchGenerator.enrollmentCloseBeforeUnit} onChange={(event) => setBatchGenerator((current) => ({ ...current, enrollmentCloseBeforeUnit: event.target.value as IntervalUnit }))} className="border-[#D8E5E9]">
               <option value="days">Days</option>
               <option value="weeks">Weeks</option>
             </select>
@@ -1406,7 +1406,7 @@ function BatchSetupStep({
       )}
       {batches.length > 0 && (
         <div className="mt-6 overflow-x-auto rounded-xl border border-[#D8E5E9]">
-          <table className="w-full min-w-[960px] text-left text-sm">
+          <table className="app-table min-w-[960px]">
             <thead className="bg-[#F3F8FA] text-xs uppercase tracking-[0.14em] text-[#476074]">
               <tr>
                 <th className="p-3">Batch</th>
@@ -1429,7 +1429,7 @@ function BatchSetupStep({
                     <select
                       value={batch.tutorId}
                       onChange={(event) => updateBatchTutor(batch.id, event.target.value)}
-                      className="w-full rounded-md border border-[#D8E5E9] bg-white p-2"
+                      className="w-full border-[#D8E5E9]"
                       disabled={isTutorUsersLoading}
                     >
                       <option value="">Use course tutor</option>
@@ -1478,7 +1478,7 @@ function ReviewPublishStep({
     .join(", ");
 
   return (
-    <Card className="border-[#D8E5E9] bg-white p-6 shadow-sm">
+    <Card className="border-[#D8E5E9] bg-white p-5 shadow-sm sm:p-6">
       <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-[#0A1B45]">Review & Publish</h2>
@@ -1559,7 +1559,7 @@ function Field({
 
 function SummaryCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="rounded-xl border border-[#D8E5E9] bg-[#FAFCFD] p-5">
+    <div className="rounded-2xl border border-[#D8E5E9] bg-[#FAFCFD] p-5">
       <h3 className="mb-3 text-lg font-bold text-[#0A1B45]">{title}</h3>
       {children}
     </div>
@@ -1568,7 +1568,7 @@ function SummaryCard({ title, children }: { title: string; children: ReactNode }
 
 function Metric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg bg-white p-3">
+    <div className="rounded-xl border border-[#E5EEF1] bg-white p-3">
       <div className="text-2xl font-bold text-[#0A1B45]">{value}</div>
       <div className="text-xs uppercase tracking-[0.14em] text-[#476074]">{label}</div>
     </div>

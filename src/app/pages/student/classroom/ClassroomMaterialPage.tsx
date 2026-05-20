@@ -69,7 +69,7 @@ export default function ClassroomMaterialPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
+      <Card className="rounded-3xl border-[#D8E5E9] bg-white p-5 shadow-[0_18px_42px_rgba(10,27,69,0.06)] sm:p-8">
         <div className="flex flex-wrap items-center gap-1">
           <Badge className="border-0 bg-[#308279]/10 text-[#308279]">Material</Badge>
           <Badge className="border-0 bg-[#0A1B45]/8 text-[#0A1B45]">{item.sectionTitle}</Badge>
@@ -77,12 +77,12 @@ export default function ClassroomMaterialPage() {
             <Badge className="border-0 bg-[#E8EEF9] text-[#21416B]">Downloadable</Badge>
           ) : null}
         </div>
-        <h2 className="text-3xl font-bold text-[#0A1B45]">{item.title}</h2>
+        <h2 className="text-2xl font-bold tracking-[-0.02em] text-[#0A1B45] sm:text-3xl">{item.title}</h2>
         <p className="text-sm text-[#476074]">{item.meta}</p>
         <p className="max-w-3xl text-sm leading-7 text-[#476074]">{item.description}</p>
       </Card>
 
-      <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
+      <Card className="rounded-3xl border-[#D8E5E9] bg-white p-5 shadow-[0_18px_42px_rgba(10,27,69,0.06)] sm:p-8">
         <div className="mb-5 flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#308279] text-white">
             <FileText className="h-5 w-5" />

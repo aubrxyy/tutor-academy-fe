@@ -35,7 +35,7 @@ export function MeetingsSection({
           <select
             value={activeMeetingCourse}
             onChange={(event) => onMeetingCourseChange(event.target.value)}
-            className="rounded-2xl border border-[#D8E5E9] bg-white px-4 py-3 text-sm font-medium text-[#0A1B45] shadow-sm outline-none transition focus:border-[#308279]"
+          className="w-full border-[#D8E5E9] font-medium text-[#0A1B45] shadow-sm sm:w-auto"
           >
             <option value="all">All classes</option>
             {meetingCourseOptions.map((course) => (
@@ -51,7 +51,7 @@ export function MeetingsSection({
         {visibleMeetings.map((session) => (
           <Card
             key={session.id}
-            className="overflow-hidden border-[#D9E6EA] transition-all hover:border-[#308279] hover:shadow-lg"
+            className="overflow-hidden border-[#D9E6EA] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#308279] hover:shadow-[0_20px_46px_rgba(10,27,69,0.09)]"
           >
             <div className="p-6">
               <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.9fr)_auto] xl:items-start">

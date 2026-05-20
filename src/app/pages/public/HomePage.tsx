@@ -94,11 +94,9 @@ export default function HomePage() {
               "linear-gradient(90deg, rgba(146, 183, 176, 0.1) 0%, rgba(0, 0, 0, 0) 0%), linear-gradient(180deg, rgba(146, 183, 176, 0.1) 0.12422%, rgba(0, 0, 0, 0) 0.12422%)",
           }}
         />
-        <div className="absolute inset-y-0 right-0 w-[55%] pointer-events-none">
-          <div className="absolute left-1/2 top-1/2 h-[26rem] w-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-to-r from-[#308279]/20 to-[#92B7B0]/20 blur-[72px]" />
-        </div>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#D8E5E9] to-transparent" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-14 pb-20 pt-14 lg:grid-cols-[minmax(0,584px)_minmax(0,584px)] lg:justify-between lg:min-h-[calc(100vh-80px)] lg:pt-20">
             <motion.div
               variants={staggerContainer}
@@ -174,7 +172,7 @@ export default function HomePage() {
               animate={{ opacity: 1, scale: 1, x: 0 }}
               transition={{ duration: 0.9, type: "spring", bounce: 0.18 }}
             >
-              <div className="rounded-2xl border-8 border-white bg-transparent p-2 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)]">
+              <div className="rounded-3xl border border-white bg-white p-2 shadow-[0_25px_50px_-12px_rgba(10,27,69,0.22)]">
                 <img
                   src={imagebinus}
                   alt="Mahasiswa belajar bersama"
@@ -187,7 +185,7 @@ export default function HomePage() {
       </section>
 
       {/* Feature Bento Grid */}
-      <section className="py-24 bg-white relative z-20 rounded-t-[3rem] shadow-[0_-20px_40px_rgba(0,0,0,0.02)] border-t border-white">
+      <section className="relative z-20 rounded-t-[2rem] border-t border-white bg-white py-20 shadow-[0_-20px_40px_rgba(0,0,0,0.02)] sm:py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial="hidden"
@@ -196,7 +194,7 @@ export default function HomePage() {
             variants={staggerContainer}
             className="text-center max-w-3xl mx-auto mb-20"
           >
-            <motion.h2 variants={fadeUpVariants} className="text-4xl md:text-5xl font-bold text-[#0A1B45] tracking-tight mb-6">
+            <motion.h2 variants={fadeUpVariants} className="mb-6 text-4xl font-bold tracking-tight text-[#0A1B45] md:text-5xl">
               A smarter way to study
             </motion.h2>
             <motion.p variants={fadeUpVariants} className="text-lg text-[#476074]">
@@ -205,14 +203,14 @@ export default function HomePage() {
           </motion.div>
 
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[280px]"
+            className="grid auto-rows-auto grid-cols-1 gap-6 md:grid-cols-12 md:auto-rows-[280px]"
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: "-100px" }}
             variants={staggerContainer}
           >
             {/* Big Feature: Interactive Live Classes */}
-            <motion.div variants={fadeUpVariants} className="col-span-1 md:col-span-8 row-span-2 rounded-[2rem] bg-gradient-to-br from-[#0A1B45] via-[#1a3a6b] to-[#308279] text-white p-10 flex flex-col justify-between overflow-hidden relative group hover:shadow-2xl hover:shadow-[#0A1B45]/20 transition-all duration-700">
+            <motion.div variants={fadeUpVariants} className="group relative col-span-1 row-span-2 flex flex-col justify-between overflow-hidden rounded-3xl bg-gradient-to-br from-[#0A1B45] via-[#1a3a6b] to-[#308279] p-6 text-white transition-all duration-700 hover:shadow-2xl hover:shadow-[#0A1B45]/20 sm:p-10 md:col-span-8">
               <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1510519138101-570d1dca3d66?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080')] bg-cover bg-center mix-blend-overlay opacity-20 group-hover:opacity-30 transition-opacity duration-700"></div>
 
               <div className="relative z-10 max-w-xl self-end text-right">
@@ -236,7 +234,7 @@ export default function HomePage() {
             </motion.div>
 
             {/* Small Feature: AI Tracking */}
-            <motion.div variants={fadeUpVariants} className="col-span-1 md:col-span-4 row-span-1 rounded-[2rem] bg-white border border-[#F3F8FA] shadow-lg shadow-[#0A1B45]/5 p-8 flex flex-col justify-between group overflow-hidden relative transition-transform hover:-translate-y-2">
+            <motion.div variants={fadeUpVariants} className="group relative col-span-1 row-span-1 flex flex-col justify-between overflow-hidden rounded-3xl border border-[#D8E5E9] bg-white p-8 shadow-lg shadow-[#0A1B45]/5 transition-transform hover:-translate-y-0.5 md:col-span-4">
               <div className="relative z-10">
                 <div className="w-12 h-12 rounded-xl bg-[#EBF3F1] flex text-[#308279] items-center justify-center mb-6">
                   <Eye className="w-6 h-6" />
@@ -247,7 +245,7 @@ export default function HomePage() {
             </motion.div>
 
             {/* Small Feature: Analytics */}
-            <motion.div variants={fadeUpVariants} className="col-span-1 md:col-span-4 row-span-1 rounded-[2rem] bg-white border border-[#F3F8FA] shadow-lg shadow-[#0A1B45]/5 p-8 flex flex-col justify-between group transition-transform hover:-translate-y-2">
+            <motion.div variants={fadeUpVariants} className="group col-span-1 row-span-1 flex flex-col justify-between rounded-3xl border border-[#D8E5E9] bg-white p-8 shadow-lg shadow-[#0A1B45]/5 transition-transform hover:-translate-y-0.5 md:col-span-4">
               <div>
                 <div className="w-12 h-12 rounded-xl bg-[#EBF3F1] flex text-[#308279] items-center justify-center mb-6">
                   <Target className="w-6 h-6" />
@@ -258,7 +256,7 @@ export default function HomePage() {
             </motion.div>
 
             {/* Wide Feature: Peer Communities */}
-            <motion.div variants={fadeUpVariants} className="col-span-1 md:col-span-6 row-span-1 rounded-[2rem] bg-[#F3F8FA] text-[#0A1B45] p-8 md:p-10 border border-white shadow-lg shadow-[#0A1B45]/5 flex items-center justify-between overflow-hidden relative group">
+            <motion.div variants={fadeUpVariants} className="group relative col-span-1 row-span-1 flex items-center justify-between overflow-hidden rounded-3xl border border-white bg-[#F3F8FA] p-8 text-[#0A1B45] shadow-lg shadow-[#0A1B45]/5 md:col-span-6 md:p-10">
               <div className="relative z-10 max-w-sm">
                 <div className="flex -space-x-3 mb-4">
                   {[4, 5, 2, 7].map((i) => (
@@ -272,8 +270,7 @@ export default function HomePage() {
             </motion.div>
 
             {/* Small Feature: Always Available */}
-            <motion.div variants={fadeUpVariants} className="col-span-1 md:col-span-6 row-span-1 rounded-[2rem] bg-[#308279] text-white shadow-xl shadow-[#308279]/20 p-8 md:p-10 flex items-center gap-6 group overflow-hidden relative">
-              <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+            <motion.div variants={fadeUpVariants} className="group relative col-span-1 row-span-1 flex items-center gap-6 overflow-hidden rounded-3xl bg-[#308279] p-8 text-white shadow-xl shadow-[#308279]/20 md:col-span-6 md:p-10">
               <div className="relative z-10">
                 <Clock className="w-8 h-8 mb-4 group-hover:-rotate-90 transition-transform duration-500" />
                 <h3 className="text-xl font-bold mb-2 text-white">On-Demand Library</h3>
@@ -355,7 +352,7 @@ export default function HomePage() {
                 </motion.div>
               ) : error ? (
                 <motion.div
-                  className="rounded-[2rem] border border-[#F3B7B7] bg-white p-10 text-center shadow-sm"
+                  className="rounded-3xl border border-[#F3B7B7] bg-white p-8 text-center shadow-sm sm:p-10"
                   initial="hidden"
                   whileInView="show"
                   viewport={{ once: true, margin: "-100px" }}
@@ -371,7 +368,7 @@ export default function HomePage() {
                 </motion.div>
               ) : filteredCourses.length === 0 ? (
                 <motion.div
-                  className="rounded-[2rem] border border-[#D7E5E9] bg-white p-10 text-center shadow-sm"
+                  className="rounded-3xl border border-[#D7E5E9] bg-white p-8 text-center shadow-sm sm:p-10"
                   initial="hidden"
                   whileInView="show"
                   viewport={{ once: true, margin: "-100px" }}
@@ -397,7 +394,7 @@ export default function HomePage() {
                     <motion.div
                       key={course.id}
                       variants={fadeUpVariants}
-                      className="group flex cursor-pointer flex-col rounded-[1.5rem] border border-[#D7E5E9] bg-white p-5 shadow-[0_16px_36px_rgba(10,27,69,0.07)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_48px_rgba(10,27,69,0.12)]"
+                      className="group flex cursor-pointer flex-col rounded-2xl border border-[#D7E5E9] bg-white p-5 shadow-[0_16px_36px_rgba(10,27,69,0.07)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#308279] hover:shadow-[0_22px_48px_rgba(10,27,69,0.12)]"
                     >
                       <div className="relative mb-5 h-48 w-full overflow-hidden rounded-[1.25rem]">
                         <ImageWithFallback
@@ -482,7 +479,7 @@ export default function HomePage() {
               <motion.div
                 key={tutor.id}
                 variants={fadeUpVariants}
-                className="bg-white rounded-[2rem] shadow-xl shadow-[#0A1B45]/5 border border-[#F3F8FA] group overflow-hidden flex flex-col hover:shadow-2xl hover:shadow-[#308279]/10 transition-all duration-500 hover:-translate-y-2"
+                className="group flex flex-col overflow-hidden rounded-2xl border border-[#D8E5E9] bg-white shadow-xl shadow-[#0A1B45]/5 transition-all duration-500 hover:-translate-y-0.5 hover:border-[#308279] hover:shadow-2xl hover:shadow-[#308279]/10"
               >
                 {/* Image Section */}
                 <div className="relative h-64 w-full overflow-hidden">
@@ -528,16 +525,8 @@ export default function HomePage() {
       </section>
 
       {/* Elegant CTA Section */}
-      <section className="py-24 relative overflow-hidden bg-[#0A1B45] rounded-t-[3rem] mt-10">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <motion.div
-            className="absolute top-[-50%] left-[-10%] w-[70%] h-[150%] bg-[#308279]/20 rounded-full blur-[100px]"
-            animate={{
-              rotate: [0, 90, 0],
-            }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          />
-        </div>
+      <section className="relative mt-10 overflow-hidden rounded-t-[2rem] bg-[#0A1B45] py-20 sm:py-24">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#92B7B0]/50 to-transparent" />
 
         <motion.div
           className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10"

@@ -22,17 +22,17 @@ export default function AdminStudentsPage({
   toggleStudentStatus,
 }: AdminStudentsPageProps) {
   return (
-    <div className="p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="app-page-header">
         <div>
           <h2 className="text-3xl font-bold text-[#0A1B45]">Students Management</h2>
           <p className="mt-2 text-[#476074]">View and manage all students</p>
         </div>
-        <div className="relative">
+        <div className="relative w-full sm:w-80">
           <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#476074]" />
           <Input
             placeholder="Search students..."
-            className="w-80 pl-10"
+            className="w-full pl-10"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
           />
@@ -43,9 +43,9 @@ export default function AdminStudentsPage({
         {students.map((student) => (
           <Card
             key={student.id}
-            className="overflow-hidden border-2 transition-all hover:border-[#308279] hover:shadow-lg"
+            className="overflow-hidden border-[#D8E5E9] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#308279] hover:shadow-[0_20px_46px_rgba(10,27,69,0.09)]"
           >
-            <div className="bg-gradient-to-br from-[#308279] to-[#92B7B0] p-6 text-white">
+            <div className="bg-gradient-to-br from-[#0A1B45] via-[#16625C] to-[#308279] p-6 text-white">
               <Avatar className="mb-4 h-16 w-16 border-4 border-white/20">
                 <AvatarFallback className="bg-white/20 text-xl text-white">
                   {student.name

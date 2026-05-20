@@ -62,15 +62,15 @@ export default function AdminTutorsPage({
   toggleTutorStatus,
 }: AdminTutorsPageProps) {
   return (
-    <div className="p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="app-page-header">
         <div>
           <h2 className="text-3xl font-bold text-[#0A1B45]">Tutors Management</h2>
           <p className="mt-2 text-[#476074]">
             Manage active tutors and add tutor accounts manually when needed.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
           <Button
             variant="outline"
             className="border-[#308279] text-[#308279]"
@@ -90,11 +90,11 @@ export default function AdminTutorsPage({
             <Plus className="mr-2 h-4 w-4" />
             Add Tutor
           </Button>
-          <div className="relative">
+          <div className="relative w-full sm:w-48">
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[#476074]" />
             <Input
               placeholder="Search tutors..."
-              className="w-40 pl-10"
+              className="w-full pl-10"
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
             />
@@ -109,7 +109,7 @@ export default function AdminTutorsPage({
       >
         <div className="min-h-0">
           <div
-            className={`rounded-[1.6rem] bg-white p-6 shadow-[inset_0_18px_34px_rgba(10,27,69,0.06),inset_0_-8px_18px_rgba(233,241,244,0.9),0_20px_40px_rgba(10,27,69,0.08)] transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            className={`rounded-3xl border border-[#D8E5E9] bg-white p-5 shadow-[0_20px_40px_rgba(10,27,69,0.08)] transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] sm:p-6 ${
               isApplicationsPanelOpen ? "translate-y-0" : "-translate-y-8"
             }`}
           >
@@ -411,7 +411,7 @@ export default function AdminTutorsPage({
         {tutors.map((tutor) => (
           <Card
             key={tutor.id}
-            className="overflow-hidden border-2 transition-all hover:border-[#308279] hover:shadow-lg"
+            className="overflow-hidden border-[#D8E5E9] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#308279] hover:shadow-[0_20px_46px_rgba(10,27,69,0.09)]"
           >
             <div className="bg-gradient-to-br from-[#0A1B45] to-[#476074] p-6 text-white">
               <div className="mb-4 flex items-center justify-between">

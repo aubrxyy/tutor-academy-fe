@@ -3,9 +3,8 @@ import { Link } from "react-router";
 
 export default function Footer() {
   return (
-    <footer className="bg-[#0A1B45] text-white pt-24 pb-8 border-t border-white/10 relative overflow-hidden">
-      {/* Decorative Blur */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-64 bg-[#308279]/20 blur-[100px] pointer-events-none rounded-full" />
+    <footer className="relative overflow-hidden border-t border-white/10 bg-[#0A1B45] pb-8 pt-20 text-white sm:pt-24">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#92B7B0]/50 to-transparent" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 mb-16">

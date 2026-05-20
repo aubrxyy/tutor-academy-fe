@@ -243,11 +243,8 @@ export default function HelpFAQPage() {
     <div className="min-h-screen bg-[linear-gradient(180deg,#F8FBFB_0%,#F3F8FA_38%,#F3F8FA_100%)]">
       <Navbar />
 
-      <section className="relative overflow-hidden pt-32 pb-10">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute left-0 top-0 h-72 w-72 rounded-full bg-[#92B7B0]/20 blur-[110px]" />
-          <div className="absolute right-0 top-12 h-80 w-80 rounded-full bg-[#308279]/14 blur-[130px]" />
-        </div>
+      <section className="relative overflow-hidden pb-10 pt-32">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#D8E5E9] to-transparent" />
 
         <motion.div
           className="relative z-10 mx-auto grid max-w-6xl gap-6 px-4 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8"
@@ -255,7 +252,7 @@ export default function HelpFAQPage() {
           initial="hidden"
           animate="show"
         >
-          <motion.div variants={fadeUpVariants} className="rounded-[2rem] border border-white/80 bg-white/90 p-8 shadow-[0_26px_70px_rgba(10,27,69,0.08)] backdrop-blur-sm sm:p-10">
+          <motion.div variants={fadeUpVariants} className="rounded-3xl border border-[#D8E5E9] bg-white p-6 shadow-[0_20px_52px_rgba(10,27,69,0.08)] sm:p-10">
             <div className="inline-flex items-center gap-2 rounded-full bg-[#EBF3F1] px-4 py-2 text-sm font-medium text-[#308279]">
               <Sparkles className="h-4 w-4" />
               {userRole === "student" ? "Student Help Desk" : "Tutor Help Desk"}
@@ -281,7 +278,7 @@ export default function HelpFAQPage() {
           </motion.div>
 
           <motion.div variants={fadeUpVariants}>
-          <Card className="rounded-[2rem] border border-[#D9E6EA] bg-white p-6 shadow-[0_22px_60px_rgba(10,27,69,0.06)] sm:p-8">
+          <Card className="rounded-3xl border border-[#D9E6EA] bg-white p-5 shadow-[0_18px_42px_rgba(10,27,69,0.06)] sm:p-8">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#0A1B45] to-[#308279] text-white">
                 <HelpCircle className="h-6 w-6" />

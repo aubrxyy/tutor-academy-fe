@@ -135,6 +135,14 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  :where(a, button, input, textarea, select, [role="button"], [role="switch"], [tabindex]:not([tabindex="-1"])) {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  select {
+    @apply min-h-10 rounded-lg border border-border bg-white px-3 py-2 text-sm text-foreground transition-[background-color,border-color,box-shadow,color] disabled:cursor-not-allowed disabled:bg-[#F3F8FA] disabled:opacity-70;
+  }
+
   /**
   * Default typography styles for HTML elements (h1-h4, p, label, button, input).
   * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
@@ -189,5 +197,47 @@
       linear-gradient(to right, rgba(146, 183, 176, 0.1) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(146, 183, 176, 0.1) 1px, transparent 1px);
     background-size: 24px 24px;
+  }
+
+  .app-shell {
+    @apply min-h-screen bg-[#F3F8FA] text-[#0A1B45];
+  }
+
+  .app-page {
+    @apply mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8;
+  }
+
+  .app-page-header {
+    @apply mb-6 flex flex-col gap-4 sm:mb-8 lg:flex-row lg:items-end lg:justify-between;
+  }
+
+  .app-card {
+    @apply rounded-2xl border border-[#D8E5E9] bg-white shadow-[0_14px_34px_rgba(10,27,69,0.055)];
+  }
+
+  .app-muted-panel {
+    @apply rounded-2xl border border-[#D8E5E9] bg-[#F9FCFD];
+  }
+
+  .app-table {
+    @apply w-full min-w-[760px] text-left text-sm;
+  }
+
+  .app-table thead {
+    @apply bg-[#F3F8FA] text-xs font-semibold uppercase tracking-[0.12em] text-[#476074];
+  }
+
+  .app-table th,
+  .app-table td {
+    @apply border-b border-[#E5EEF1] p-4;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }

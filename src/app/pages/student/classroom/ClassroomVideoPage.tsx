@@ -402,7 +402,7 @@ export default function ClassroomVideoPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="relative overflow-hidden rounded-[1.75rem] border-[#D8E5E9] bg-white shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
+      <Card className="relative overflow-hidden rounded-3xl border-[#D8E5E9] bg-white shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
         <div className="aspect-video bg-[#071735] [--plyr-color-main:#308279]">
           {item.sourceUrl && !videoError ? (
             <div ref={playerHostRef} className="h-full w-full" />
@@ -422,7 +422,7 @@ export default function ClassroomVideoPage() {
         </div>
 
         {trackerEnabled ? (
-          <div className={`absolute bottom-5 right-5 z-10 w-[156px] rounded-[1.25rem] border p-3 text-white backdrop-blur-md ${trackerPanelClass}`}>
+          <div className={`absolute bottom-3 right-3 z-10 w-[136px] rounded-2xl border p-2.5 text-white backdrop-blur-md sm:bottom-5 sm:right-5 sm:w-[156px] sm:p-3 ${trackerPanelClass}`}>
             <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-black">
               <video ref={webcamVideoRef} className="hidden" autoPlay muted playsInline />
               <canvas ref={facePreviewCanvasRef} className="aspect-square w-full scale-x-[-1] object-cover" />
@@ -443,12 +443,12 @@ export default function ClassroomVideoPage() {
           </div>
         ) : null}
 
-        <div className="p-7">
+        <div className="p-5 sm:p-7">
           <div className="flex flex-wrap items-center gap-2">
             <Badge className="border-0 bg-[#0A1B45]/8 text-[#0A1B45]">Video</Badge>
             <Badge className="border-0 bg-[#308279]/10 text-[#308279]">{item.sectionTitle}</Badge>
           </div>
-          <h2 className="mt-4 text-3xl font-bold text-[#0A1B45]">{item.title}</h2>
+          <h2 className="mt-4 text-2xl font-bold tracking-[-0.02em] text-[#0A1B45] sm:text-3xl">{item.title}</h2>
           <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-[#476074]">
             <span className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
@@ -459,7 +459,7 @@ export default function ClassroomVideoPage() {
         </div>
       </Card>
 
-      <Card className="rounded-[1.5rem] border-[#D8E5E9] bg-white p-5 shadow-[0_14px_32px_rgba(10,27,69,0.05)]">
+      <Card className="rounded-2xl border-[#D8E5E9] bg-white p-5 shadow-[0_14px_32px_rgba(10,27,69,0.05)]">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
             <div className={`flex h-14 w-14 items-center justify-center rounded-full ${trackerEnabled ? "bg-[#008D84] text-white" : "bg-[#F3F8FA] text-[#476074]"}`}>

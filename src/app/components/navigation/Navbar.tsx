@@ -13,13 +13,14 @@ export default function Navbar() {
   const location = useLocation();
   const { isAuthenticated, logout, user } = useAuth();
   const isDashboard = location.pathname.includes('dashboard') || location.pathname.includes('classroom');
+  const forceSolidNavbar = location.pathname === "/about";
   const dashboardHref = user ? getDefaultDashboardPath(user.role) : "/login";
 
   const navItems = [
     { label: "Home", to: "/" },
     { label: "Marketplace", to: "/marketplace" },
+    { label: "About", to: "/about" },
     { label: "FAQ", to: "/help-faq" },
-    ...(isAuthenticated ? [{ label: "Dashboard", to: dashboardHref }] : []),
   ];
 
   useEffect(() => {
@@ -66,7 +67,7 @@ export default function Navbar() {
 
   return (
     <motion.nav
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'}`}
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled || forceSolidNavbar ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'}`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}

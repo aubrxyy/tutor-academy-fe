@@ -18,13 +18,13 @@ export default function ClassroomPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
+      <Card className="rounded-3xl border-[#D8E5E9] bg-white p-5 shadow-[0_18px_42px_rgba(10,27,69,0.06)] sm:p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-[#D8E5E9] bg-[#F9FCFD] px-4 py-2 text-xs uppercase tracking-[0.14em] text-[#476074]">
               Cohort workspace
             </div>
-            <h2 className="mt-5 text-3xl font-bold text-[#0A1B45]">
+            <h2 className="mt-5 text-2xl font-bold tracking-[-0.02em] text-[#0A1B45] sm:text-3xl">
               Selamat datang di kelas {course.title} Batch {selectedBatch.batchCode}
             </h2>
             <p className="mt-3 max-w-3xl text-[#476074] leading-7">
@@ -36,9 +36,9 @@ export default function ClassroomPage() {
       </Card>
 
       {featuredVideo || featuredMaterial ? (
-        <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-7 shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
+        <Card className="rounded-3xl border-[#D8E5E9] bg-white p-5 shadow-[0_18px_42px_rgba(10,27,69,0.06)] sm:p-7">
           <div className="flex flex-col gap-6">
-            <div className="flex items-end justify-between gap-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <Badge className="border-0 bg-[#0A1B45]/8 text-[#0A1B45]">Sections</Badge>
                 <h3 className="mt-3 text-2xl font-bold text-[#0A1B45]">Video & Material</h3>

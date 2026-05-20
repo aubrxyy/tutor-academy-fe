@@ -76,7 +76,7 @@ export default function RegisterPage() {
 
       <main className="px-4 pb-20 pt-32 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.05fr_0.95fr]">
-<section className="rounded-[2rem] bg-gradient-to-br from-[#0A1B45] via-[#153063] to-[#308279] p-8 text-white shadow-[0_30px_80px_rgba(10,27,69,0.18)] sm:p-10">
+          <section className="rounded-3xl bg-gradient-to-br from-[#0A1B45] via-[#153063] to-[#308279] p-6 text-white shadow-[0_24px_64px_rgba(10,27,69,0.16)] sm:p-10">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-sm">
               <ShieldCheck className="h-4 w-4 text-[#92B7B0]" />
               Belajar Bareng Mahasiswa BINUS
@@ -133,7 +133,7 @@ export default function RegisterPage() {
             </div>
           </section>
 
-          <section className="rounded-[2rem] border border-white bg-white p-7 shadow-[0_22px_60px_rgba(10,27,69,0.08)] sm:p-8">
+          <section className="rounded-3xl border border-[#D8E5E9] bg-white p-6 shadow-[0_18px_42px_rgba(10,27,69,0.08)] sm:p-8">
             <div>
               <div className="text-sm font-semibold uppercase tracking-[0.18em] text-[#308279]">
                 Sign Up

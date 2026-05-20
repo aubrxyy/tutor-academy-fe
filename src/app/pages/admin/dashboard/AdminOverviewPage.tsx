@@ -63,10 +63,10 @@ export default function AdminOverviewPage({
 }: AdminOverviewPageProps) {
   const { logout, user } = useAuth();
   return (
-    <div className="p-8">
-      <div className="mb-8 rounded-[2rem] bg-gradient-to-r from-[#0A1B45] via-[#123061] to-[#308279] p-8 text-white shadow-[0_24px_60px_rgba(10,27,69,0.14)]">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <section className="mb-8 overflow-hidden rounded-3xl bg-gradient-to-r from-[#0A1B45] via-[#123061] to-[#308279] p-6 text-white shadow-[0_24px_60px_rgba(10,27,69,0.14)] sm:p-8">
         <div>
-          <h2 className="mt-5 text-4xl font-bold tracking-[-0.04em]">
+          <h2 className="text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
             Welcome, {user?.name ?? "Ops Admin"}!
           </h2>
           <p className="mt-3 max-w-2xl leading-7 text-white/75">
@@ -74,7 +74,7 @@ export default function AdminOverviewPage({
             workflow pembuatan class, struktur video, pricing, dan monitoring transaksi.
           </p>
         </div>
-      </div>
+      </section>
 
       <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
@@ -82,9 +82,9 @@ export default function AdminOverviewPage({
             key={stat.label}
             type="button"
             onClick={() => setAdminView(stat.view)}
-            className="text-left"
+            className="rounded-2xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#308279]/40 focus-visible:ring-offset-2"
           >
-            <Card className="cursor-pointer border-2 p-6 transition-all hover:border-[#308279] hover:shadow-lg">
+            <Card className="h-full cursor-pointer border-[#D8E5E9] p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#308279] hover:shadow-[0_20px_46px_rgba(10,27,69,0.1)]">
               <div className="mb-4 flex items-start justify-between">
                 <div
                   className={`flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br ${stat.color}`}
@@ -97,7 +97,7 @@ export default function AdminOverviewPage({
                   <ArrowDownRight className="h-5 w-5 text-red-500" />
                 )}
               </div>
-              <div className="mb-2 text-3xl font-bold text-[#0A1B45]">{stat.value}</div>
+              <div className="mb-2 text-3xl font-bold tracking-[-0.03em] text-[#0A1B45]">{stat.value}</div>
               <div className="mb-2 text-sm text-[#476074]">{stat.label}</div>
               <div className="text-xs font-medium text-green-600">{stat.change} data</div>
             </Card>
@@ -106,7 +106,7 @@ export default function AdminOverviewPage({
       </div>
 
       <div className="mb-8 grid gap-6 lg:grid-cols-2">
-        <Card className="p-6">
+        <Card className="p-5 sm:p-6">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-lg font-bold text-[#0A1B45]">Revenue Growth Trend</h3>
             <Badge className="border-0 bg-green-100 text-green-700">+15% Growth</Badge>
@@ -145,7 +145,7 @@ export default function AdminOverviewPage({
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-5 sm:p-6">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-lg font-bold text-[#0A1B45]">User Growth Tracking</h3>
           </div>
@@ -176,7 +176,7 @@ export default function AdminOverviewPage({
         </Card>
       </div>
 
-      <Card className="p-6">
+      <Card className="p-5 sm:p-6">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-lg font-bold text-[#0A1B45]">Students Enrolled</h3>
         </div>

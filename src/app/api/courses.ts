@@ -7,7 +7,6 @@ export type CourseStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 
 export interface Course {
   id: string;
-  tutorId: string[];
   title: string;
   slug: string;
   thumbnailUrl?: string | null;
@@ -23,7 +22,6 @@ export interface Course {
 }
 
 export interface CourseInput {
-  tutorId: string[];
   title: string;
   description: string;
   shortDescription: string;
@@ -52,7 +50,6 @@ export interface CourseCardView {
 }
 
 export interface CourseDetailView extends CourseCardView {
-  tutorIds: string[];
   subtitle: string;
   description: string;
   pricing: {
@@ -67,7 +64,6 @@ export interface CourseDetailView extends CourseCardView {
 export const COURSE_FIELDS = gql`
   fragment CourseFields on Course {
     id
-    tutorId
     title
     slug
     thumbnailUrl
@@ -246,7 +242,6 @@ export function mapCourseToDetail(course: Course): CourseDetailView {
 
   return {
     ...mapCourseToCard(course),
-    tutorIds: course.tutorId,
     subtitle: course.shortDescription,
     description: course.description,
     pricing: {

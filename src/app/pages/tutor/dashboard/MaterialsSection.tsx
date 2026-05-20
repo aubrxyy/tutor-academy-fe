@@ -71,11 +71,11 @@ export function MaterialsSection({
               return (
                 <Card
                   key={item.id}
-                  className="border-[#D9E6EA] bg-white p-5 shadow-[0_18px_40px_rgba(10,27,69,0.06)] hover:shadow-[0_24px_48px_rgba(10,27,69,0.12)]"
+                  className="border-[#D9E6EA] bg-white p-5 shadow-[0_18px_40px_rgba(10,27,69,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#308279] hover:shadow-[0_24px_48px_rgba(10,27,69,0.12)]"
                 >
                   <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                      <div className="flex flex-row gap-6">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
                         <h3 className="mt-2 text-xl font-bold text-[#0A1B45]">{item.title}</h3>
                         <Button className="w-fit bg-[#308279] text-white hover:bg-[#256366] cursor-pointer" onClick={() => onMaterialCourseChange(String(item.id))}>
                           <BookOpen className="mr-2 h-4 w-4" />
@@ -157,7 +157,7 @@ export function MaterialsSection({
           <form className="space-y-4" onSubmit={onMaterialSubmit}>
             <div className="space-y-2">
               <Label htmlFor="material-class">Class</Label>
-              <select id="material-class" className="w-full rounded-md border p-2">
+              <select id="material-class" className="w-full">
                 {assignedClassCards.map((item) => (
                   <option key={item.id}>{item.title}</option>
                 ))}
@@ -165,7 +165,7 @@ export function MaterialsSection({
             </div>
             <div className="space-y-2">
               <Label htmlFor="material-reference">Admin Material</Label>
-              <select id="material-reference" className="w-full rounded-md border p-2">
+              <select id="material-reference" className="w-full">
                 {visibleMaterials.map((material) => (
                   <option key={material.id}>{material.title}</option>
                 ))}

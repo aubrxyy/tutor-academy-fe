@@ -48,13 +48,9 @@ export default function MarketplacePage() {
       <Navbar />
 
       {/* Header Section */}
-      <section className="pt-32 pb-16 bg-white relative overflow-hidden shadow-sm">
+      <section className="relative overflow-hidden bg-white pb-16 pt-28 shadow-sm sm:pt-32">
         <div className="absolute inset-0 pointer-events-none">
-          <motion.div
-            className="absolute -top-40 -right-40 w-96 h-96 bg-[#92B7B0]/20 rounded-full blur-[100px]"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          />
+          <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#D8E5E9] to-transparent" />
         </div>
 
         <motion.div
@@ -63,8 +59,8 @@ export default function MarketplacePage() {
           initial="hidden"
           animate="show"
         >
-          <motion.div variants={fadeUpVariants} className="text-center max-w-3xl mx-auto">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[#0A1B45] tracking-tight mb-6">
+          <motion.div variants={fadeUpVariants} className="mx-auto max-w-3xl text-center">
+            <h1 className="mb-6 text-4xl font-black tracking-tight text-[#0A1B45] md:text-5xl lg:text-6xl">
               Explore Top <span className="text-[#308279]">Classes</span>
             </h1>
             <p className="text-lg text-[#476074]">
@@ -75,19 +71,19 @@ export default function MarketplacePage() {
           {/* Search and Filter Bar */}
           <motion.div
             variants={fadeUpVariants}
-            className="mt-12 bg-white rounded-2xl p-4 shadow-lg border border-gray-100 flex flex-col md:flex-row gap-4 max-w-4xl mx-auto relative z-20"
+            className="relative z-20 mx-auto mt-12 flex max-w-4xl flex-col gap-4 rounded-2xl border border-[#D8E5E9] bg-white p-3 shadow-[0_18px_42px_rgba(10,27,69,0.08)] md:flex-row sm:p-4"
           >
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search for classes, tutors, or topics..."
-                className="w-full h-14 pl-12 pr-4 rounded-xl bg-[#F3F8FA] border-none focus:ring-2 focus:ring-[#308279] focus:bg-white transition-all text-[#0A1B45] font-medium"
+                className="h-14 w-full rounded-xl border border-transparent bg-[#F3F8FA] pl-12 pr-4 font-medium text-[#0A1B45] transition-all focus:border-[#308279] focus:bg-white focus:ring-2 focus:ring-[#308279]/30"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <button className="h-14 px-6 rounded-xl bg-[#0A1B45] text-white font-semibold flex items-center justify-center gap-2 hover:bg-[#308279] transition-colors shadow-md">
+            <button className="flex h-14 items-center justify-center gap-2 rounded-xl bg-[#0A1B45] px-6 font-semibold text-white shadow-md transition-colors hover:bg-[#308279]">
               <Filter className="w-4 h-4" />
               Filters
             </button>
@@ -97,7 +93,7 @@ export default function MarketplacePage() {
 
       {/* Content Section */}
       <motion.section
-        className="pt-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        className="mx-auto max-w-7xl px-4 pt-12 sm:px-6 lg:px-8"
         variants={staggerContainer}
         initial="hidden"
         whileInView="show"
@@ -105,12 +101,12 @@ export default function MarketplacePage() {
       >
 
         {/* Categories */}
-        <motion.div variants={fadeUpVariants} className="flex items-center gap-3 overflow-x-auto pb-6 mb-8 no-scrollbar">
+        <motion.div variants={fadeUpVariants} className="no-scrollbar mb-8 flex items-center gap-3 overflow-x-auto pb-6">
           {categories.map((category) => (
             <button
               key={category}
               onClick={() => setActiveCategory(category)}
-              className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${activeCategory === category
+              className={`whitespace-nowrap rounded-full px-6 py-2.5 text-sm font-semibold transition-all duration-300 ${activeCategory === category
                   ? "bg-[#0A1B45] text-white shadow-md"
                   : "bg-white text-[#476074] hover:bg-[#F3F8FA] hover:text-[#0A1B45] border border-gray-100"
                 }`}
@@ -136,12 +132,12 @@ export default function MarketplacePage() {
             </Button>
           </motion.div>
         ) : filteredCourses.length > 0 ? (
-          <motion.div variants={staggerContainer} className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <motion.div variants={staggerContainer} className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:gap-8">
             {filteredCourses.map((course) => (
               <motion.div
                 key={course.id}
                 variants={fadeUpVariants}
-                className="group flex flex-col overflow-hidden rounded-[1.5rem] border border-[#D7E5E9] bg-white shadow-[0_18px_40px_rgba(10,27,69,0.08)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_54px_rgba(10,27,69,0.14)]"
+                className="group flex flex-col overflow-hidden rounded-2xl border border-[#D7E5E9] bg-white shadow-[0_18px_40px_rgba(10,27,69,0.08)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#308279] hover:shadow-[0_24px_54px_rgba(10,27,69,0.14)]"
               >
                 {/* Image Section */}
                 <div className="relative h-52 w-full overflow-hidden border-b border-[#E5EEF1]">
@@ -200,7 +196,7 @@ export default function MarketplacePage() {
             ))}
           </motion.div>
         ) : (
-          <motion.div variants={fadeUpVariants} className="bg-white rounded-2xl p-16 text-center border border-gray-100 shadow-sm max-w-2xl mx-auto">
+          <motion.div variants={fadeUpVariants} className="mx-auto max-w-2xl rounded-2xl border border-[#D8E5E9] bg-white p-8 text-center shadow-sm sm:p-16">
             <div className="w-20 h-20 bg-[#F3F8FA] rounded-full flex items-center justify-center mx-auto mb-6">
               <Search className="w-10 h-10 text-[#92B7B0]" />
             </div>

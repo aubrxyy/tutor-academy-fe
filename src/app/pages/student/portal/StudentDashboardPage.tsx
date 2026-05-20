@@ -94,15 +94,14 @@ export default function StudentDashboardPage() {
       {/* Header */}
       <header className="relative overflow-hidden bg-gradient-to-br from-[#071735] via-[#0A1B45] to-[#308279] text-white">
         <div className="absolute inset-0 bg-grid-pattern opacity-20" />
-        <div className="absolute -right-12 top-0 h-64 w-64 rounded-full bg-[#92B7B0]/20 blur-3xl" />
-        <div className="absolute left-0 top-24 h-40 w-40 rounded-full bg-[#308279]/20 blur-3xl" />
+        <div className="absolute inset-x-0 bottom-0 h-px bg-white/15" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+        <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-8">
             <div>
               <div className="mt-5 max-w-3xl">
                 <div>
-                  <h1 className="text-3xl font-bold tracking-[-0.03em] mb-2 sm:text-4xl">
+                  <h1 className="mb-2 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
                     Welcome back, {firstName}
                   </h1>
                   <p className="max-w-4xl text-white/80 text-base leading-7">
@@ -117,13 +116,13 @@ export default function StudentDashboardPage() {
       </header>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid gap-8 lg:grid-cols-3">
           {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-8">
             {/* Ongoing Classes */}
             <section>
-              <div className="flex items-center justify-between mb-6">
+              <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <h2 className="text-2xl font-bold text-[#0A1B45]">My Classes</h2>
                   <p className="text-[#476074]">Lanjutkan pembelajaran dari terakhir kali</p>
@@ -137,7 +136,7 @@ export default function StudentDashboardPage() {
 
               <div className="space-y-4">
                 {ongoingCourses.map((course) => (
-                  <Card key={course.id} className="overflow-hidden hover:shadow-lg transition-all group border-2 hover:border-[#308279]">
+                  <Card key={course.id} className="group overflow-hidden border-[#D8E5E9] transition-all duration-200 hover:-translate-y-0.5 hover:border-[#308279] hover:shadow-[0_20px_46px_rgba(10,27,69,0.09)]">
                     <div className="flex flex-col sm:flex-row">
                       {/* Thumbnail */}
                       <div className={`w-full sm:w-48 h-40 sm:h-auto bg-gradient-to-br ${course.thumbnail} flex items-center justify-center`}>
@@ -146,7 +145,7 @@ export default function StudentDashboardPage() {
 
                       {/* Content */}
                       <div className="flex-1 p-6">
-                        <div className="flex items-start justify-between mb-3">
+                        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                           <div>
                             <h3 className="text-xl font-bold text-[#0A1B45] mb-1 group-hover:text-[#308279] transition-colors">
                               {course.title}
@@ -164,8 +163,8 @@ export default function StudentDashboardPage() {
                         </div>
 
                         {/* Next Lesson */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 text-sm text-[#476074]">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex flex-wrap items-center gap-2 text-sm text-[#476074]">
                             <Clock className="w-4 h-4" />
                             <span>Next: {course.nextLesson}</span>
                             <span>•</span>
@@ -187,7 +186,7 @@ export default function StudentDashboardPage() {
 
             {/* Eye Tracking Stats */}
             <section>
-              <Card className="overflow-hidden">
+              <Card className="overflow-hidden border-[#D8E5E9]">
                 <div className="bg-gradient-to-r from-[#308279] to-[#92B7B0] p-6 text-white">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
@@ -203,27 +202,27 @@ export default function StudentDashboardPage() {
                   </p>
                 </div>
 
-                <div className="p-6">
+                <div className="p-5 sm:p-6">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center p-4 bg-[#F3F8FA] rounded-lg">
+                    <div className="rounded-2xl border border-[#E5EEF1] bg-[#F3F8FA] p-4 text-center">
                       <div className="text-3xl font-bold text-[#308279] mb-1">{focusStats.weeklyAverage}%</div>
                       <div className="text-xs text-[#476074]">Weekly Average</div>
                     </div>
-                    <div className="text-center p-4 bg-[#F3F8FA] rounded-lg">
+                    <div className="rounded-2xl border border-[#E5EEF1] bg-[#F3F8FA] p-4 text-center">
                       <div className="text-3xl font-bold text-[#0A1B45] mb-1">{focusStats.todayScore}%</div>
                       <div className="text-xs text-[#476074]">Today's Score</div>
                     </div>
-                    <div className="text-center p-4 bg-[#F3F8FA] rounded-lg">
+                    <div className="rounded-2xl border border-[#E5EEF1] bg-[#F3F8FA] p-4 text-center">
                       <div className="text-3xl font-bold text-[#0A1B45] mb-1">{focusStats.totalSessions}</div>
                       <div className="text-xs text-[#476074]">Total Sessions</div>
                     </div>
-                    <div className="text-center p-4 bg-[#F3F8FA] rounded-lg">
+                    <div className="rounded-2xl border border-[#E5EEF1] bg-[#F3F8FA] p-4 text-center">
                       <div className="text-3xl font-bold text-[#308279] mb-1">{focusStats.improvement}</div>
                       <div className="text-xs text-[#476074]">Improvement</div>
                     </div>
                   </div>
 
-                  <div className="mt-6 p-4 bg-[#308279]/5 rounded-lg border border-[#308279]/20">
+                  <div className="mt-6 rounded-2xl border border-[#308279]/20 bg-[#308279]/5 p-4">
                     <div className="flex items-start gap-3">
                       <TrendingUp className="w-5 h-5 text-[#308279] flex-shrink-0 mt-0.5" />
                       <div>
@@ -240,7 +239,7 @@ export default function StudentDashboardPage() {
 
             {/* Learning Progress Chart */}
             <section>
-              <Card className="p-6">
+              <Card className="p-5 sm:p-6">
                 <div className="mb-6">
                   <h3 className="text-xl font-bold text-[#0A1B45] mb-1">Progress Belajar Mingguan</h3>
                   <p className="text-sm text-[#476074]">Jam belajar kamu dalam 7 hari terakhir</p>
@@ -275,7 +274,7 @@ export default function StudentDashboardPage() {
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="mt-4 p-3 bg-[#F3F8FA] rounded-lg flex items-center justify-between">
+                <div className="mt-4 flex items-center justify-between rounded-2xl border border-[#E5EEF1] bg-[#F3F8FA] p-3">
                   <div className="text-sm text-[#476074]">Total minggu ini</div>
                   <div className="text-xl font-bold text-[#308279]">
                     {learningProgressData.reduce((acc, d) => acc + d.hours, 0).toFixed(1)}h

@@ -24,13 +24,13 @@ export default function AdminFinancialsPage({
   handleDownloadFinancialPdf,
 }: AdminFinancialsPageProps) {
   return (
-    <div className="p-8">
-      <div className="mb-8 flex items-start justify-between gap-4">
+    <div className="p-4 sm:p-6 lg:p-8">
+      <div className="app-page-header">
         <div>
           <h2 className="text-3xl font-bold text-[#0A1B45]">Financial Reports</h2>
           <p className="mt-2 text-[#476074]">Revenue, subscriptions, and income per class</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           <Button
             variant="outline"
             className="border-[#308279] text-[#308279]"
@@ -46,13 +46,13 @@ export default function AdminFinancialsPage({
         </div>
       </div>
 
-      <Card className="mb-6 p-6">
+      <Card className="mb-6 p-5 sm:p-6">
         <div className="grid gap-6 md:grid-cols-2">
-          <div className="rounded-lg bg-gradient-to-br from-[#308279] to-[#92B7B0] p-4 text-white">
+          <div className="rounded-2xl bg-gradient-to-br from-[#0A1B45] to-[#308279] p-5 text-white">
             <div className="text-sm">Monthly Revenue</div>
             <div className="mt-2 text-3xl font-bold">Rp 45jt</div>
           </div>
-          <div className="rounded-lg bg-gradient-to-br from-[#92B7B0] to-[#476074] p-4 text-white">
+          <div className="rounded-2xl bg-gradient-to-br from-[#308279] to-[#476074] p-5 text-white">
             <div className="text-sm">Active Subscriptions</div>
             <div className="mt-2 text-3xl font-bold">557</div>
           </div>
@@ -64,7 +64,7 @@ export default function AdminFinancialsPage({
           <h3 className="text-xl font-bold text-[#0A1B45]">Class Revenue Breakdown</h3>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="app-table">
             <thead className="bg-[#F3F8FA]">
               <tr>
                 <th className="p-4 text-left text-[#0A1B45]">Class Name</th>

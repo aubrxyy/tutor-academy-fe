@@ -52,11 +52,11 @@ export default function ClassroomMeetingPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
+      <Card className="rounded-3xl border-[#D8E5E9] bg-white p-5 shadow-[0_18px_42px_rgba(10,27,69,0.06)] sm:p-8">
         <div className="flex flex-wrap items-center gap-2">
           <Badge className="border-0 bg-[#0A1B45]/8 text-[#0A1B45]">{item.sectionTitle}</Badge>
         </div>
-        <h2 className="mt-4 text-3xl font-bold text-[#0A1B45]">{item.title}</h2>
+        <h2 className="mt-4 text-2xl font-bold tracking-[-0.02em] text-[#0A1B45] sm:text-3xl">{item.title}</h2>
         <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-[#476074]">
           <span className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
@@ -117,7 +117,7 @@ export default function ClassroomMeetingPage() {
       </Card>
 
       {item.completed ? (
-        <Card className="rounded-[1.75rem] border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.06)]">
+      <Card className="rounded-3xl border-[#D8E5E9] bg-white p-5 shadow-[0_18px_42px_rgba(10,27,69,0.06)] sm:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <Badge className="border-0 bg-[#EAF6F4] text-[#308279]">Post-session feedback</Badge>

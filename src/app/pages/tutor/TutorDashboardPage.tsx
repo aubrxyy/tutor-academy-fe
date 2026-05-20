@@ -339,11 +339,11 @@ export default function TutorDashboardPage() {
       <main className="min-w-0 flex-1">
         <header className="relative overflow-hidden bg-gradient-to-br from-[#071735] via-[#0A1B45] to-[#308279] text-white">
           <div className="absolute inset-0 bg-grid-pattern opacity-20" />
-          <div className="absolute right-0 top-0 h-72 w-72 rounded-full bg-[#92B7B0]/15 blur-3xl" />
+          <div className="absolute inset-x-0 bottom-0 h-px bg-white/15" />
           <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             <div className="flex flex-col gap-8">
               <div className="mt-5 max-w-3xl">
-                <h1 className="text-4xl font-bold tracking-[-0.03em]">
+                <h1 className="text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
                   {tutorSectionCopy[activeView].title}
                 </h1>
                 <p className="mt-3 max-w-2xl leading-7 text-white/80">
@@ -353,11 +353,11 @@ export default function TutorDashboardPage() {
             </div>
 
             {activeView === "overview" ? (
-              <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+              <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
                 {stats.map((stat) => (
                   <Card
                     key={stat.label}
-                    className="border-white/15 bg-white/10 p-5 shadow-lg backdrop-blur-md transition-all hover:-translate-y-1"
+                    className="border-white/15 bg-white/10 p-5 shadow-lg backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5"
                   >
                     <div
                       className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} shadow-lg`}

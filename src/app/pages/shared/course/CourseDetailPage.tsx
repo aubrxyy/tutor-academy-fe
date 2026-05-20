@@ -110,10 +110,8 @@ export default function CourseDetailPage() {
     <div className="min-h-screen bg-[#F3F8FA] font-sans selection:bg-[#308279] selection:text-white">
       <Navbar />
 
-      <div className="relative overflow-hidden border-b border-[#D8E5E9] bg-white pt-12 pb-20">
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -right-24 top-0 h-[26rem] w-[26rem] rounded-full bg-gradient-to-b from-[#92B7B0]/18 to-[#308279]/8 blur-[90px]" />
-        </div>
+      <div className="relative overflow-hidden border-b border-[#D8E5E9] bg-white pb-20 pt-12">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#D8E5E9] to-transparent" />
 
         <div className="relative z-10 mx-auto max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
           <Link to="/marketplace">

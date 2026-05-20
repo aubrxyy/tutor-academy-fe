@@ -2313,12 +2313,12 @@ export default function CourseEditPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#F3F8FA]">
+    <div className="min-h-screen bg-[#F3F8FA] lg:flex">
       <AdminSidebar activeView="classes" />
 
-      <main className="min-w-0 flex-1 p-6 lg:p-8">
+      <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <Link to="/admin-dashboard?view=classes" className="mb-3 inline-flex items-center text-sm font-semibold text-[#308279]">
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -2354,40 +2354,40 @@ export default function CourseEditPage() {
           </div>
 
           <Tabs value={activeTab} onValueChange={(value) => setTab(value as EditorTab)} className="w-full">
-            <TabsList className="mb-6 grid h-auto w-full gap-3 rounded-xl border border-[#D8E5E9] bg-white p-4 shadow-sm md:grid-cols-2 xl:grid-cols-6">
+            <TabsList className="mb-6 grid h-auto w-full gap-2 rounded-2xl border border-[#D8E5E9] bg-white p-3 shadow-sm sm:gap-3 sm:p-4 md:grid-cols-2 xl:grid-cols-6">
               <TabsTrigger
                 value="basic"
-                className="h-auto justify-start rounded-lg border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
+                className="h-auto justify-start rounded-xl border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
               >
                 Class Information
               </TabsTrigger>
               <TabsTrigger
                 value="curriculum"
-                className="h-auto justify-start rounded-lg border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
+                className="h-auto justify-start rounded-xl border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
               >
                 Curriculum Builder
               </TabsTrigger>
               <TabsTrigger
                 value="pricing"
-                className="h-auto justify-start rounded-lg border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
+                className="h-auto justify-start rounded-xl border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
               >
                 Package Pricing
               </TabsTrigger>
               <TabsTrigger
                 value="batches"
-                className="h-auto justify-start rounded-lg border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
+                className="h-auto justify-start rounded-xl border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
               >
                 Batch Setup
               </TabsTrigger>
               <TabsTrigger
                 value="quizzes"
-                className="h-auto justify-start rounded-lg border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
+                className="h-auto justify-start rounded-xl border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
               >
                 Quizzes
               </TabsTrigger>
               <TabsTrigger
                 value="live"
-                className="h-auto justify-start rounded-lg border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
+                className="h-auto justify-start rounded-xl border border-[#D8E5E9] bg-white p-3 text-left font-semibold text-[#0A1B45] data-[state=active]:border-[#308279] data-[state=active]:bg-[#EAF5F3] data-[state=active]:text-[#0A1B45]"
               >
                 Live Sessions
               </TabsTrigger>
