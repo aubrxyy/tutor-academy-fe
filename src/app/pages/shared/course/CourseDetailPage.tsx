@@ -1,32 +1,30 @@
-import { Link, useParams } from "react-router";
 import {
   ArrowLeft,
+  ArrowRight,
   Calendar,
-  Star,
-  Users,
-  Clock,
-  Video,
   CheckCircle,
-  MessageSquare,
+  Clock,
+  GraduationCap,
+  Star,
   TrendingUp,
+  Users,
+  Video
 } from "lucide-react";
 import { useState } from "react";
-import { Button } from "../../../components/ui/button";
-import { Card } from "../../../components/ui/card";
-import { Badge } from "../../../components/ui/badge";
-import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
-import Navbar from "../../../components/navigation/Navbar";
-import Footer from "../../../components/layout/Footer";
+import { Link, useParams } from "react-router";
 import { useCourseDetail } from "../../../api/courses";
 import { useCourseReviews } from "../../../api/reviews";
-import { useTutorsByIds } from "../../../api/admin";
+import Footer from "../../../components/layout/Footer";
+import Navbar from "../../../components/navigation/Navbar";
+import { Badge } from "../../../components/ui/badge";
+import { Button } from "../../../components/ui/button";
+import { Card } from "../../../components/ui/card";
 import { getCoursePackagesForDetail } from "../../../data/batches";
 
 export default function CourseDetailPage() {
   const { courseId } = useParams();
   const { course, loading, error, refetch } = useCourseDetail(courseId);
   const { data: reviewsData, loading: isReviewsLoading } = useCourseReviews(courseId);
-  const { data: tutorUsersData } = useTutorsByIds(course?.tutorIds ?? []);
   const [selectedBatchByPackage, setSelectedBatchByPackage] = useState<Record<string, string>>({});
   const reviews = reviewsData?.reviews?.nodes ?? [];
   const reviewCount = reviews.length;
@@ -85,22 +83,8 @@ export default function CourseDetailPage() {
     );
   }
 
-  const resolvedTutorNames =
-    tutorUsersData?.users?.nodes
-      ?.map((tutor) => tutor.name)
-      .filter(Boolean) ?? [];
-  const primaryTutorName = resolvedTutorNames[0] ?? course.tutor;
-  const tutor = {
-    name: primaryTutorName,
-    title: `${course.major} mentor`,
-    avatar: "TA",
-    rating: displayRating,
-    description:
-      "Beliau adalah seorang tutor yang berpengalaman dalam bidang ini, dengan rekam jejak yang terbukti membantu memperkuat nilai rupiah. Dengan pendekatan pengajaran yang personal dan mendalam, beliau siap membimbing Anda melalui setiap konsep sulit dan memastikan program MBG tetap berjalan dengan lancar.",
-  };
   const packages = getCoursePackagesForDetail({
     courseId,
-    tutorName: tutor.name,
     alaCartePrice: course.pricing.alaCarte,
     tutorPackagePrice: course.pricing.tutorPackage,
     isFree: course.pricing.monthly <= 0,
@@ -153,7 +137,7 @@ export default function CourseDetailPage() {
                   <span>{course.duration}</span>
                 </div>
                 <div className="flex items-center gap-2 rounded-full bg-[#F3F8FA] px-4 py-2">
-                  <Video className="h-5 w-5 text-[#308279]" />
+                  <GraduationCap className="h-5 w-5 text-[#308279]" />
                   <span>{course.major}</span>
                 </div>
               </div>
@@ -237,7 +221,7 @@ export default function CourseDetailPage() {
                             <div className="mt-5 flex items-center justify-between gap-3">
                               <Link to={`/classroom/${courseId}?package=${pkg.id}`}>
                                 <Button className="bg-[#0A1B45] text-white hover:bg-[#308279]">
-                                  Choose Package
+                                  <ArrowRight className="ml-2 h-4 w-4" /> Choose Package
                                 </Button>
                               </Link>
                             </div>
@@ -262,7 +246,7 @@ export default function CourseDetailPage() {
                                       [pkg.id]: batch.id,
                                     }))
                                   }
-                                  className={`rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                                  className={`rounded-xl border px-3 py-2 text-sm font-semibold cursor-pointer transition ${
                                     isActive
                                       ? "border-[#308279] bg-[#308279] text-white"
                                       : "border-[#D8E5E9] bg-[#F9FCFD] text-[#476074] hover:border-[#A8C6C0] hover:bg-white hover:text-[#0A1B45]"
@@ -290,10 +274,6 @@ export default function CourseDetailPage() {
                                 <span>Enroll before {selectedBatch.enrollmentDeadline}</span>
                               </div>
                               <div className="flex items-center gap-2">
-                                <Users className="h-4 w-4 text-[#308279]" />
-                                <span>Tutor: {selectedBatch.tutorName}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
                                 <Clock className="h-4 w-4 text-[#308279]" />
                                 <span>{selectedBatch.intakeWindow}</span>
                               </div>
@@ -301,6 +281,7 @@ export default function CourseDetailPage() {
                             <div className="mt-5 flex items-center justify-between gap-3">
                               <Link to={`/classroom/${courseId}?package=${pkg.id}&batch=${selectedBatch.id}`}>
                                 <Button className="bg-[#0A1B45] text-white hover:bg-[#308279]">
+                                  <ArrowRight className="ml-2 h-4 w-4" />
                                   Choose Batch
                                 </Button>
                               </Link>
@@ -314,7 +295,7 @@ export default function CourseDetailPage() {
               </div>
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+            <div className="gap-6 lg:items-start">
               <div className="space-y-6">
                 <div className="rounded-[1.75rem] border border-[#D8E5E9] bg-white p-8 shadow-[0_18px_42px_rgba(10,27,69,0.08)]">
                   <h2 className="mb-6 text-3xl font-black uppercase tracking-tight text-[#0A1B45]">
@@ -339,7 +320,7 @@ export default function CourseDetailPage() {
                         What you get when you enroll
                       </h3>
                     </div>
-                    <p className="max-w-md text-sm leading-6 text-[#476074]">
+                    <p className="max-w-xl text-sm leading-6 text-[#476074]">
                       Everything below is included in the package structure for this class, arranged
                       to support both self-paced study and tutor-guided learning.
                     </p>
@@ -357,32 +338,6 @@ export default function CourseDetailPage() {
                         <span className="leading-6">{feature}</span>
                       </div>
                     ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-[1.75rem] border border-[#D8E5E9] bg-[#FCFEFE] p-6 shadow-[0_16px_36px_rgba(10,27,69,0.06)]">
-                <div className="flex items-start gap-5">
-                  <Avatar className="h-16 w-16 border border-[#D8E5E9]">
-                    <AvatarFallback className="bg-[#92B7B0] text-2xl font-black text-[#0A1B45]">
-                      {tutor.avatar}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="mb-1 text-xl font-bold text-[#0A1B45]">{tutor.name}</div>
-                    <div className="mb-3 text-sm font-semibold uppercase tracking-wider text-[#308279]">
-                      {tutor.title}
-                    </div>
-                    <p className="text-sm font-medium leading-relaxed text-[#476074]">
-                      {tutor.description}
-                    </p>
-                    <div className="mt-4 flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-wide text-[#0A1B45]">
-                      <span className="flex items-center gap-1 rounded-full bg-[#F3F8FA] px-2.5 py-1">
-                        <Star className="h-3 w-3 fill-[#0A1B45] text-[#0A1B45]" />
-                        {tutor.rating}
-                      </span>
-                      <span>Verified tutor</span>
-                    </div>
                   </div>
                 </div>
               </div>

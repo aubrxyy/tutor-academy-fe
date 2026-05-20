@@ -1,48 +1,48 @@
-import { useEffect, useMemo, useState } from "react";
-import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { useMutation, useQuery } from "@apollo/client/react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import {
-  Bold,
-  ClassicEditor,
-  Essentials,
-  Heading,
-  Italic,
-  Link as CKEditorLink,
-  List,
-  Paragraph,
-  Undo,
-  type EditorConfig,
+    Bold,
+    Link as CKEditorLink,
+    ClassicEditor,
+    Essentials,
+    Heading,
+    Italic,
+    List,
+    Paragraph,
+    Undo,
+    type EditorConfig,
 } from "ckeditor5";
 import "ckeditor5/ckeditor5.css";
-import { Link, useParams } from "react-router";
 import {
-  ArrowLeft,
-  CalendarDays,
-  Check,
-  ClipboardCheck,
-  FileText,
-  Pencil,
-  Plus,
-  Save,
-  Trash2,
-  Upload,
-  Video,
+    ArrowLeft,
+    CalendarDays,
+    Check,
+    ClipboardCheck,
+    FileText,
+    Pencil,
+    Plus,
+    Save,
+    Trash2,
+    Upload,
+    Video,
 } from "lucide-react";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 import { useTutorUsers } from "../../../api/admin";
 import { CREATE_BATCH, useCourseBatches, type Batch as BackendBatch, type CreateBatchInput } from "../../../api/batches";
 import {
-  CREATE_COURSE,
-  GET_COURSE_BY_ID,
-  UPDATE_COURSE,
-  getCoursePackagePricing,
-  setCoursePackagePricing,
-  type Course,
-  type CourseInput,
-  type CourseLevel,
-  type CourseStatus as BackendCourseStatus,
+    CREATE_COURSE,
+    GET_COURSE_BY_ID,
+    UPDATE_COURSE,
+    getCoursePackagePricing,
+    setCoursePackagePricing,
+    type CourseStatus as BackendCourseStatus,
+    type Course,
+    type CourseInput,
+    type CourseLevel,
 } from "../../../api/courses";
 import AdminSidebar from "../../../components/navigation/AdminSidebar";
 import { Badge } from "../../../components/ui/badge";

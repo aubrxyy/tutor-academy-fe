@@ -1,18 +1,28 @@
-import { Link } from "react-router";
-import { 
-  BookOpen, TrendingUp, Clock, Target, PlayCircle,
-  Award, Calendar, Eye, ChevronRight, Download, ArrowRight
+import {
+  Award,
+  BookOpen,
+  Calendar,
+  ChevronRight,
+  Clock,
+  Eye,
+  PlayCircle,
+  Target,
+  TrendingUp
 } from "lucide-react";
+import { Link } from "react-router";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis, YAxis
+} from "recharts";
+import { useAuth } from "../../../auth/AuthContext";
+import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
-import { Badge } from "../../../components/ui/badge";
 import { Progress } from "../../../components/ui/progress";
-import { useAuth } from "../../../auth/AuthContext";
-import { toast } from "sonner";
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer
-} from "recharts";
 
 export default function StudentDashboardPage() {
   const { user } = useAuth();
@@ -117,9 +127,8 @@ export default function StudentDashboardPage() {
 
       {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Left Column - Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+        <div className="grid gap-8">
+          <div className="space-y-8">
             {/* Ongoing Classes */}
             <section>
               <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -184,58 +193,6 @@ export default function StudentDashboardPage() {
               </div>
             </section>
 
-            {/* Eye Tracking Stats */}
-            <section>
-              <Card className="overflow-hidden border-[#D8E5E9]">
-                <div className="bg-gradient-to-r from-[#308279] to-[#92B7B0] p-6 text-white">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                      <Eye className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold">Eye-Tracking Focus Analytics</h3>
-                      <Badge variant="outline" className="border-white text-white mt-1">Beta Feature</Badge>
-                    </div>
-                  </div>
-                  <p className="text-white/90 text-sm">
-                    Pantau dan tingkatkan tingkat fokus kamu saat belajar dengan AI technology
-                  </p>
-                </div>
-
-                <div className="p-5 sm:p-6">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="rounded-2xl border border-[#E5EEF1] bg-[#F3F8FA] p-4 text-center">
-                      <div className="text-3xl font-bold text-[#308279] mb-1">{focusStats.weeklyAverage}%</div>
-                      <div className="text-xs text-[#476074]">Weekly Average</div>
-                    </div>
-                    <div className="rounded-2xl border border-[#E5EEF1] bg-[#F3F8FA] p-4 text-center">
-                      <div className="text-3xl font-bold text-[#0A1B45] mb-1">{focusStats.todayScore}%</div>
-                      <div className="text-xs text-[#476074]">Today's Score</div>
-                    </div>
-                    <div className="rounded-2xl border border-[#E5EEF1] bg-[#F3F8FA] p-4 text-center">
-                      <div className="text-3xl font-bold text-[#0A1B45] mb-1">{focusStats.totalSessions}</div>
-                      <div className="text-xs text-[#476074]">Total Sessions</div>
-                    </div>
-                    <div className="rounded-2xl border border-[#E5EEF1] bg-[#F3F8FA] p-4 text-center">
-                      <div className="text-3xl font-bold text-[#308279] mb-1">{focusStats.improvement}</div>
-                      <div className="text-xs text-[#476074]">Improvement</div>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 rounded-2xl border border-[#308279]/20 bg-[#308279]/5 p-4">
-                    <div className="flex items-start gap-3">
-                      <TrendingUp className="w-5 h-5 text-[#308279] flex-shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-medium text-[#0A1B45] mb-1">Great Progress!</p>
-                        <p className="text-sm text-[#476074]">
-                          Focus score kamu meningkat 5% minggu ini. Terus pertahankan konsistensi belajar!
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            </section>
 
             {/* Learning Progress Chart */}
             <section>
@@ -282,10 +239,8 @@ export default function StudentDashboardPage() {
                 </div>
               </Card>
             </section>
-          </div>
 
-          {/* Right Column - Sidebar */}
-          <div className="space-y-6">
+            <div className="space-y-6">
             {/* Learning Streak */}
             <Card className="p-6">
               <div className="flex items-center gap-3 mb-4">
@@ -306,6 +261,60 @@ export default function StudentDashboardPage() {
                 ))}
               </div>
             </Card>
+            </div>
+            
+                        {/* Eye Tracking Stats */}
+                        <section>
+                          <Card className="overflow-hidden border-[#D8E5E9]">
+                            <div className="bg-gradient-to-r from-[#308279] to-[#92B7B0] p-6 text-white">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                  <Eye className="w-6 h-6" />
+                                </div>
+                                <div>
+                                  <h3 className="text-xl font-bold">Eye-Tracking Focus Analytics</h3>
+                                  <Badge variant="outline" className="border-white text-white mt-1">Beta Feature</Badge>
+                                </div>
+                              </div>
+                              <p className="text-white/90 text-sm">
+                                Pantau dan tingkatkan tingkat fokus kamu saat belajar dengan AI technology
+                              </p>
+                            </div>
+            
+                            <div className="p-5 sm:p-6">
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="rounded-2xl border border-[#E5EEF1] bg-[#F3F8FA] p-4 text-center">
+                                  <div className="text-3xl font-bold text-[#308279] mb-1">{focusStats.weeklyAverage}%</div>
+                                  <div className="text-xs text-[#476074]">Weekly Average</div>
+                                </div>
+                                <div className="rounded-2xl border border-[#E5EEF1] bg-[#F3F8FA] p-4 text-center">
+                                  <div className="text-3xl font-bold text-[#0A1B45] mb-1">{focusStats.todayScore}%</div>
+                                  <div className="text-xs text-[#476074]">Today's Score</div>
+                                </div>
+                                <div className="rounded-2xl border border-[#E5EEF1] bg-[#F3F8FA] p-4 text-center">
+                                  <div className="text-3xl font-bold text-[#0A1B45] mb-1">{focusStats.totalSessions}</div>
+                                  <div className="text-xs text-[#476074]">Total Sessions</div>
+                                </div>
+                                <div className="rounded-2xl border border-[#E5EEF1] bg-[#F3F8FA] p-4 text-center">
+                                  <div className="text-3xl font-bold text-[#308279] mb-1">{focusStats.improvement}</div>
+                                  <div className="text-xs text-[#476074]">Improvement</div>
+                                </div>
+                              </div>
+            
+                              <div className="mt-6 rounded-2xl border border-[#308279]/20 bg-[#308279]/5 p-4">
+                                <div className="flex items-start gap-3">
+                                  <TrendingUp className="w-5 h-5 text-[#308279] flex-shrink-0 mt-0.5" />
+                                  <div>
+                                    <p className="font-medium text-[#0A1B45] mb-1">Great Progress!</p>
+                                    <p className="text-sm text-[#476074]">
+                                      Focus score kamu meningkat 5% minggu ini. Terus pertahankan konsistensi belajar!
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        </section>
           </div>
         </div>
       </div>

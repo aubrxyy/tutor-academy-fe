@@ -1,10 +1,10 @@
-import { Mail, Phone, MessageCircle, MapPin, Clock, Send } from "lucide-react";
-import { Card } from "../../components/ui/card";
+import { Clock, Mail, MapPin, MessageCircle, Phone, Send } from "lucide-react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui/accordion";
 import { Button } from "../../components/ui/button";
+import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui/accordion";
 
 export default function ContactPage() {
   const contactMethods = [

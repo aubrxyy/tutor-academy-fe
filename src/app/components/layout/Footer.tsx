@@ -1,5 +1,7 @@
-import { GraduationCap, Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from "lucide-react";
+import { WhatsappLogoIcon } from "@phosphor-icons/react";
 import { Link } from "react-router";
+import tutoringAcademyLogo from "../../../assets/tutoringacademy.png";
 
 export default function Footer() {
   return (
@@ -11,16 +13,20 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="lg:col-span-4 max-w-md">
             <Link to="/" className="flex items-center gap-3 mb-6 group">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#308279] to-[#92b7b0] flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform duration-300">
-                <GraduationCap className="w-6 h-6" />
+              <div className="flex absolute items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-105">
+                <img
+                  src={tutoringAcademyLogo}
+                  alt="Tutoring Academy"
+                  className="size-32 object-contain"
+                />
               </div>
-              <span className="text-2xl font-bold tracking-tight">Tutoring <span className="font-light text-[#92B7B0]">Academy</span></span>
+              <span className="text-2xl ml-28 font-bold tracking-tight">Tutoring <span className="font-light text-[#92B7B0]">Academy</span></span>
             </Link>
-            <p className="text-[#92B7B0] leading-relaxed mb-8 text-sm">
+            <p className="text-[#92B7B0] ml-8 leading-relaxed mb-8 text-sm">
               Platform pembelajaran kolaboratif premium untuk mahasiswa BINUS. Kami memfasilitasi transfer pengetahuan peer-to-peer dengan standar kualitas tinggi untuk kesuksesan akademik.
             </p>
-            <div className="flex space-x-4">
-              {[Facebook, Twitter, Instagram, Linkedin].map((Icon, i) => (
+            <div className="flex space-x-4 ml-8">
+              {[Instagram, WhatsappLogoIcon].map((Icon, i) => (
                 <a key={i} href="#" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-[#92B7B0] hover:bg-[#308279] hover:text-white transition-all duration-300">
                   <Icon className="w-5 h-5" />
                 </a>
@@ -33,9 +39,8 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-6 tracking-wide">Platform</h3>
             <ul className="space-y-4">
               <li><Link to="/marketplace" className="text-[#92B7B0] hover:text-white transition-colors text-sm">Class Catalog</Link></li>
-              <li><Link to="/register" className="text-[#92B7B0] hover:text-white transition-colors text-sm">Daftar Akun</Link></li>
-              <li><Link to="/student-dashboard" className="text-[#92B7B0] hover:text-white transition-colors text-sm">Student Dashboard</Link></li>
-              <li><Link to="#" className="text-[#92B7B0] hover:text-white transition-colors text-sm">Pricing Plans</Link></li>
+              <li><Link to="/register" className="text-[#92B7B0] hover:text-white transition-colors text-sm">Daftar sebagai student</Link></li>
+              <li><Link to="#" className="text-[#92B7B0] hover:text-white transition-colors text-sm">Daftar sebagai tutor</Link></li>
             </ul>
           </div>
 
@@ -43,10 +48,8 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <h3 className="text-white font-semibold mb-6 tracking-wide">Company</h3>
             <ul className="space-y-4">
-              <li><Link to="#" className="text-[#92B7B0] hover:text-white transition-colors text-sm">About Us</Link></li>
-              <li><Link to="#" className="text-[#92B7B0] hover:text-white transition-colors text-sm">Careers</Link></li>
-              <li><Link to="#" className="text-[#92B7B0] hover:text-white transition-colors text-sm">Privacy Policy</Link></li>
-              <li><Link to="#" className="text-[#92B7B0] hover:text-white transition-colors text-sm">Terms of Service</Link></li>
+              <li><Link to="/about" className="text-[#92B7B0] hover:text-white transition-colors text-sm">About Us</Link></li>
+              <li><Link to="/help-faq" className="text-[#92B7B0] hover:text-white transition-colors text-sm">Frequently Asked Questions</Link></li>
             </ul>
           </div>
 
@@ -54,23 +57,17 @@ export default function Footer() {
           <div className="lg:col-span-3">
             <h3 className="text-white font-semibold mb-6 tracking-wide">Contact Us</h3>
             <ul className="space-y-5">
-              <li className="flex items-start gap-4 text-[#92B7B0] hover:text-white transition-colors group">
-                <div className="bg-white/5 p-2 rounded-lg group-hover:bg-[#308279]/20 transition-colors">
-                  <MapPin className="w-5 h-5 text-[#308279]" />
-                </div>
-                <span className="text-sm leading-relaxed pt-1">BINUS University, Anggrek Campus<br />Jakarta Barat, 11480</span>
-              </li>
               <li className="flex items-center gap-4 text-[#92B7B0] hover:text-white transition-colors group">
                 <div className="bg-white/5 p-2 rounded-lg group-hover:bg-[#308279]/20 transition-colors">
                   <Phone className="w-5 h-5 text-[#308279]" />
                 </div>
-                <span className="text-sm">+62 21 5369 6969</span>
+                <span className="text-sm">+62 822-8452-6151</span>
               </li>
               <li className="flex items-center gap-4 text-[#92B7B0] hover:text-white transition-colors group">
                 <div className="bg-white/5 p-2 rounded-lg group-hover:bg-[#308279]/20 transition-colors">
                   <Mail className="w-5 h-5 text-[#308279]" />
                 </div>
-                <span className="text-sm">hello@tutoringacademy.id</span>
+                <span className="text-sm">hello@tutoringacademy.my.id</span>
               </li>
             </ul>
           </div>

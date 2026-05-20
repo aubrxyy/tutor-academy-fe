@@ -1,5 +1,5 @@
+import { Clock } from "lucide-react";
 import { Link, useParams, useSearchParams } from "react-router";
-import { Clock, Target, Trophy } from "lucide-react";
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";

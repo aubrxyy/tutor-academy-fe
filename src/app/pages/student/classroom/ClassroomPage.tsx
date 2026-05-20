@@ -1,9 +1,9 @@
-import { Link, useParams, useSearchParams } from "react-router";
 import { ArrowRight, Calendar, FileText, PlayCircle, Target, Video } from "lucide-react";
+import { Link, useParams, useSearchParams } from "react-router";
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
-import { getMockClassroomData, buildClassroomItemHref } from "../../../data/classroomContent";
+import { buildClassroomItemHref, getMockClassroomData } from "../../../data/classroomContent";
 
 export default function ClassroomPage() {
   const { courseId } = useParams();

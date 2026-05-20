@@ -1,9 +1,9 @@
-import { Link, NavLink, Outlet, useLocation, useParams, useSearchParams } from "react-router";
 import { ChevronLeft, LayoutGrid, PlayCircle, Target, Video } from "lucide-react";
+import { Link, NavLink, Outlet, useLocation, useParams, useSearchParams } from "react-router";
+import ClassroomCurriculumRail from "../components/classroom/ClassroomCurriculumRail";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Progress } from "../components/ui/progress";
-import ClassroomCurriculumRail from "../components/classroom/ClassroomCurriculumRail";
 import { buildClassroomItemHref, getMockClassroomData } from "../data/classroomContent";
 
 export default function ClassroomLayout() {

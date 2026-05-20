@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
+import { Camera, Loader2, Lock, Mail, Phone, Save, User } from "lucide-react";
 import type { FormEvent } from "react";
-import { User, Mail, Lock, Phone, Camera, Save, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { graphqlUrl } from "../../../api/graphql";
 import { useAuth } from "../../../auth/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
 
 const UPDATE_PROFILE_MUTATION = `
   mutation UpdateProfile(

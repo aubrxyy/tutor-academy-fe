@@ -1,14 +1,14 @@
-import { Link } from "react-router";
-import { Eye, Star, ArrowRight, TrendingUp, Clock, Target, CheckCircle2, Video } from "lucide-react";
-import { Button } from "../../components/ui/button";
-import { Badge } from "../../components/ui/badge";
-import Navbar from "../../components/navigation/Navbar";
-import Footer from "../../components/layout/Footer";
-import { ImageWithFallback } from "../../components/media/ImageWithFallback";
+import imagebinus from "@/assets/imagebinus.png";
+import { ArrowRight, CheckCircle2, Clock, Eye, Star, Target, TrendingUp, Video } from "lucide-react";
 import { motion, useScroll, useTransform, Variants } from "motion/react";
 import { useState } from "react";
+import { Link } from "react-router";
 import { useCourses } from "../../api/courses";
-import imagebinus from "@/assets/imagebinus.png";
+import Footer from "../../components/layout/Footer";
+import { ImageWithFallback } from "../../components/media/ImageWithFallback";
+import Navbar from "../../components/navigation/Navbar";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
 
 export default function HomePage() {
   const { courses, loading, error, refetch } = useCourses();
@@ -552,7 +552,7 @@ export default function HomePage() {
               </Button>
             </Link>
             <div className="text-white/40 text-sm hidden sm:block px-2">or</div>
-            <Link to="/tutor-dashboard" className="w-full sm:w-auto">
+            <Link to="/register/tutor" className="w-full sm:w-auto">
               <Button variant="outline" className="w-full sm:w-auto h-14 bg-transparent border-white/30 text-white hover:bg-white/10 hover:border-white rounded-full px-10 text-lg font-medium transition-all duration-300">
                 Apply as a Tutor
               </Button>

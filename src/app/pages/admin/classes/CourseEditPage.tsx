@@ -1,72 +1,97 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { CombinedGraphQLErrors } from "@apollo/client/errors";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import {
-  Alignment,
-  Autoformat,
-  BlockQuote,
-  Bold,
-  ClassicEditor,
-  Code,
-  CodeBlock,
-  type EditorConfig,
-  Essentials,
-  FindAndReplace,
-  FontBackgroundColor,
-  FontColor,
-  FontFamily,
-  FontSize,
-  Heading,
-  Highlight,
-  HorizontalLine,
-  Indent,
-  Italic,
-  Link as CKEditorLink,
-  List,
-  ListProperties,
-  MediaEmbed,
-  Paragraph,
-  PasteFromOffice,
-  RemoveFormat,
-  SelectAll,
-  ShowBlocks,
-  SourceEditing,
-  SpecialCharacters,
-  SpecialCharactersArrows,
-  SpecialCharactersCurrency,
-  SpecialCharactersEssentials,
-  SpecialCharactersLatin,
-  SpecialCharactersMathematical,
-  SpecialCharactersText,
-  Strikethrough,
-  Style,
-  Subscript,
-  Superscript,
-  Table,
-  TableCellProperties,
-  TableProperties,
-  TableToolbar,
-  TodoList,
-  Underline,
-  Undo,
-  WordCount,
+    Alignment,
+    Autoformat,
+    BlockQuote,
+    Bold,
+    Link as CKEditorLink,
+    ClassicEditor,
+    Code,
+    CodeBlock,
+    Essentials,
+    FindAndReplace,
+    FontBackgroundColor,
+    FontColor,
+    FontFamily,
+    FontSize,
+    Heading,
+    Highlight,
+    HorizontalLine,
+    Indent,
+    Italic,
+    List,
+    ListProperties,
+    MediaEmbed,
+    Paragraph,
+    PasteFromOffice,
+    RemoveFormat,
+    SelectAll,
+    ShowBlocks,
+    SourceEditing,
+    SpecialCharacters,
+    SpecialCharactersArrows,
+    SpecialCharactersCurrency,
+    SpecialCharactersEssentials,
+    SpecialCharactersLatin,
+    SpecialCharactersMathematical,
+    SpecialCharactersText,
+    Strikethrough,
+    Style,
+    Subscript,
+    Superscript,
+    Table,
+    TableCellProperties,
+    TableProperties,
+    TableToolbar,
+    TodoList,
+    Underline,
+    Undo,
+    WordCount,
+    type EditorConfig,
 } from "ckeditor5";
 import "ckeditor5/ckeditor5.css";
-import "./course-edit-ckeditor.css";
-import { useMutation, useQuery } from "@apollo/client/react";
-import { CombinedGraphQLErrors } from "@apollo/client/errors";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import {
-  ArrowLeft,
-  CalendarDays,
-  ClipboardCheck,
-  FileText,
-  Pencil,
-  Plus,
-  Save,
-  Trash2,
-  Upload,
-  Video,
+    ArrowLeft,
+    CalendarDays,
+    ClipboardCheck,
+    FileText,
+    Pencil,
+    Plus,
+    Save,
+    Trash2,
+    Upload,
+    Video,
 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
+import { toast } from "sonner";
+import { useTutorUsers } from "../../../api/admin";
+import { CREATE_BATCH, useCourseBatches, type Batch, type CreateBatchInput } from "../../../api/batches";
+import {
+    CREATE_COURSE,
+    GET_COURSE_BY_ID,
+    UPDATE_COURSE,
+    getCoursePackagePricing,
+    setCoursePackagePricing,
+    type Course,
+    type CourseInput,
+    type CourseLevel,
+    type CourseStatus,
+} from "../../../api/courses";
+import {
+    CREATE_LECTURE,
+    CREATE_SECTION,
+    DELETE_LECTURE,
+    DELETE_SECTION,
+    GET_COURSE_CURRICULUM,
+    UPDATE_LECTURE,
+    UPDATE_SECTION,
+    useCourseCurriculum,
+    type Lecture,
+    type Section,
+} from "../../../api/curriculum";
 import AdminSidebar from "../../../components/navigation/AdminSidebar";
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
@@ -75,32 +100,7 @@ import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../components/ui/tabs";
 import { Textarea } from "../../../components/ui/textarea";
-import { toast } from "sonner";
-import { useTutorUsers } from "../../../api/admin";
-import { CREATE_BATCH, useCourseBatches, type Batch, type CreateBatchInput } from "../../../api/batches";
-import {
-  CREATE_COURSE,
-  GET_COURSE_BY_ID,
-  UPDATE_COURSE,
-  getCoursePackagePricing,
-  setCoursePackagePricing,
-  type Course,
-  type CourseInput,
-  type CourseLevel,
-  type CourseStatus,
-} from "../../../api/courses";
-import {
-  CREATE_LECTURE,
-  CREATE_SECTION,
-  DELETE_LECTURE,
-  DELETE_SECTION,
-  GET_COURSE_CURRICULUM,
-  UPDATE_LECTURE,
-  UPDATE_SECTION,
-  useCourseCurriculum,
-  type Lecture,
-  type Section,
-} from "../../../api/curriculum";
+import "./course-edit-ckeditor.css";
 
 type EditorTab = "basic" | "curriculum" | "pricing" | "batches" | "quizzes" | "live";
 type CurriculumItemType = "video" | "material";

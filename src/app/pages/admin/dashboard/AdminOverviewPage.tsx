@@ -1,20 +1,20 @@
 import type { LucideIcon } from "lucide-react";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
+    Area,
+    AreaChart,
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Line,
+    LineChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from "recharts";
-import { Badge } from "../../../components/ui/badge";
 import { useAuth } from "../../../auth/AuthContext";
+import { Badge } from "../../../components/ui/badge";
 import { Card } from "../../../components/ui/card";
 import type { AdminView } from "../shared/types";
 

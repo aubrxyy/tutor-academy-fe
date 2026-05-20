@@ -1,6 +1,6 @@
+import { Calendar, Copy, ExternalLink, Star } from "lucide-react";
 import { useState } from "react";
 import { useParams, useSearchParams } from "react-router";
-import { Calendar, Copy, ExternalLink, Star } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";

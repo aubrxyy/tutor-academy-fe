@@ -1,16 +1,23 @@
-import { useState } from "react";
-import { Link, useSearchParams } from "react-router";
 import {
-  HelpCircle, Search, BookOpen, CreditCard, Video,
-  Shield, Users, MessageCircle, Mail, Phone, Sparkles
+  BookOpen, CreditCard,
+  HelpCircle,
+  Mail,
+  MessageCircle,
+  Phone,
+  Search,
+  Shield,
+  Sparkles,
+  Users,
+  Video
 } from "lucide-react";
 import { motion, type Variants } from "motion/react";
-import Navbar from "../../components/navigation/Navbar";
+import { useState } from "react";
+import { Link, useSearchParams } from "react-router";
 import Footer from "../../components/layout/Footer";
-import { Button } from "../../components/ui/button";
+import Navbar from "../../components/navigation/Navbar";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui/accordion";
 import { Card } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui/accordion";
 import { Tabs, TabsList, TabsTrigger } from "../../components/ui/tabs";
 
 export default function HelpFAQPage() {
@@ -259,7 +266,7 @@ export default function HelpFAQPage() {
             </div>
 
             <h1 className="mt-6 text-4xl font-bold tracking-[-0.04em] text-[#0A1B45] sm:text-5xl">
-              Pusat Bantuan yang lebih rapi.
+              Pusat Bantuan
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-[#476074] sm:text-lg">
               {roleSummary}

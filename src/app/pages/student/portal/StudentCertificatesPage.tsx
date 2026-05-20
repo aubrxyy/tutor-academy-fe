@@ -1,11 +1,11 @@
-import { useState } from "react";
+import jsPDF from "jspdf";
 import { Award, Calendar, CheckCircle, Download, Eye } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
-import { Badge } from "../../../components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../../components/ui/dialog";
-import jsPDF from "jspdf";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../../../components/ui/dialog";
 
 export default function StudentCertificatesPage() {
   const [selectedCertificate, setSelectedCertificate] = useState<any>(null);

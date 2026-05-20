@@ -8,8 +8,8 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
       type={type}
       data-slot="input"
       className={cn(
-        "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-10 w-full min-w-0 rounded-lg border bg-white px-3 py-2 text-base transition-[background-color,border-color,box-shadow,color] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-[#F3F8FA] disabled:opacity-70 md:text-sm",
-        "focus-visible:border-ring focus-visible:bg-white focus-visible:ring-ring/35 focus-visible:ring-[3px]",
+        "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-10 w-full min-w-0 rounded-lg border bg-white px-3 py-2 text-base shadow-[0_1px_2px_rgba(10,27,69,0.06)] transition-[background-color,border-color,box-shadow,color] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-[#F3F8FA] disabled:opacity-70 md:text-sm",
+        "focus-visible:border-ring focus-visible:bg-white focus-visible:ring-ring/25 focus-visible:ring-[3px] focus-visible:shadow-[0_0_0_3px_rgba(48,130,121,0.14),0_1px_2px_rgba(10,27,69,0.08)]",
         "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
         className,
       )}

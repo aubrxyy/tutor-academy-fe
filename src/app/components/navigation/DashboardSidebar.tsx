@@ -1,8 +1,8 @@
-import { Link, useLocation, useNavigate } from "react-router";
 import { GraduationCap, LogOut, type LucideIcon } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useAuth } from "../../auth/AuthContext";
-import { cn } from "../ui/utils";
 import { confirmLogout } from "../feedback/confirmLogout";
+import { cn } from "../ui/utils";
 
 export interface DashboardNavItem {
   label: string;

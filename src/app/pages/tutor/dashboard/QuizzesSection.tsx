@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { ArrowLeft, CheckCircle2, Edit, Plus, Save, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
@@ -9,12 +9,12 @@ import { Label } from "../../../components/ui/label";
 import { Textarea } from "../../../components/ui/textarea";
 
 import type {
-  TutorAssignedClassCard,
-  TutorMeetingSession,
-  TutorQuiz,
-  TutorQuizDraft,
-  TutorQuizQuestionDraft,
-  TutorQuizQuestionType,
+    TutorAssignedClassCard,
+    TutorMeetingSession,
+    TutorQuiz,
+    TutorQuizDraft,
+    TutorQuizQuestionDraft,
+    TutorQuizQuestionType,
 } from "./types";
 
 type QuizCourseCard = TutorAssignedClassCard & {

@@ -1,14 +1,14 @@
+import { AlertCircle, ArrowLeft, CheckCircle, Clock, Target, Trophy, XCircle } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
-import { ArrowLeft, Clock, AlertCircle, CheckCircle, XCircle, Trophy, Target } from "lucide-react";
+import Footer from "../../../components/layout/Footer";
+import Navbar from "../../../components/navigation/Navbar";
+import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
-import { Badge } from "../../../components/ui/badge";
+import { Label } from "../../../components/ui/label";
 import { Progress } from "../../../components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "../../../components/ui/radio-group";
-import { Label } from "../../../components/ui/label";
-import Navbar from "../../../components/navigation/Navbar";
-import Footer from "../../../components/layout/Footer";
 
 export default function CourseQuizPage() {
   const { courseId, quizId } = useParams();

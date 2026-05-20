@@ -1,18 +1,17 @@
-import { useEffect, useState, type FormEvent } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
 import {
   ArrowRight,
   CalendarDays,
-  ShieldCheck,
-  UserRound,
+  UserRound
 } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router";
 
-import Navbar from "../../components/navigation/Navbar";
+import { getDefaultDashboardPath, useAuth } from "../../auth/AuthContext";
 import Footer from "../../components/layout/Footer";
+import Navbar from "../../components/navigation/Navbar";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { getDefaultDashboardPath, useAuth } from "../../auth/AuthContext";
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
@@ -75,10 +74,6 @@ export default function LoginPage() {
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.05fr_0.95fr]">
           {/* LEFT HERO SECTION */}
           <section className="rounded-3xl bg-gradient-to-br from-[#0A1B45] via-[#153063] to-[#308279] p-6 text-white shadow-[0_24px_64px_rgba(10,27,69,0.16)] sm:p-10">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-sm">
-              <ShieldCheck className="h-4 w-4 text-[#92B7B0]" />
-              Belajar Bareng kami
-            </div>
 
             <h1 className="mt-8 max-w-[12ch] text-4xl font-bold leading-tight tracking-[-0.04em] sm:text-5xl">
               Masuk ke Tutoring Academy.
@@ -208,7 +203,7 @@ export default function LoginPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-12 w-full rounded-xl border-[#0A1B45] text-[#0A1B45] hover:bg-[#F3F8FA]"
+                    className="h-12 w-full rounded-xl border-[#0A1B45] text-[#0A1B45]"
                   >
                     Back to homepage
                   </Button>

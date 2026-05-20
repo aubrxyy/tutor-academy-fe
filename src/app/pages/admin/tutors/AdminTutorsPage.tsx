@@ -1,15 +1,15 @@
+import { ChevronDown, Plus, Search } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
-import { ChevronDown, Plus, Search, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import type {
-  ManagedClass,
-  ManagedTutor,
-  NewTutorDraft,
-  TutorApplication,
+    ManagedClass,
+    ManagedTutor,
+    NewTutorDraft,
+    TutorApplication,
 } from "../shared/types";
 
 type AdminTutorsPageProps = {

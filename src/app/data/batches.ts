@@ -21,7 +21,6 @@ export interface CoursePackageBatchView {
   enrollmentDeadline: string;
   seatsLeft: number;
   totalSeats: number;
-  tutorName: string;
   admissionStatus: "Pending Review" | "Approved" | "Closed";
   intakeWindow: string;
 }
@@ -61,7 +60,6 @@ function addDays(base: Date, days: number) {
 
 function buildWeeklyBatches(args: {
   courseId: string | undefined;
-  tutorName: string;
   packagePrefix: "A" | "T" | "L";
   packageName: string;
   seats: number;
@@ -83,7 +81,6 @@ function buildWeeklyBatches(args: {
       enrollmentDeadline: formatDateLabel(deadline),
       seatsLeft: Math.max(args.seats - (index + 1) * 4, 3),
       totalSeats: args.seats,
-      tutorName: args.tutorName,
       admissionStatus: index === 0 ? "Approved" : index === 1 ? "Pending Review" : "Closed",
       intakeWindow:
         index === 2
@@ -149,7 +146,6 @@ export function getMockBatchesForCourse(
 
 export function getCoursePackagesForDetail(args: {
   courseId: string | undefined;
-  tutorName: string;
   alaCartePrice: number;
   tutorPackagePrice: number;
   isFree?: boolean;
@@ -215,7 +211,6 @@ export function getCoursePackagesForDetail(args: {
       requiresBatch: true,
       batches: buildWeeklyBatches({
         courseId: args.courseId,
-        tutorName: args.tutorName,
         packagePrefix: "L",
         packageName: "Live session package",
         seats: 24,

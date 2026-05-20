@@ -1,7 +1,7 @@
+import jsPDF from "jspdf";
+import { Download, FileText } from "lucide-react";
 import { useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router";
-import { Download, FileText } from "lucide-react";
-import jsPDF from "jspdf";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";

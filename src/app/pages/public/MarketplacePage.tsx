@@ -1,13 +1,13 @@
-import { useState } from "react";
-import { Search, Filter, Star, Clock, ArrowRight } from "lucide-react";
+import { ArrowRight, Clock, Filter, Search, Star } from "lucide-react";
 import { motion, type Variants } from "motion/react";
-import Navbar from "../../components/navigation/Navbar";
-import Footer from "../../components/layout/Footer";
-import { Badge } from "../../components/ui/badge";
-import { Button } from "../../components/ui/button";
-import { ImageWithFallback } from "../../components/media/ImageWithFallback";
+import { useState } from "react";
 import { Link } from "react-router";
 import { useCourses } from "../../api/courses";
+import Footer from "../../components/layout/Footer";
+import { ImageWithFallback } from "../../components/media/ImageWithFallback";
+import Navbar from "../../components/navigation/Navbar";
+import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
 
 export default function MarketplacePage() {
   const [activeCategory, setActiveCategory] = useState("All");

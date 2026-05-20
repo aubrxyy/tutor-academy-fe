@@ -1,16 +1,16 @@
-import { Link, useNavigate } from "react-router";
 import {
-  DollarSign,
-  FolderKanban,
-  GraduationCap,
-  LayoutDashboard,
-  LogOut,
-  ShieldCheck,
-  Users,
+    DollarSign,
+    FolderKanban,
+    GraduationCap,
+    LayoutDashboard,
+    LogOut,
+    ShieldCheck,
+    Users,
 } from "lucide-react";
-import { Button } from "../ui/button";
+import { Link, useNavigate } from "react-router";
 import { useAuth } from "../../auth/AuthContext";
 import { confirmLogout } from "../feedback/confirmLogout";
+import { Button } from "../ui/button";
 
 export type AdminView = "dashboard" | "classes" | "students" | "tutors" | "financials";
 

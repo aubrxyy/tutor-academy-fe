@@ -1,21 +1,20 @@
-import { NavLink, useLocation, useParams, useSearchParams } from "react-router";
 import {
-  Calendar,
   CheckCircle,
   Circle,
   FileText,
   PlayCircle,
   Target,
-  Video,
+  Video
 } from "lucide-react";
-import { Badge } from "../ui/badge";
-import { Card } from "../ui/card";
+import { NavLink, useLocation, useParams, useSearchParams } from "react-router";
 import {
   buildClassroomItemHref,
   getMockClassroomData,
   type ClassroomContentItem,
   type ClassroomContentKind,
 } from "../../data/classroomContent";
+import { Badge } from "../ui/badge";
+import { Card } from "../ui/card";
 
 function getKindBadge(kind: ClassroomContentKind) {
   switch (kind) {

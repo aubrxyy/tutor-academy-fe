@@ -1,12 +1,12 @@
+import { ArrowRight, CalendarDays, UserRound } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
-import { ArrowRight, LockKeyhole, ShieldCheck, UserRound, CalendarDays } from "lucide-react";
-import Navbar from "../../components/navigation/Navbar";
+import { getDefaultDashboardPath, useAuth } from "../../auth/AuthContext";
 import Footer from "../../components/layout/Footer";
+import Navbar from "../../components/navigation/Navbar";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { getDefaultDashboardPath, useAuth } from "../../auth/AuthContext";
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
@@ -77,17 +77,13 @@ export default function RegisterPage() {
       <main className="px-4 pb-20 pt-32 sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[1.05fr_0.95fr]">
           <section className="rounded-3xl bg-gradient-to-br from-[#0A1B45] via-[#153063] to-[#308279] p-6 text-white shadow-[0_24px_64px_rgba(10,27,69,0.16)] sm:p-10">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-sm">
-              <ShieldCheck className="h-4 w-4 text-[#92B7B0]" />
-              Belajar Bareng Mahasiswa BINUS
-            </div>
 
             <h1 className="mt-8 max-w-[12ch] text-4xl font-bold leading-tight tracking-[-0.04em] sm:text-5xl">
               Masuk ke Tutoring Academy.
             </h1>
 
             <p className="mt-5 max-w-xl text-base leading-7 text-white/75 sm:text-lg">
-              Platform peer-to-peer tutoring untuk mahasiswa BINUS.
+              Platform peer-to-peer tutoring untuk mahasiswa.
               Cari tutor, jadwalkan sesi belajar, dan tingkatkan pemahaman
               mata kuliah bersama mahasiswa lain yang sudah berpengalaman.
             </p>
@@ -145,6 +141,13 @@ export default function RegisterPage() {
                 Isi form di bawah untuk membuat akun baru. Setelah login,
                 kamu bisa mengakses marketplace dan course detail dengan data
                 personal kamu.
+              </p>
+              <p className="mt-3 text-sm font-medium text-[#476074]">
+                Mau daftar sebagai tutor?{" "}
+                <Link to="/register/tutor" className="font-bold text-[#308279] hover:text-[#0A1B45]">
+                  Isi tutor application
+                </Link>
+                .
               </p>
             </div>
 
@@ -237,7 +240,7 @@ export default function RegisterPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="h-12 w-full rounded-xl border-[#0A1B45] text-[#0A1B45] hover:bg-[#F3F8FA]"
+                    className="h-12 w-full rounded-xl border-[#0A1B45] text-[#0A1B45]"
                   >
                     Already have account?
                   </Button>

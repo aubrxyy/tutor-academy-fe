@@ -1,37 +1,36 @@
-import { useEffect, useMemo, useState } from "react";
 import { BarChart3, BookOpen, CheckCircle2, FileText, HelpCircle, Video } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { useTutorPanelCourses } from "../../api/admin";
+import { useAuth } from "../../auth/AuthContext";
 import DashboardSidebar from "../../components/navigation/DashboardSidebar";
 import { Card } from "../../components/ui/card";
-import { useAuth } from "../../auth/AuthContext";
-import { useTutorPanelCourses } from "../../api/admin";
 import { AnalyticsSection } from "./dashboard/AnalyticsSection";
 import {
-  createEmptyQuizDraft,
-  createQuizOptionDraft,
-  createQuizQuestionDraft,
-  createTutorStats,
-  initialAssignedClasses,
-  initialClassMaterials,
-  initialSessionAttendanceData,
-  initialStudentEngagementData,
-  initialTutorQuizzes,
-  initialUpcomingSessions,
-  tutorSectionCopy,
+    createEmptyQuizDraft,
+    createQuizOptionDraft,
+    createQuizQuestionDraft,
+    createTutorStats,
+    initialAssignedClasses,
+    initialClassMaterials,
+    initialSessionAttendanceData,
+    initialStudentEngagementData,
+    initialTutorQuizzes,
+    initialUpcomingSessions,
+    tutorSectionCopy,
 } from "./dashboard/data";
 import { MaterialsSection } from "./dashboard/MaterialsSection";
 import { MeetingsSection } from "./dashboard/MeetingsSection";
 import { OverviewSection } from "./dashboard/OverviewSection";
 import { QuizzesSection } from "./dashboard/QuizzesSection";
 import type {
-  TutorAssignedClassCard,
-  TutorDashboardView,
-  TutorMaterialTrack,
-  TutorQuizDraft,
-  TutorQuizQuestionDraft,
-  TutorQuizQuestionType,
-  TutorQuizStatus,
+    TutorAssignedClassCard,
+    TutorDashboardView,
+    TutorMaterialTrack,
+    TutorQuizDraft,
+    TutorQuizQuestionDraft,
+    TutorQuizQuestionType
 } from "./dashboard/types";
 
 export default function TutorDashboardPage() {

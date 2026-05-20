@@ -5,8 +5,8 @@ import DashboardSidebar from "../components/navigation/DashboardSidebar";
 const studentNavItems = [
   { label: "Dashboard", to: "/student-dashboard", icon: LayoutDashboard, exact: true },
   { label: "Certificates", to: "/student-certificates", icon: Award, exact: true },
-  { label: "Explore more classes", to: "/marketplace", icon: ClipboardList, exact: true },
   { label: "Profile", to: "/student-profile", icon: UserRound, exact: true },
+  { label: "Explore more classes", to: "/marketplace", icon: ClipboardList, exact: true },
   { label: "Help Center", to: "/help-faq?role=student", icon: HelpCircle, exact: true },
 ];
 

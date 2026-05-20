@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { useParams, useSearchParams } from "react-router";
+import { AlertTriangle, Camera, Clock, Eye, EyeOff, PlayCircle } from "lucide-react";
 import Plyr from "plyr";
 import "plyr/dist/plyr.css";
-import { AlertTriangle, Camera, Clock, Eye, EyeOff, PlayCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useParams, useSearchParams } from "react-router";
 import { Badge } from "../../../components/ui/badge";
 import { Card } from "../../../components/ui/card";
 import { getMockClassroomData } from "../../../data/classroomContent";
@@ -23,7 +23,7 @@ const VIDEO_CONTROLS = [
 const GAZE_API_URL = import.meta.env.VITE_GAZE_API_URL ?? "http://127.0.0.1:8000/analyze-frame";
 const FOCUS_SAMPLE_INTERVAL_MS = 350;
 const TRACKER_FRAME_SIZE = 224;
-const TRACKER_PREVIEW_SIZE = 180;
+const TRACKER_PREVIEW_SIZE = 220;
 
 type GazeApiResponse = {
   focused: boolean;
@@ -81,6 +81,16 @@ function extractYouTubeVideoId(sourceUrl: string) {
   return null;
 }
 
+function getCenteredSquareCrop(sourceWidth: number, sourceHeight: number) {
+  const size = Math.min(sourceWidth, sourceHeight);
+
+  return {
+    x: (sourceWidth - size) / 2,
+    y: (sourceHeight - size) / 2,
+    size,
+  };
+}
+
 function drawFacePreview(
   sourceVideo: HTMLVideoElement,
   targetCanvas: HTMLCanvasElement,
@@ -97,15 +107,13 @@ function drawFacePreview(
   targetCanvas.height = TRACKER_PREVIEW_SIZE;
 
   if (!faceBox) {
-    const cropSize = Math.min(sourceWidth, sourceHeight);
-    const cropX = (sourceWidth - cropSize) / 2;
-    const cropY = (sourceHeight - cropSize) / 2;
+    const crop = getCenteredSquareCrop(sourceWidth, sourceHeight);
     context.drawImage(
       sourceVideo,
-      cropX,
-      cropY,
-      cropSize,
-      cropSize,
+      crop.x,
+      crop.y,
+      crop.size,
+      crop.size,
       0,
       0,
       targetCanvas.width,
@@ -114,14 +122,19 @@ function drawFacePreview(
     return;
   }
 
-  const padding = Math.max(faceBox.width, faceBox.height) * 0.7;
+  const analysisCrop = getCenteredSquareCrop(sourceWidth, sourceHeight);
+  const analysisScale = analysisCrop.size / TRACKER_FRAME_SIZE;
+  const faceCenterX = analysisCrop.x + (faceBox.x + faceBox.width / 2) * analysisScale;
+  const faceCenterY = analysisCrop.y + (faceBox.y + faceBox.height / 2) * analysisScale;
+  const faceSize = Math.max(faceBox.width, faceBox.height) * analysisScale;
+  const padding = faceSize * 0.8;
   const cropSize = Math.min(
-    Math.max(faceBox.width, faceBox.height) + padding,
+    faceSize + padding,
     sourceWidth,
     sourceHeight,
   );
-  const cropX = Math.max(0, Math.min(faceBox.x + faceBox.width / 2 - cropSize / 2, sourceWidth - cropSize));
-  const cropY = Math.max(0, Math.min(faceBox.y + faceBox.height / 2 - cropSize / 2, sourceHeight - cropSize));
+  const cropX = Math.max(0, Math.min(faceCenterX - cropSize / 2, sourceWidth - cropSize));
+  const cropY = Math.max(0, Math.min(faceCenterY - cropSize / 2, sourceHeight - cropSize));
 
   context.drawImage(
     sourceVideo,
@@ -323,11 +336,9 @@ export default function ClassroomVideoPage() {
 
         const sourceWidth = video.videoWidth || 320;
         const sourceHeight = video.videoHeight || 240;
-        const cropSize = Math.min(sourceWidth, sourceHeight);
-        const cropX = (sourceWidth - cropSize) / 2;
-        const cropY = (sourceHeight - cropSize) / 2;
+        const crop = getCenteredSquareCrop(sourceWidth, sourceHeight);
 
-        context.drawImage(video, cropX, cropY, cropSize, cropSize, 0, 0, canvas.width, canvas.height);
+        context.drawImage(video, crop.x, crop.y, crop.size, crop.size, 0, 0, canvas.width, canvas.height);
 
         const blob = await new Promise<Blob | null>((resolve) => {
           canvas.toBlob(resolve, "image/jpeg", 0.8);
@@ -422,7 +433,7 @@ export default function ClassroomVideoPage() {
         </div>
 
         {trackerEnabled ? (
-          <div className={`absolute bottom-3 right-3 z-10 w-[136px] rounded-2xl border p-2.5 text-white backdrop-blur-md sm:bottom-5 sm:right-5 sm:w-[156px] sm:p-3 ${trackerPanelClass}`}>
+          <div className={`absolute bottom-3 mt-16 right-3 z-10 w-[156px] rounded-2xl border p-2.5 text-white backdrop-blur-md sm:bottom-3 sm:right-5 sm:w-[160px] sm:p-3 ${trackerPanelClass}`}>
             <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-black">
               <video ref={webcamVideoRef} className="hidden" autoPlay muted playsInline />
               <canvas ref={facePreviewCanvasRef} className="aspect-square w-full scale-x-[-1] object-cover" />

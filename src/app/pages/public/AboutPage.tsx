@@ -1,12 +1,12 @@
-import { Link } from "react-router";
 import {
   BookOpen,
-  GraduationCap,
   Handshake,
   LibraryBig,
-  Sparkles,
-  Users,
+  Users
 } from "lucide-react";
+import { Link } from "react-router";
+import aaTutorImage from "../../../assets/aatutor.png";
+import msTutorImage from "../../../assets/mstutor.png";
 import Footer from "../../components/layout/Footer";
 import Navbar from "../../components/navigation/Navbar";
 import { Button } from "../../components/ui/button";
@@ -27,7 +27,7 @@ const focusAreas = [
   },
   {
     icon: Handshake,
-    title: "Dukungan akademik antar mahasiswa",
+    title: "Dukungan akademik",
     description:
       "Membangun ruang belajar yang memungkinkan mahasiswa saling membantu, berdiskusi, dan berkembang bersama.",
   },
@@ -38,11 +38,13 @@ const founders = [
     name: "Matthew Anugrah Siahaan",
     role: "Founder",
     initials: "MS",
+    image: msTutorImage,
   },
   {
     name: "Althaf Faizulhaq Aleyandra",
     role: "Co-Founder",
     initials: "AA",
+    image: aaTutorImage,
   },
 ];
 
@@ -56,12 +58,8 @@ export default function AboutPage() {
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-white/15" />
           <div className="mx-auto max-w-7xl">
             <div className="grid gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.65fr)] lg:items-end">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white/90">
-                  <GraduationCap className="h-4 w-4 text-[#92B7B0]" />
-                  Ekosistem belajar mahasiswa
-                </div>
-                <h1 className="mt-8 max-w-4xl text-4xl font-bold leading-tight tracking-[-0.04em] sm:text-5xl lg:text-6xl">
+              <div >
+                <h1 className="mt-4 max-w-4xl text-4xl font-bold leading-tight tracking-[-0.04em] sm:text-5xl lg:text-6xl">
                   About Tutoring Academy
                 </h1>
                 <p className="mt-6 max-w-3xl text-base leading-8 text-white/80 sm:text-lg">
@@ -78,24 +76,6 @@ export default function AboutPage() {
                   </Link>
                 </div>
               </div>
-
-              <Card className="border-white/15 bg-white/10 p-6 text-white shadow-[0_24px_60px_rgba(10,27,69,0.18)]">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-[#308279]">
-                    <Sparkles className="h-7 w-7" />
-                  </div>
-                  <div>
-                    <div className="text-4xl font-bold tracking-[-0.04em]">300+</div>
-                    <div className="text-sm font-medium text-white/75">
-                      Students Served
-                    </div>
-                  </div>
-                </div>
-                <p className="mt-5 text-sm leading-7 text-white/75">
-                  Pencapaian ini dibangun melalui sesi tutoring online dan produk belajar
-                  digital yang dirancang untuk kebutuhan mahasiswa.
-                </p>
-              </Card>
             </div>
           </div>
         </section>
@@ -182,7 +162,7 @@ export default function AboutPage() {
                   <h3 className="mt-5 text-xl font-bold text-[#0A1B45]">
                     {item.title}
                   </h3>
-                  <p className="mt-3 text-sm leading-7 text-[#476074]">
+                  <p className="text-md leading-7 text-[#476074]">
                     {item.description}
                   </p>
                 </Card>
@@ -227,14 +207,18 @@ export default function AboutPage() {
             <div className="mx-auto grid max-w-3xl gap-6 sm:grid-cols-2">
               {founders.map((founder) => (
                 <Card key={founder.name} className="p-6 text-center">
-                  <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-[#308279] to-[#0A1B45] text-2xl font-bold text-white">
-                    {founder.initials}
+                  <div className="mx-auto size-72 overflow-hidden rounded-3xl border border-[#D8E5E9] bg-[#F3F8FA] shadow-sm">
+                    <img
+                      src={founder.image}
+                      alt={founder.name}
+                      className="h-full w-full object-cover"
+                    />
                   </div>
-                  <h3 className="mt-5 text-xl font-bold text-[#0A1B45]">
+                  <p className="text-xl font-bold leading-none text-[#0A1B45]">
                     {founder.name}
-                  </h3>
-                  <p className="mt-1 text-sm font-semibold text-[#308279]">
-                    {founder.role}
+                  </p>
+                  <p className="text-sm font-semibold leading-none text-[#308279]">
+                    as {founder.role}
                   </p>
                 </Card>
               ))}

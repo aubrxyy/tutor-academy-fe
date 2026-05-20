@@ -1,11 +1,12 @@
+import { Menu, X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { GraduationCap, Menu, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import tutoringAcademyLogo from "../../../assets/tutoringacademy.png";
 import { getDefaultDashboardPath, useAuth } from "../../auth/AuthContext";
-import { Button } from "../ui/button";
-import { motion, AnimatePresence } from "motion/react";
-import { cn } from "../ui/utils";
 import { confirmLogout } from "../feedback/confirmLogout";
+import { Button } from "../ui/button";
+import { cn } from "../ui/utils";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -72,18 +73,22 @@ export default function Navbar() {
       animate={{ y: 0 }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto py-2 px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <motion.div
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0A1B45] to-[#308279] flex items-center justify-center text-white shadow-lg"
-              whileHover={{ rotate: 5, scale: 1.05 }}
+              className="flex items-center justify-center"
+              whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
-              <GraduationCap className="w-5 h-5" />
+              <img
+                src={tutoringAcademyLogo}
+                alt="Tutoring Academy"
+                className="size-24 fixed max-xl:ml-12 mt-2 object-contain drop-shadow-[0_10px_18px_rgba(10,27,69,0.18)]"
+              />
             </motion.div>
-            <span className="text-xl font-bold text-[#0A1B45] tracking-tight">Tutoring <span className="text-[#308279] font-light">Academy</span></span>
+            <span className="text-2xl font-bold ml-12 xl:ml-8 tracking-tight text-[#0A1B45] sm:text-2xl">Tutoring <span className="font-light text-[#308279]">Academy</span></span>
           </Link>
 
           {/* Desktop Navigation */}

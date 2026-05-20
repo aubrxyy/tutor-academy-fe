@@ -1,17 +1,17 @@
-import {
-  CartesianGrid,
-  Cell,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { Link } from "react-router";
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router";
+import {
+    CartesianGrid,
+    Cell,
+    Line,
+    LineChart,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from "recharts";
 
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";

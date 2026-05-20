@@ -1,32 +1,31 @@
-import { useEffect, useState } from "react";
 import { useMutation } from "@apollo/client/react";
-import { Link, useNavigate, useSearchParams } from "react-router";
 import { jsPDF } from "jspdf";
-import Swal from "sweetalert2";
 import {
-  DollarSign,
-  FileText,
-  FolderKanban,
-  GraduationCap,
-  LayoutDashboard,
-  LogOut,
-  ShieldCheck,
-  Users,
+    DollarSign,
+    FileText,
+    FolderKanban,
+    GraduationCap,
+    LayoutDashboard,
+    LogOut,
+    ShieldCheck,
+    Users,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
+import Swal from "sweetalert2";
 import { GET_ADMIN_PANEL_DATA, useAdminPanelData, type BackendUser } from "../../../api/admin";
 import type { Batch } from "../../../api/batches";
 import { DELETE_COURSE, type Course, type CourseStatus } from "../../../api/courses";
 import { useAuth } from "../../../auth/AuthContext";
 import { confirmLogout } from "../../../components/feedback/confirmLogout";
-import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
-import { AdminView, ManagedClass, ManagedStudent, ManagedTutor, NewTutorDraft, TutorApplication } from "../shared/types";
 import AdminClassesPage from "../classes/AdminClassesPage";
 import AdminFinancialsPage from "../financials/AdminFinancialsPage";
-import AdminOverviewPage from "./AdminOverviewPage";
+import { AdminView, ManagedClass, ManagedStudent, ManagedTutor, NewTutorDraft, TutorApplication } from "../shared/types";
 import AdminStudentsPage from "../students/AdminStudentsPage";
 import AdminTutorsPage from "../tutors/AdminTutorsPage";
+import AdminOverviewPage from "./AdminOverviewPage";
 
 const initialStudents: ManagedStudent[] = [
   {

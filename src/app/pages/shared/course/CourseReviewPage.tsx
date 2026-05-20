@@ -1,16 +1,16 @@
-import { useState } from "react";
 import { useMutation } from "@apollo/client/react";
-import { Link, useParams, useNavigate } from "react-router";
 import { ArrowLeft, Star } from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
+import { toast } from "sonner";
+import { CREATE_REVIEW } from "../../../api/reviews";
+import { useAuth } from "../../../auth/AuthContext";
+import Footer from "../../../components/layout/Footer";
+import Navbar from "../../../components/navigation/Navbar";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
-import { Textarea } from "../../../components/ui/textarea";
 import { Label } from "../../../components/ui/label";
-import Navbar from "../../../components/navigation/Navbar";
-import Footer from "../../../components/layout/Footer";
-import { useAuth } from "../../../auth/AuthContext";
-import { CREATE_REVIEW } from "../../../api/reviews";
-import { toast } from "sonner";
+import { Textarea } from "../../../components/ui/textarea";
 
 export default function CourseReviewPage() {
   const { courseId } = useParams();
